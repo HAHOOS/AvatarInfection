@@ -1148,9 +1148,6 @@ namespace AvatarInfection
                             Color color = Color.Lerp(Color.black, Color.clear, fadeProgress);
 
                             LocalVision.BlindColor = color;
-#if !DEBUG
-                            Countdown.Opacity = color.a;
-#endif
 
                             // Check for second counter
                             if (secondPassed)
@@ -1178,7 +1175,6 @@ namespace AvatarInfection
                                     sprite,
                                     CountdownLength);
                                 tutorialRig.headTitles.sr_element.sprite = sprite;
-                                //Countdown.Text = remainingSeconds.ToString();
 
                                 secondPassed = false;
                             }
