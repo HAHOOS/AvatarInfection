@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 
+using AvatarInfection.Helper;
 using AvatarInfection.Patches;
 using AvatarInfection.Utilities;
 
@@ -40,7 +41,7 @@ namespace AvatarInfection
                 bytes.Add((byte)_byte);
             }
             var texture2d = new Texture2D(2, 2);
-            Il2CppImageConversionManager.LoadImage(texture2d, bytes.ToArray(), false);
+            ImageConversion.LoadImage(texture2d, bytes.ToArray(), false);
             texture2d.name = "AvatarInfectionIcon";
             texture2d.hideFlags = HideFlags.DontUnloadUnusedAsset;
             Icon = texture2d;

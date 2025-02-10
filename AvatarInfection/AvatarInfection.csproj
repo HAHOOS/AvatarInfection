@@ -67,9 +67,6 @@
 		<Reference Include="Unity.TextMeshPro">
 			<HintPath>$(GameDirectory)\MelonLoader\Il2CppAssemblies\Unity.TextMeshPro.dll</HintPath>
 		</Reference>
-		<Reference Include="UnityEngine.Il2CppImageConversionManager">
-			<HintPath>$(GameDirectory)\MelonLoader\net6\UnityEngine.Il2CppImageConversionManager.dll</HintPath>
-		</Reference>
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
