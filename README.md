@@ -1,7 +1,7 @@
 <p align="center"><img src="https://github.com/HAHOOS/AvatarInfection/blob/master/AvatarInfection/Media/Icon.png?raw=true" width=64px height=64px></p>
 <h1 align="center">AvatarInfection</h1>
 
-A Fusion gamemode where a virus is released, but it's rather special... It turns the infected people into a selected avatar! I have been teasing this gamemode in Fusion for quite a long time and I am sorry for taking so long to complete it. I wanted to make this as best as possible.
+A Fusion gamemode where a virus is released, but it's rather special... It turns the infected people into a selected avatar! I have been talkign about this gamemode in Fusion for quite a long time and I am sorry for taking so long to complete it. I wanted to make this as best as possible.
 
 <h2 align="center">Features</h2>
 
