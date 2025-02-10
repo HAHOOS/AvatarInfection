@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppInterop.Runtime;
@@ -10,7 +6,7 @@ using UnityEngine;
 
 namespace AvatarInfection.Helper
 {
-    public class ImageConversion
+    public static class ImageConversion
     {
         static ImageConversion()
         {
@@ -21,7 +17,7 @@ namespace AvatarInfection.Helper
             LoadImageDelegateField = IL2CPP.ResolveICall<LoadImageDelegate>("UnityEngine.ImageConversion::LoadImage");
         }
 
-        public static Il2CppStructArray<byte> EncodeToTGA(Texture2D tex)
+        public static Il2CppStructArray<byte> EncodeToTGA(this Texture2D tex)
         {
             if (tex == null)
                 throw new ArgumentException("The texture cannot be null.");
@@ -36,7 +32,7 @@ namespace AvatarInfection.Helper
             return il2CppStructArray;
         }
 
-        public static Il2CppStructArray<byte> EncodeToPNG(Texture2D tex)
+        public static Il2CppStructArray<byte> EncodeToPNG(this Texture2D tex)
         {
             if (tex == null)
                 throw new ArgumentException("The texture cannot be null.");
@@ -51,7 +47,7 @@ namespace AvatarInfection.Helper
             return il2CppStructArray;
         }
 
-        public static Il2CppStructArray<byte> EncodeToJPG(Texture2D tex, int quality)
+        public static Il2CppStructArray<byte> EncodeToJPG(this Texture2D tex, int quality)
         {
             if (tex == null)
                 throw new ArgumentException("The texture cannot be null.");
@@ -66,9 +62,9 @@ namespace AvatarInfection.Helper
             return il2CppStructArray;
         }
 
-        public static Il2CppStructArray<byte> EncodeToJPG(Texture2D tex) => EncodeToJPG(tex, 75);
+        public static Il2CppStructArray<byte> EncodeToJPG(this Texture2D tex) => EncodeToJPG(tex, 75);
 
-        public static Il2CppStructArray<byte> EncodeToEXR(Texture2D tex, Texture2D.EXRFlags flags)
+        public static Il2CppStructArray<byte> EncodeToEXR(this Texture2D tex, Texture2D.EXRFlags flags)
         {
             if (tex == null)
                 throw new ArgumentException("The texture cannot be null.");
@@ -83,9 +79,9 @@ namespace AvatarInfection.Helper
             return il2CppStructArray;
         }
 
-        public static Il2CppStructArray<byte> EncodeToEXR(Texture2D tex) => EncodeToEXR(tex, 0);
+        public static Il2CppStructArray<byte> EncodeToEXR(this Texture2D tex) => EncodeToEXR(tex, 0);
 
-        public static bool LoadImage(Texture2D tex, Il2CppStructArray<byte> data, bool markNonReadable)
+        public static bool LoadImage(this Texture2D tex, Il2CppStructArray<byte> data, bool markNonReadable)
         {
             if (tex == null)
                 throw new ArgumentException("The texture cannot be null.");
@@ -96,7 +92,7 @@ namespace AvatarInfection.Helper
             return LoadImageDelegateField(IL2CPP.Il2CppObjectBaseToPtr(tex), IL2CPP.Il2CppObjectBaseToPtr(data), markNonReadable);
         }
 
-        public static bool LoadImage(Texture2D tex, Il2CppStructArray<byte> data) => LoadImage(tex, data, false);
+        public static bool LoadImage(this Texture2D tex, Il2CppStructArray<byte> data) => LoadImage(tex, data, false);
 
         private delegate IntPtr TextureOnlyDelegate(IntPtr tex);
 

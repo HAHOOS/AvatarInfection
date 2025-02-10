@@ -41,7 +41,7 @@ namespace AvatarInfection
                 bytes.Add((byte)_byte);
             }
             var texture2d = new Texture2D(2, 2);
-            ImageConversion.LoadImage(texture2d, bytes.ToArray(), false);
+            texture2d.LoadImage(bytes.ToArray(), false);
             texture2d.name = "AvatarInfectionIcon";
             texture2d.hideFlags = HideFlags.DontUnloadUnusedAsset;
             Icon = texture2d;
