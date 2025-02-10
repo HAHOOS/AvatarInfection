@@ -11,6 +11,12 @@
 		<GameDirectory>C:\Oculus\Software\stress-level-zero-inc-bonelab</GameDirectory>
 
 	</PropertyGroup>
+	<ItemGroup>
+	  <None Remove="Embedded\Icons\AvatarInfection.png" />
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Include="Embedded\Icons\AvatarInfection.png" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<Reference Include="Assembly-CSharp">
@@ -60,6 +66,9 @@
 		</Reference>
 		<Reference Include="Unity.TextMeshPro">
 			<HintPath>$(GameDirectory)\MelonLoader\Il2CppAssemblies\Unity.TextMeshPro.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.Il2CppImageConversionManager">
+			<HintPath>$(GameDirectory)\MelonLoader\net6\UnityEngine.Il2CppImageConversionManager.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 

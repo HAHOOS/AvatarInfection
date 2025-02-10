@@ -46,6 +46,8 @@ namespace AvatarInfection
 
         public override string Barcode => Defaults.Barcode;
 
+        public override Texture Logo => Core.Icon;
+
         public override bool DisableSpawnGun => _DisableSpawnGun;
 
         public override bool DisableDevTools => _DisableDevTools;
