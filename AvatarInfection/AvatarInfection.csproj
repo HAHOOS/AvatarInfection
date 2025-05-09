@@ -40,6 +40,9 @@
 		<Reference Include="LabFusion">
 			<HintPath>$(GameDirectory)\Mods\LabFusion.dll</HintPath>
 		</Reference>
+		<Reference Include="LabPresence">
+			<HintPath>$(GameDirectory)\Mods\LabPresence.dll</HintPath>
+		</Reference>
 		<Reference Include="MelonLoader">
 			<HintPath>$(GameDirectory)\MelonLoader\net6\MelonLoader.dll</HintPath>
 		</Reference>

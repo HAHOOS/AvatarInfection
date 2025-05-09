@@ -1,5 +1,7 @@
 ﻿using System;
 
+using AvatarInfection.Utilities;
+
 using LabFusion.SDK.Gamemodes;
 using LabFusion.SDK.Modules;
 
@@ -29,6 +31,7 @@ namespace AvatarInfection
             LoggerInstance.Warn("This is a debug build, which is made in a way to make debugging a bit easier. Please make sure to set the configuration to 'Release' before releasing it to the public.");
 #endif
             GamemodeRegistration.RegisterGamemode<Infection>();
+            LabPresenceExtension.Init();
         }
     }
 }

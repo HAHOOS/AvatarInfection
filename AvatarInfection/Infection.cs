@@ -35,6 +35,9 @@ using HarmonyLib;
 using AvatarInfection.Utilities;
 using System;
 using System.Text.RegularExpressions;
+using LabFusion.Marrow.Integration;
+using BoneLib.BoneMenu;
+using FloatElement = LabFusion.Marrow.Proxies.FloatElement;
 
 namespace AvatarInfection
 {
@@ -74,9 +77,13 @@ namespace AvatarInfection
 
         internal static TeamMetadata InfectedMetadata;
 
-        internal static Team UnInfected { get; } = new("Uninfected");
+        internal static Team UnInfected { get; } = new("UnInfected");
 
         internal static TeamMetadata UnInfectedMetadata;
+
+        internal static Team InfectedChildren { get; } = new("InfectedChildren");
+
+        internal static TeamMetadata InfectedChildrenMetadata;
 
         internal static TeamManager TeamManager { get; } = new();
 
@@ -96,11 +103,30 @@ namespace AvatarInfection
 
             public readonly static TeamConfig InfectedStats = new()
             {
-                Vitality = 0.5f,
+                Vitality = 0.75f,
                 JumpPower = 1.5f,
                 Speed = 2.8f,
                 Agility = 2f,
                 StrengthUpper = 0.5f,
+
+                JumpPower_Enabled = true,
+                Speed_Enabled = true,
+                Vitality_Enabled = true,
+                Agility_Enabled = true,
+                StrengthUpper_Enabled = true,
+
+                Mortality = true,
+
+                CanUseGuns = false,
+            };
+
+            public readonly static TeamConfig InfectedChildrenStats = new()
+            {
+                Vitality = 0.5f,
+                JumpPower = 1.25f,
+                Speed = 1.8f,
+                Agility = 1.5f,
+                StrengthUpper = 0.35f,
 
                 JumpPower_Enabled = true,
                 Speed_Enabled = true,
@@ -151,6 +177,14 @@ namespace AvatarInfection
             public const int HoldTime = 0;
 
             public const bool TeleportOnEnd = false;
+
+            public const bool UseDeathMatchSpawns = true;
+
+            public const bool SyncWithInfected = false;
+
+            public const bool ShowCountdownToAll = false;
+
+            public const AvatarSelectMode SelectMode = AvatarSelectMode.Config;
 
             // Have no idea for mono discs
             public static readonly MonoDiscReference[] Tracks =
@@ -215,12 +249,30 @@ namespace AvatarInfection
 
         internal int HoldTime { get; private set; } = Defaults.HoldTime;
 
-        internal MetadataBool _TeleportOnEnd { get; private set; }
+        internal MetadataBool _TeleportOnEnd;
 
         internal bool TeleportOnEnd { get; private set; } = Defaults.TeleportOnEnd;
 
+        internal MetadataBool _UseDeathmatchSpawns;
+
+        internal bool UseDeathmatchSpawns { get; private set; } = Defaults.UseDeathMatchSpawns;
+
         private List<ElementData> InfectedElements;
         private List<ElementData> UnInfectedElements;
+        private List<ElementData> InfectedChildrenElements;
+
+        internal bool SyncWithInfected { get; private set; } = Defaults.SyncWithInfected;
+
+        internal AvatarSelectMode SelectMode { get; private set; } = Defaults.SelectMode;
+
+        internal MetadataBool _ShowCountdownToAll;
+        internal bool ShowCountdownToAll { get; private set; } = Defaults.ShowCountdownToAll;
+
+        internal MetadataInt CountdownValue;
+
+        internal MetadataVariableT<long?> StartUnix { get; private set; }
+
+        internal MetadataVariableT<long?> EndUnix { get; private set; }
 
         private static MenuElement GetElement(string groupName, string elementName, bool startsWith = true)
         {
@@ -412,17 +464,45 @@ namespace AvatarInfection
             };
             avatarGroup.AddElement(select);
 
+            var selectMode = new FunctionElementData()
+            {
+                Title = $"Select Mode: {SelectMode}",
+                OnPressed = () =>
+                {
+                    var values = Enum.GetValues(typeof(AvatarSelectMode));
+                    int index = (int)SelectMode;
+
+                    // Politely borrowed from BoneLib
+                    // Oh sorry my bad, from LabFusion, because the BoneLib one didn't do anything
+                    index++;
+                    index %= values.Length;
+                    SelectMode = (AvatarSelectMode)values.GetValue(index);
+                    ChangeElementTitle(avatarGroup.Title, "Select Mode:", $"Select Mode: {SelectMode}");
+                }
+            };
+            avatarGroup.AddElement(selectMode);
+
             GroupElementData gr = new(string.Format(TeamConfigName, Infected.DisplayName));
+
             group.AddElement(gr);
 
-            InfectedElements ??= GetElementsForTeam(true);
+            InfectedElements ??= GetElementsForTeam(TeamEnum.Infected);
+
             InfectedElements.ForEach(x => gr.AddElement(x));
 
-            var gr2 = new GroupElementData(string.Format(TeamConfigName, UnInfected.DisplayName));
+            var gr2 = new GroupElementData(string.Format(TeamConfigName, InfectedChildren.DisplayName));
             group.AddElement(gr2);
 
-            UnInfectedElements ??= GetElementsForTeam(false);
-            UnInfectedElements.ForEach(x => gr2.AddElement(x));
+            InfectedChildrenElements ??= GetElementsForTeam(TeamEnum.InfectedChildren);
+
+            InfectedChildrenElements.ForEach(x => gr2.AddElement(x));
+
+            var gr3 = new GroupElementData(string.Format(TeamConfigName, UnInfected.DisplayName));
+            group.AddElement(gr3);
+
+            UnInfectedElements ??= GetElementsForTeam(TeamEnum.UnInfected);
+
+            UnInfectedElements.ForEach(x => gr3.AddElement(x));
 
             GroupElementData generalGroup = new("General");
 
@@ -437,6 +517,7 @@ namespace AvatarInfection
                 Value = InfectedCount,
                 OnValueChanged = (val) => InfectedCount = val,
             };
+
             generalGroup.AddElement(infectedCount);
 
             var timeLimit = new IntElementData()
@@ -446,8 +527,14 @@ namespace AvatarInfection
                 Increment = 1,
                 MinValue = 1,
                 MaxValue = 60,
-                OnValueChanged = (val) => TimeLimit = val
+                OnValueChanged = (val) =>
+                {
+                    TimeLimit = val;
+                    if (IsStarted)
+                        EndUnix.SetValue(DateTimeOffset.FromUnixTimeMilliseconds((long)StartUnix.GetValue()).AddMinutes(val).ToUnixTimeMilliseconds());
+                }
             };
+
             generalGroup.AddElement(timeLimit);
 
             var spawnGunDisabled = new BoolElementData()
@@ -460,6 +547,7 @@ namespace AvatarInfection
                     __DisableSpawnGun.SetValue(val);
                 }
             };
+
             generalGroup.AddElement(spawnGunDisabled);
 
             var devToolsDisabled = new BoolElementData()
@@ -472,6 +560,7 @@ namespace AvatarInfection
                     __DisableDevTools.SetValue(val);
                 }
             };
+
             generalGroup.AddElement(devToolsDisabled);
 
             var allowKI = new BoolElementData()
@@ -485,15 +574,36 @@ namespace AvatarInfection
                         AKI.SetValue(val);
                 }
             };
+
             generalGroup.AddElement(allowKI);
 
             var untilAllFound = new BoolElementData()
             {
-                Title = "Play Until All Found (No Time Limit)",
+                Title = "No Time Limit",
                 Value = UntilAllFound,
-                OnValueChanged = (val) => UntilAllFound = val
+                OnValueChanged = (val) =>
+                {
+                    UntilAllFound = val;
+                    if (IsStarted)
+                        EndUnix.SetValue(-1);
+                }
             };
+
             generalGroup.AddElement(untilAllFound);
+
+            var useDeathmatchSpawns = new BoolElementData()
+            {
+                Title = "Use Deathmatch Spawns",
+                Value = UseDeathmatchSpawns,
+                OnValueChanged = (val) =>
+                {
+                    UseDeathmatchSpawns = val;
+                    if (IsStarted)
+                        _UseDeathmatchSpawns.SetValue(val);
+                }
+            };
+
+            generalGroup.AddElement(useDeathmatchSpawns);
 
             var teleportToHostOnStart = new BoolElementData()
             {
@@ -501,6 +611,7 @@ namespace AvatarInfection
                 Value = ShouldTeleportToHost,
                 OnValueChanged = (val) => ShouldTeleportToHost = val,
             };
+
             generalGroup.AddElement(teleportToHostOnStart);
 
             var teleportToHostOnEnd = new BoolElementData()
@@ -514,6 +625,7 @@ namespace AvatarInfection
                         _TeleportOnEnd.SetValue(val);
                 }
             };
+
             generalGroup.AddElement(teleportToHostOnEnd);
 
             var countdownLength = new IntElementData()
@@ -530,6 +642,14 @@ namespace AvatarInfection
                         _CountdownLength.SetValue(val);
                 }
             };
+
+            var countdownShowToAll = new BoolElementData()
+            {
+                Title = "Show Countdown to All Players",
+                Value = ShowCountdownToAll,
+                OnValueChanged = (val) => ShowCountdownToAll = val
+            };
+
             generalGroup.AddElement(countdownLength);
 
             var infectType = new FunctionElementData()
@@ -554,10 +674,11 @@ namespace AvatarInfection
             // I'm keeping 'suicideKills' as the variable name to remind myself how smart I am
             var suicideKills = new BoolElementData()
             {
-                Title = "Suicide Infects (Death Infect Type)",
+                Title = "Suicide Infects",
                 Value = true,
                 OnValueChanged = (val) => SuicideInfects = val,
             };
+
             generalGroup.AddElement(suicideKills);
 
             var holdTime = new IntElementData()
@@ -569,6 +690,7 @@ namespace AvatarInfection
                 MinValue = 0,
                 OnValueChanged = (val) => HoldTime = val,
             };
+
             generalGroup.AddElement(holdTime);
 
             /*
@@ -597,6 +719,7 @@ namespace AvatarInfection
 
                     InfectedMetadata.Config = new TeamConfig(Defaults.InfectedStats);
                     UnInfectedMetadata.Config = new TeamConfig(Defaults.UnInfectedStats);
+                    InfectedChildrenMetadata.Config = new TeamConfig(Defaults.InfectedChildrenStats);
                     UntilAllFound = Defaults.UntilAllFound;
                     SelectedAvatar = string.Empty;
                     TimeLimit = Defaults.TimeLimit;
@@ -615,30 +738,22 @@ namespace AvatarInfection
                     ChangeElementTitle("General", "Infect Type:", $"Infect Type: {Enum.GetName(InfectType)}");
                 }
             };
+
             generalGroup.AddElement(resetToDefault);
-
-#if DEBUG
-
-            var debugGroup = new GroupElementData()
-            {
-                Title = "Debug"
-            };
-            group.AddElement(debugGroup);
-
-            var label = new FunctionElementData()
-            {
-                Title = "Currently has nothing",
-                OnPressed = () => Logger.Log("Nothing")
-            };
-            group.AddElement(label);
-#endif
 
             return group;
         }
 
-        private List<ElementData> GetElementsForTeam(bool InfectedTeam)
+        public enum AvatarSelectMode
         {
-            var metadata = InfectedTeam ? InfectedMetadata : UnInfectedMetadata;
+            Config,
+            FirstInfected,
+            Random
+        }
+
+        private List<ElementData> GetElementsForTeam(TeamEnum team)
+        {
+            var metadata = team == TeamEnum.Infected ? InfectedMetadata : team == TeamEnum.UnInfected ? UnInfectedMetadata : InfectedChildrenMetadata;
             var group = new List<ElementData>();
 
             var apply = new FunctionElementData()
@@ -648,12 +763,15 @@ namespace AvatarInfection
                 {
                     if (IsStarted)
                     {
-                        var remote = metadata.GetConfigFromMetadata();
-                        if (remote == metadata.Config)
-                            return;
+                        var _metadata = metadata;
+                        if (team == TeamEnum.InfectedChildren && SyncWithInfected)
+                            _metadata = InfectedMetadata;
 
-                        metadata.ApplyConfig();
-                        RefreshStatsEvent?.TryInvoke(InfectedTeam.ToString());
+                        var remote = _metadata.GetConfigFromMetadata();
+                        if (remote == _metadata.Config)
+                            return;
+                        _metadata.ApplyConfig();
+                        RefreshStatsEvent?.TryInvoke(team.ToString());
                     }
                 }
             };
@@ -715,6 +833,7 @@ namespace AvatarInfection
             };
             group.Add(speed);
 
+            /*
             var overrideJumpPower = new BoolElementData()
             {
                 Title = "Override Jump Power",
@@ -734,6 +853,7 @@ namespace AvatarInfection
                 OnValueChanged = (v) => metadata.Config.JumpPower = v
             };
             group.Add(jumpPower);
+            */
 
             var overrideAgility = new BoolElementData()
             {
@@ -797,7 +917,25 @@ namespace AvatarInfection
             };
             group.Add(increment);
 
+            if (team == TeamEnum.InfectedChildren)
+            {
+                var sync = new BoolElementData()
+                {
+                    Title = "Sync with Infected",
+                    Value = SyncWithInfected,
+                    OnValueChanged = (v) => SyncWithInfected = v
+                };
+                group.Add(sync);
+            }
+
             return group;
+        }
+
+        private enum TeamEnum
+        {
+            UnInfected,
+            InfectedChildren,
+            Infected
         }
 
         internal float Increment
@@ -811,15 +949,22 @@ namespace AvatarInfection
         private readonly IReadOnlyList<float> IncrementValues = [0.2f, 0.5f, 1f, 5f];
         private int IncrementIndex = 0;
 
+        private static BoneLib.BoneMenu.Page ModPage { get; set; }
+
         public override void OnGamemodeRegistered()
         {
             Instance = this;
+            InfectedChildren.DisplayName = "Infected Children";
             FusionOverrides.OnValidateNametag += OnValidateNametag;
+
             MultiplayerHooking.OnPlayerAction += OnPlayerAction;
+            MultiplayerHooking.OnPlayerJoin += OnPlayerJoin;
+            MultiplayerHooking.OnPlayerLeave += OnPlayerLeave;
 
             TeamManager.Register(this);
             TeamManager.AddTeam(Infected);
             TeamManager.AddTeam(UnInfected);
+            TeamManager.AddTeam(InfectedChildren);
             TeamManager.OnAssignedToTeam += OnAssignedToTeam;
 
             __DisableDevTools = new MetadataBool(nameof(DisableDevTools), Metadata);
@@ -827,6 +972,7 @@ namespace AvatarInfection
 
             InfectedMetadata = new TeamMetadata(Infected, Metadata, new TeamConfig(Defaults.InfectedStats));
             UnInfectedMetadata = new TeamMetadata(UnInfected, Metadata, new TeamConfig(Defaults.UnInfectedStats));
+            InfectedChildrenMetadata = new TeamMetadata(InfectedChildren, Metadata, new TeamConfig(Defaults.InfectedChildrenStats));
 
             _SelectedAvatar = new MetadataVariableT<string>(nameof(SelectedAvatar), Metadata);
 
@@ -837,6 +983,16 @@ namespace AvatarInfection
             InfectedLooking = new MetadataBool(nameof(InfectedLooking), Metadata);
 
             _TeleportOnEnd = new MetadataBool(nameof(TeleportOnEnd), Metadata);
+
+            _UseDeathmatchSpawns = new MetadataBool(nameof(UseDeathmatchSpawns), Metadata);
+
+            _ShowCountdownToAll = new MetadataBool(nameof(ShowCountdownToAll), Metadata);
+
+            CountdownValue = new MetadataInt(nameof(CountdownValue), Metadata);
+
+            StartUnix = new MetadataVariableT<long?>(nameof(StartUnix), Metadata);
+
+            EndUnix = new MetadataVariableT<long?>(nameof(EndUnix), Metadata);
 
             Metadata.OnMetadataChanged += OnMetadataChanged;
 
@@ -857,15 +1013,113 @@ namespace AvatarInfection
 
             Teleport = new TriggerEvent("TeleportToHost", Relay, true);
             Teleport.OnTriggered += TeleportToHost;
+
+            var authorPage = BoneLib.BoneMenu.Page.Root.CreatePage("HAHOOS", Color.white);
+            ModPage = authorPage.CreatePage("AvatarInfection", Color.magenta);
+            PopulatePage();
+
+            MultiplayerHooking.OnDisconnect += PopulatePage;
+            MultiplayerHooking.OnJoinServer += PopulatePage;
+            MultiplayerHooking.OnPlayerJoin += Hook;
+            MultiplayerHooking.OnPlayerLeave += Hook;
+        }
+
+        private void OnPlayerLeave(PlayerId id)
+        {
+            if (!NetworkInfo.IsServer)
+                return;
+
+            if (!IsStarted)
+                return;
+
+            if (Infected.PlayerCount == 0 && InfectedChildren.PlayerCount == 0)
+            {
+                InfectedVictoryEvent.TryInvoke();
+                GamemodeManager.StopGamemode();
+            }
+            else if (UnInfected.PlayerCount == 0)
+            {
+                UninfectedVictoryEvent.TryInvoke();
+                GamemodeManager.StopGamemode();
+            }
+        }
+
+        private void OnPlayerJoin(PlayerId playerId)
+        {
+            if (!NetworkInfo.IsServer)
+                return;
+
+            if (!IsStarted)
+                return;
+
+            if (TeamManager.GetPlayerTeam(playerId) == null)
+                TeamManager.TryAssignTeam(playerId, UnInfected);
+        }
+
+        private void Hook(PlayerId _) => PopulatePage();
+
+        private void PopulatePage()
+        {
+            if (ModPage == null)
+                return;
+
+            ModPage.RemoveAll();
+            ModPage.CreateFunction("Refresh", Color.cyan, PopulatePage);
+            var seperator = ModPage.CreateFunction("[===============]", Color.magenta, null);
+            seperator.SetProperty(BoneLib.BoneMenu.ElementProperties.NoBorder);
+
+            if (!NetworkInfo.HasServer)
+            {
+                var label = ModPage.CreateFunction("You aren't in any server :(", Color.white, null);
+                label.SetProperty(BoneLib.BoneMenu.ElementProperties.NoBorder);
+                return;
+            }
+
+            if (!IsStarted)
+            {
+                var label = ModPage.CreateFunction("Gamemode is not started :(", Color.white, null);
+                label.SetProperty(BoneLib.BoneMenu.ElementProperties.NoBorder);
+                return;
+            }
+
+            Dictionary<PlayerId, Team> Teams = [];
+
+            foreach (var player in PlayerIdManager.PlayerIds)
+            {
+                var team = TeamManager.GetPlayerTeam(player);
+                Teams.Add(player, team);
+            }
+
+            var infected = Teams.Any(x => x.Value == Infected) ?
+                ModPage.CreatePage($"Infected ({Teams.Count(x => x.Value == Infected)})", Color.green) : null;
+            var children = Teams.Any(x => x.Value == InfectedChildren) ?
+                ModPage.CreatePage($"Infected Children ({Teams.Count(x => x.Value == InfectedChildren)})", new Color(0, 1, 0)) : null;
+            var uninfected = Teams.Any(x => x.Value == UnInfected) ?
+                ModPage.CreatePage($"UnInfected ({Teams.Count(x => x.Value == UnInfected)})", Color.cyan) : null;
+
+            var unidentified = Teams.Any(x => x.Value == null) ?
+                ModPage.CreatePage($"Unidentified ({Teams.Count(x => x.Value == null)})", Color.gray) : null;
+
+            foreach (var team in Teams)
+            {
+                if (!team.Key.TryGetDisplayName(out var displayName))
+                    continue;
+
+                var page = team.Value == Infected ? infected : team.Value == InfectedChildren ? children : team.Value == UnInfected ? uninfected : unidentified;
+                if (page == null)
+                    continue;
+
+                page.CreateFunction(displayName, Color.white, null);
+            }
         }
 
         private void RefreshStats(string isInfectedTeam)
         {
-            bool success = bool.TryParse(isInfectedTeam, out bool infected);
+            bool success = Enum.TryParse(isInfectedTeam, out TeamEnum team);
             if (!success)
                 return;
 
-            if (TeamManager.GetLocalTeam() == (infected ? Infected : UnInfected))
+            if (TeamManager.GetLocalTeam() == (team == TeamEnum.Infected ? Infected : team == TeamEnum.UnInfected ? UnInfected : InfectedChildren))
                 SetStats();
         }
 
@@ -874,7 +1128,7 @@ namespace AvatarInfection
             if (!IsStarted)
                 return;
 
-            if (TeamManager.GetLocalTeam() != Infected)
+            if (TeamManager.GetLocalTeam() != Infected && TeamManager.GetLocalTeam() != InfectedChildren)
             {
                 FusionNotifier.Send(new FusionNotification()
                 {
@@ -891,6 +1145,10 @@ namespace AvatarInfection
         public override void OnGamemodeUnregistered()
         {
             FusionOverrides.OnValidateNametag -= OnValidateNametag;
+
+            MultiplayerHooking.OnPlayerAction -= OnPlayerAction;
+            MultiplayerHooking.OnPlayerJoin -= OnPlayerJoin;
+            MultiplayerHooking.OnPlayerLeave -= OnPlayerLeave;
 
             InfectedElements = null;
             UnInfectedElements = null;
@@ -916,6 +1174,13 @@ namespace AvatarInfection
 
             Teleport?.UnregisterEvent();
             Teleport = null;
+
+            Menu.DestroyPage(ModPage);
+            ModPage = null;
+            MultiplayerHooking.OnDisconnect -= PopulatePage;
+            MultiplayerHooking.OnJoinServer -= PopulatePage;
+            MultiplayerHooking.OnPlayerJoin -= Hook;
+            MultiplayerHooking.OnPlayerLeave -= Hook;
         }
 
         private void PlayerInfected(string stringID)
@@ -931,7 +1196,7 @@ namespace AvatarInfection
             if (playerId == null)
                 return;
 
-            if (NetworkInfo.IsServer && UnInfected.HasPlayer(playerId))
+            if (NetworkInfo.IsServer && !InfectedChildren.HasPlayer(playerId) && !Infected.HasPlayer(playerId))
             {
                 if (UnInfected.PlayerCount <= 1)
                 {
@@ -940,7 +1205,7 @@ namespace AvatarInfection
                 }
                 else
                 {
-                    TeamManager.TryAssignTeam(playerId, Infected);
+                    TeamManager.TryAssignTeam(playerId, InfectedChildren);
                 }
             }
 
@@ -973,6 +1238,8 @@ namespace AvatarInfection
                     Type = NotificationType.INFORMATION
                 });
             }
+
+            PopulatePage();
         }
 
         private static void SwapAvatar(string barcode)
@@ -998,11 +1265,14 @@ namespace AvatarInfection
         {
             int target = CountdownLength;
 
-            float passed = 0f;
+            float remaining = target;
 
-            while (passed < target)
+            while (remaining > 0)
             {
-                passed += TimeUtilities.DeltaTime;
+                remaining -= TimeUtilities.DeltaTime;
+                var round = (int)MathF.Round(remaining);
+                if (CountdownValue.GetValue() != round)
+                    CountdownValue.SetValue(round);
                 yield return null;
             }
 
@@ -1012,6 +1282,7 @@ namespace AvatarInfection
         private void OnAssignedToTeam(PlayerId player, Team team)
         {
             FusionOverrides.ForceUpdateOverrides();
+            PopulatePage();
 
             if (team == null || player?.IsValid != true)
                 return;
@@ -1020,9 +1291,9 @@ namespace AvatarInfection
                 return;
 
             SetStats();
-            var config = team == Infected ? InfectedMetadata : UnInfectedMetadata;
-            config.CanUseGunsChanged();
-            if (team == Infected)
+            var config = team == Infected ? InfectedMetadata : team == UnInfected ? UnInfectedMetadata : team == InfectedChildren ? InfectedChildrenMetadata : null;
+            config?.CanUseGunsChanged();
+            if (team != UnInfected)
             {
                 var rig = Player.RigManager;
                 var PCDs = rig.gameObject.GetComponentsInChildren<PullCordDevice>();
@@ -1035,13 +1306,15 @@ namespace AvatarInfection
                 PCDs.ForEach(x => x._bodyLogEnabled = true);
             }
 
+            if (InfectedLooking.GetValue() && !InitialTeam)
+                InitialTeam = true;
+
             if (!InitialTeam)
                 return;
 
             if (team == Infected)
             {
                 SwapAvatar(SelectedAvatar);
-                MelonCoroutines.Start(HideVisionAndReveal());
             }
             else
             {
@@ -1049,11 +1322,15 @@ namespace AvatarInfection
                 {
                     ShowPopup = true,
                     Title = "Uninfected",
-                    Message = "Woah! You were lucky to not be infected. You have to make sure you don't get infected!",
-                    PopupLength = 4,
+                    Message = "Woah! You got lucky. Make sure you don't get infected!",
+                    PopupLength = 3,
                     Type = NotificationType.INFORMATION,
                 });
             }
+
+            if (!InfectedLooking.GetValue())
+                MelonCoroutines.Start(HideVisionAndReveal(team != Infected ? 3 : 0));
+
             InitialTeam = false;
         }
 
@@ -1102,122 +1379,152 @@ namespace AvatarInfection
             });
         }
 
-        private IEnumerator HideVisionAndReveal()
+        private IEnumerator HideVisionAndReveal(float delaySeconds = 0)
         {
             if (IsStarted)
             {
+                if ((_ShowCountdownToAll.GetValue() && TeamManager.GetLocalTeam() != Infected) || TeamManager.GetLocalTeam() == Infected)
+                {
 #if DEBUG
-                const bool skip = false;
+                    const bool skip = false;
 #else
                 const bool skip = false;
 #endif
-                try
-                {
-                    CountdownLength = _CountdownLength.GetValue();
-                    if (!skip && CountdownLength != 0)
+                    try
                     {
-                        HideVision = true;
-
-                        LocalVision.Blind = true;
-                        LocalVision.BlindColor = Color.black;
-
-                        //Countdown.IsHidden = false;
-                        //Countdown.Opacity = 1;
-
-                        // Lock movement so we can't move while vision is dark
-                        LocalControls.LockMovement();
-
-                        const float fadeLength = 1f;
-
-                        float elapsed = 0f;
-                        float totalElapsed = 0f;
-
-                        int seconds = 0;
-
-                        bool secondPassed = true;
-
-                        while (seconds < CountdownLength)
+                        CountdownLength = _CountdownLength.GetValue();
+                        if (!skip && CountdownLength != 0 && CountdownValue.GetValue() != 0 && !InfectedLooking.GetValue())
                         {
-                            if (!IsStarted)
-                                break;
+                            if (delaySeconds > 0)
+                                yield return new WaitForSeconds(delaySeconds);
 
-                            // Calculate fade-in
-                            float fadeStart = Mathf.Max(CountdownLength - fadeLength, 0f);
-                            float fadeProgress = Mathf.Max(totalElapsed - fadeStart, 0f) / fadeLength;
-
-                            Color color = Color.Lerp(Color.black, Color.clear, fadeProgress);
-
-                            LocalVision.BlindColor = color;
-
-                            // Check for second counter
-                            if (secondPassed)
+                            if (TeamManager.GetLocalTeam() == Infected)
                             {
-                                int remainingSeconds = CountdownLength - seconds;
+                                FusionPlayer.SetMortality(false);
 
-                                var icon = Texture2D.whiteTexture;
-                                var sprite = Sprite.Create(icon, new Rect(0, 0, 0, 0), new Vector2(0.5f, 0.5f), 100f);
+                                HideVision = true;
 
-                                // Make sure tutorial rig and head titles are enabled
+                                LocalVision.Blind = true;
+                                LocalVision.BlindColor = Color.black;
 
-                                var tutorialRig = TutorialRig.Instance;
-                                var headTitles = tutorialRig.headTitles;
+                                //Countdown.IsHidden = false;
+                                //Countdown.Opacity = 1;
 
-                                tutorialRig.gameObject.SetActive(true);
-                                headTitles.gameObject.SetActive(true);
-
-                                float timeToScale = Mathf.Lerp(0.05f, 0.4f, Mathf.Clamp01(CountdownLength - 1f));
-
-                                tutorialRig.headTitles.timeToScale = timeToScale;
-
-                                tutorialRig.headTitles.CUSTOMDISPLAY(
-                                    "Countdown, get ready...",
-                                    remainingSeconds.ToString(),
-                                    sprite,
-                                    CountdownLength);
-                                tutorialRig.headTitles.sr_element.sprite = sprite;
-
-                                secondPassed = false;
+                                // Lock movement so we can't move while vision is dark
+                                LocalControls.LockMovement();
                             }
 
-                            // Tick timer
-                            elapsed += TimeUtilities.DeltaTime;
-                            totalElapsed += TimeUtilities.DeltaTime;
+                            const float fadeLength = 1f;
 
-                            // If a second passed, send the notification next frame
-                            if (elapsed >= 1f)
+                            float elapsed = 0f;
+                            float totalElapsed = 0f;
+
+                            int seconds = 0;
+
+                            bool secondPassed = true;
+
+                            var target = CountdownValue.GetValue();
+
+                            while (seconds < target)
                             {
-                                elapsed--;
-                                seconds++;
+                                if (!IsStarted)
+                                    break;
 
-                                secondPassed = true;
+                                if (InfectedLooking.GetValue() && target > 5)
+                                    break;
+
+                                if (TeamManager.GetLocalTeam() == Infected)
+                                {
+                                    // Calculate fade-in
+                                    float fadeStart = Mathf.Max(target - fadeLength, 0f);
+                                    float fadeProgress = Mathf.Max(totalElapsed - fadeStart, 0f) / fadeLength;
+
+                                    Color color = Color.Lerp(Color.black, Color.clear, fadeProgress);
+
+                                    LocalVision.BlindColor = color;
+                                }
+
+                                // Check for second counter
+                                if (secondPassed)
+                                {
+                                    int remainingSeconds = target - seconds;
+
+                                    var icon = Texture2D.whiteTexture;
+                                    var sprite = Sprite.Create(icon, new Rect(0, 0, 0, 0), new Vector2(0.5f, 0.5f), 100f);
+
+                                    // Make sure tutorial rig and head titles are enabled
+
+                                    var tutorialRig = TutorialRig.Instance;
+                                    var headTitles = tutorialRig.headTitles;
+
+                                    tutorialRig.gameObject.SetActive(true);
+                                    headTitles.gameObject.SetActive(true);
+
+                                    float timeToScale = Mathf.Lerp(0.05f, 0.4f, Mathf.Clamp01(target - 1f));
+
+                                    tutorialRig.headTitles.timeToScale = timeToScale;
+
+                                    tutorialRig.headTitles.CUSTOMDISPLAY(
+                                        "Countdown, get ready...",
+                                        remainingSeconds.ToString(),
+                                        sprite,
+                                        target);
+                                    tutorialRig.headTitles.sr_element.sprite = sprite;
+
+                                    secondPassed = false;
+                                }
+
+                                // Tick timer
+                                elapsed += TimeUtilities.DeltaTime;
+                                totalElapsed += TimeUtilities.DeltaTime;
+
+                                // If a second passed, send the notification next frame
+                                if (elapsed >= 1f)
+                                {
+                                    elapsed--;
+                                    seconds++;
+
+                                    secondPassed = true;
+                                }
+
+                                yield return null;
                             }
 
-                            yield return null;
+                            if (TeamManager.GetLocalTeam() == Infected)
+                            {
+                                var metadata = TeamManager.GetLocalTeam() == Infected ? InfectedMetadata : TeamManager.GetLocalTeam() == InfectedChildren ? InfectedChildrenMetadata : UnInfectedMetadata;
+                                FusionPlayer.SetMortality(metadata.Config.Mortality);
+
+                                LocalControls.UnlockMovement();
+
+                                LocalVision.Blind = false;
+                            }
+
+                            TutorialRig.Instance.headTitles.CLOSEDISPLAY();
                         }
-
-                        LocalControls.UnlockMovement();
-
-                        TutorialRig.Instance.headTitles.CLOSEDISPLAY();
-
-                        LocalVision.Blind = false;
+                        if (TeamManager.GetLocalTeam() == Infected)
+                        {
+                            FusionNotifier.Send(new FusionNotification()
+                            {
+                                ShowPopup = true,
+                                Title = "Countdown Over",
+                                Message = "GO AND INFECT THEM ALL!",
+                                PopupLength = 3.5f,
+                                Type = NotificationType.INFORMATION,
+                            });
+                        }
                     }
-                    FusionNotifier.Send(new FusionNotification()
+                    finally
                     {
-                        ShowPopup = true,
-                        Title = "Countdown Over",
-                        Message = "GO AND INFECT THEM ALL!",
-                        PopupLength = 2f,
-                        Type = NotificationType.INFORMATION,
-                    });
-                }
-                finally
-                {
-                    HideVision = false;
+                        HideVision = false;
+                    }
                 }
             }
         }
 
         internal bool _oneMinuteLeft = false;
+
+        int lastTimeLimit = 0;
 
         protected override void OnUpdate()
         {
@@ -1225,6 +1532,7 @@ namespace AvatarInfection
             {
                 ChangeElementColor(string.Format(TeamConfigName, Infected.DisplayName), "Apply new settings", null, false);
                 ChangeElementColor(string.Format(TeamConfigName, UnInfected.DisplayName), "Apply new settings", null, false);
+                ChangeElementColor(string.Format(TeamConfigName, InfectedChildren.DisplayName), "Apply new settings", null, false);
 
                 return;
             }
@@ -1241,6 +1549,12 @@ namespace AvatarInfection
                     ChangeElementColor(string.Format(TeamConfigName, UnInfected.DisplayName), "Apply new settings", System.Drawing.Color.Red, false);
                 else
                     ChangeElementColor(string.Format(TeamConfigName, UnInfected.DisplayName), "Apply new settings", null, false);
+
+                var remote3 = SyncWithInfected ? InfectedMetadata.GetConfigFromMetadata() : InfectedChildrenMetadata.GetConfigFromMetadata();
+                if (remote3 != (SyncWithInfected ? InfectedMetadata.Config : InfectedChildrenMetadata.Config))
+                    ChangeElementColor(string.Format(TeamConfigName, InfectedChildren.DisplayName), "Apply new settings", System.Drawing.Color.Red, false);
+                else
+                    ChangeElementColor(string.Format(TeamConfigName, InfectedChildren.DisplayName), "Apply new settings", null, false);
             }
 
             if (HideVision && !LocalVision.Blind)
@@ -1252,12 +1566,15 @@ namespace AvatarInfection
                 UninfectedUpdate();
 
             var rig = Player.RigManager;
-            var PCDs = rig.gameObject.GetComponentsInChildren<PullCordDevice>();
+            if (rig != null)
+            {
+                var PCDs = rig.gameObject.GetComponentsInChildren<PullCordDevice>();
 
-            if (TeamManager.GetLocalTeam() == Infected)
-                PCDs.ForEach(x => x._bodyLogEnabled = false);
-            else
-                PCDs.ForEach(x => x._bodyLogEnabled = true);
+                if (TeamManager.GetLocalTeam() != UnInfected)
+                    PCDs.ForEach(x => x._bodyLogEnabled = false);
+                else
+                    PCDs.ForEach(x => x._bodyLogEnabled = true);
+            }
 
             if (!UntilAllFound)
             {
@@ -1337,7 +1654,7 @@ namespace AvatarInfection
             }
             else
             {
-                var metadata = TeamManager.GetLocalTeam() == UnInfected ? UnInfectedMetadata : InfectedMetadata;
+                var metadata = TeamManager.GetLocalTeam() == UnInfected ? UnInfectedMetadata : TeamManager.GetLocalTeam() == InfectedChildren ? InfectedChildrenMetadata : InfectedMetadata;
 
                 Internal_SetStats(metadata);
             }
@@ -1357,7 +1674,7 @@ namespace AvatarInfection
             if (!IsStarted)
                 return;
 
-            if (TeamManager.GetLocalTeam() != Infected)
+            if (TeamManager.GetLocalTeam() != Infected && TeamManager.GetLocalTeam() != InfectedChildren)
                 return;
 
             SwapAvatar(SelectedAvatar);
@@ -1365,6 +1682,8 @@ namespace AvatarInfection
 
         private new void OnMetadataChanged(string key, string value)
         {
+            base.OnMetadataChanged(key, value);
+
             if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
                 return;
 
@@ -1381,6 +1700,7 @@ namespace AvatarInfection
                 case nameof(SelectedAvatar):
                     if (SelectedAvatar == value)
                         return;
+
                     SelectedAvatar = _SelectedAvatar.GetValue();
                     SelectedPlayerOverride();
                     break;
@@ -1397,12 +1717,29 @@ namespace AvatarInfection
                 case nameof(TeleportOnEnd):
                     TeleportOnEnd = _TeleportOnEnd.GetValue();
                     break;
+
+                case nameof(UseDeathmatchSpawns):
+                    UseDeathmatchSpawns = _UseDeathmatchSpawns.GetValue();
+                    if (UseDeathmatchSpawns)
+                        UseDeathmatchSpawns_Init(false);
+                    else
+                        ClearDeathmatchSpawns();
+                    break;
             }
         }
 
         private void ApplyGamemodeSettings()
         {
-            _SelectedAvatar.SetValue(SelectedAvatar);
+            if (SelectMode == AvatarSelectMode.Config)
+            {
+                _SelectedAvatar.SetValue(SelectedAvatar);
+            }
+            else if (SelectMode == AvatarSelectMode.Random)
+            {
+                var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
+                avatars.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
+                SelectedAvatar = avatars[UnityEngine.Random.RandomRangeInt(0, avatars.Count)].Barcode.ID;
+            }
 
             __DisableDevTools.SetValue(_DisableDevTools);
             __DisableSpawnGun.SetValue(_DisableSpawnGun);
@@ -1411,13 +1748,29 @@ namespace AvatarInfection
 
             _TeleportOnEnd.SetValue(TeleportOnEnd);
 
+            _UseDeathmatchSpawns.SetValue(UseDeathmatchSpawns);
+
+            _ShowCountdownToAll.SetValue(ShowCountdownToAll);
+
+            CountdownValue.SetValue(CountdownLength);
+
             InfectedMetadata.ApplyConfig();
             UnInfectedMetadata.ApplyConfig();
 
             AKI.SetValue(AllowKeepInventory);
 
+            var now = DateTimeOffset.Now;
+            lastTimeLimit = TimeLimit;
+            StartUnix.SetValue(now.ToUnixTimeMilliseconds());
+            if (!UntilAllFound)
+                EndUnix.SetValue(now.AddMinutes(TimeLimit).ToUnixTimeMilliseconds());
+            else
+                EndUnix.SetValue(-1);
+
             InfectedLooking.SetValue(false);
         }
+
+        bool assignedTeams = false;
 
         public override void OnGamemodeStarted()
         {
@@ -1430,12 +1783,17 @@ namespace AvatarInfection
             _elapsedTime = 0f;
             _lastCheckedMinutes = 0;
             _oneMinuteLeft = false;
+            assignedTeams = false;
+            HideVision = false;
 
             if (NetworkInfo.IsServer)
             {
                 ApplyGamemodeSettings();
                 AssignTeams();
                 MelonCoroutines.Start(InfectedLookingWait());
+
+                var markers = GamemodeMarker.FilterMarkers(null);
+
                 if (ShouldTeleportToHost)
                     Teleport.TryInvoke();
             }
@@ -1445,6 +1803,7 @@ namespace AvatarInfection
             // Invoke player changes on level load
             FusionSceneManager.HookOnTargetLevelLoad(() =>
             {
+                PopulatePage();
                 if (!NetworkInfo.IsServer)
                 {
                     InfectedMetadata.RefreshConfig(false);
@@ -1457,7 +1816,44 @@ namespace AvatarInfection
                 if (!NetworkInfo.IsServer)
                     SelectedAvatar = _SelectedAvatar.GetValue();
                 SelectedPlayerOverride();
+
+                if (UseDeathmatchSpawns)
+                    UseDeathmatchSpawns_Init(!ShouldTeleportToHost);
+                else
+                    ClearDeathmatchSpawns();
             });
+        }
+
+        static bool appliedDeathmatchSpawns = false;
+
+        private static void UseDeathmatchSpawns_Init(bool teleport = true)
+        {
+            if (appliedDeathmatchSpawns)
+                return;
+
+            appliedDeathmatchSpawns = true;
+
+            var transforms = new List<Transform>();
+            var markers = GamemodeMarker.FilterMarkers(null);
+
+            foreach (var marker in markers)
+            {
+                transforms.Add(marker.transform);
+            }
+
+            FusionPlayer.SetSpawnPoints([.. transforms]);
+
+            // Teleport to a random spawn point
+            if (FusionPlayer.TryGetSpawnPoint(out var spawn) && teleport)
+            {
+                FusionPlayer.Teleport(spawn.position, spawn.forward);
+            }
+        }
+
+        private static void ClearDeathmatchSpawns()
+        {
+            appliedDeathmatchSpawns = false;
+            FusionPlayer.ResetSpawnPoints();
         }
 
         private static void ClearOverrides()
@@ -1475,6 +1871,7 @@ namespace AvatarInfection
         public override void OnGamemodeStopped()
         {
             base.OnGamemodeStopped();
+            PopulatePage();
 
             HasBeenInfected = false;
             InitialTeam = true;
@@ -1492,16 +1889,21 @@ namespace AvatarInfection
             }
 
             var rig = Player.RigManager;
-            var PCDs = rig.gameObject.GetComponentsInChildren<PullCordDevice>();
-            PCDs.ForEach(x => x._bodyLogEnabled = true);
-
-            FusionOverrides.ForceUpdateOverrides();
+            if (rig != null)
+            {
+                var PCDs = rig?.gameObject?.GetComponentsInChildren<PullCordDevice>();
+                PCDs?.ForEach(x => x._bodyLogEnabled = true);
+            }
 
             _elapsedTime = 0f;
             _lastCheckedMinutes = 0;
             _oneMinuteLeft = false;
 
+            ClearDeathmatchSpawns();
+
             ClearOverrides();
+
+            FusionOverrides.ForceUpdateOverrides();
         }
 
         private static void TeleportToHost()
@@ -1527,7 +1929,9 @@ namespace AvatarInfection
             if (!IsStarted)
                 return true;
 
-            return TeamManager.GetPlayerTeam(id) == null || TeamManager.GetPlayerTeam(id) == TeamManager.GetLocalTeam();
+            return TeamManager.GetPlayerTeam(id) == TeamManager.GetLocalTeam() ||
+                (TeamManager.GetPlayerTeam(id) == Infected && TeamManager.GetLocalTeam() == InfectedChildren) ||
+                (TeamManager.GetPlayerTeam(id) == InfectedChildren && TeamManager.GetLocalTeam() == Infected);
         }
 
         private void AssignTeams()
@@ -1535,17 +1939,34 @@ namespace AvatarInfection
             var players = new List<PlayerId>(PlayerIdManager.PlayerIds);
             players.Shuffle();
 
+            string selected = null;
+
             var rand = new System.Random();
             for (int i = 0; i < InfectedCount; i++)
             {
                 var player = players[rand.Next(0, players.Count)];
                 TeamManager.TryAssignTeam(player, Infected);
 
+                if (SelectMode == AvatarSelectMode.FirstInfected && string.IsNullOrWhiteSpace(selected))
+                {
+                    if (NetworkPlayerManager.TryGetPlayer(player.SmallId, out NetworkPlayer plr) && plr.HasRig)
+                    {
+                        var avatar = plr.RigRefs?.RigManager?.AvatarCrate?.Barcode?.ID;
+                        if (!string.IsNullOrWhiteSpace(avatar))
+                        {
+                            selected = avatar;
+                            SelectedAvatar = avatar;
+                            _SelectedAvatar.SetValue(avatar);
+                        }
+                    }
+                }
+
                 players.Remove(player);
             }
 
             foreach (var plr in players)
                 TeamManager.TryAssignTeam(plr, UnInfected);
+            assignedTeams = true;
         }
 
         private readonly Dictionary<PlayerId, PlayerActionType> lastActions = [];
@@ -1560,12 +1981,12 @@ namespace AvatarInfection
                 if (!NetworkInfo.IsServer || otherPlayer == null || InfectType != InfectTypeEnum.DEATH)
                     return;
 
-                if (TeamManager.GetPlayerTeam(player) == UnInfected && TeamManager.GetPlayerTeam(otherPlayer) == Infected)
+                if (TeamManager.GetPlayerTeam(player) == UnInfected && (TeamManager.GetPlayerTeam(otherPlayer) == Infected || TeamManager.GetPlayerTeam(otherPlayer) == InfectedChildren))
                     InfectEvent.TryInvoke(player.LongId.ToString());
             }
             else if (type == PlayerActionType.DYING)
             {
-                if (!NetworkInfo.IsServer || InfectType != InfectTypeEnum.DEATH || !SuicideInfects)
+                if (!NetworkInfo.IsServer || !SuicideInfects || otherPlayer != null)
                     return;
 
                 if (lastActions.ContainsKey(player) && lastActions[player] == PlayerActionType.DYING_BY_OTHER_PLAYER)

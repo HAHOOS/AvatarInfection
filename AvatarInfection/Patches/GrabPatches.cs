@@ -2,6 +2,8 @@
 
 using AvatarInfection.Utilities;
 
+using BoneLib;
+
 using HarmonyLib;
 
 using Il2CppSLZ.Bonelab;
@@ -78,12 +80,14 @@ namespace AvatarInfection.Patches
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Hand), nameof(Hand.AttachObject))]
-        [HarmonyPatch(typeof(Hand), nameof(Hand.AttachJoint))]
-        [HarmonyPatch(typeof(Hand), nameof(Hand.AttachIgnoreBodyJoints))]
-        [HarmonyPatch(typeof(Hand), nameof(Hand.PrepareJoint))]
         [HarmonyPriority(10000)]
         public static bool GrabAttempt(Hand __instance, GameObject objectToAttach)
-            => CanGrab(__instance, objectToAttach);
+        {
+            if (__instance == null || objectToAttach == null)
+                return true;
+
+            return CanGrab(__instance, objectToAttach);
+        }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverBegin))]
@@ -91,6 +95,9 @@ namespace AvatarInfection.Patches
         [HarmonyPriority(10000)]
         public static bool InventoryGrabAttempt(InventorySlotReceiver __instance, Hand hand)
         {
+            if (__instance == null || hand == null || __instance._weaponHost == null)
+                return true;
+
             var weapon = __instance._weaponHost?.GetHostGameObject();
             if (weapon == null)
                 return true;
@@ -103,6 +110,9 @@ namespace AvatarInfection.Patches
         [HarmonyPriority(10000)]
         public static bool InventoryGrabAttempt2(InventorySlotReceiver __instance, Hand hand)
         {
+            if (__instance == null || hand == null || __instance._weaponHost == null)
+                return true;
+
             var weapon = __instance._weaponHost?.GetHostGameObject();
             if (weapon == null)
                 return true;
@@ -120,8 +130,11 @@ namespace AvatarInfection.Patches
         [HarmonyPriority(10000)]
         public static bool IconAttempt(InteractableIcon __instance, Hand hand)
         {
+            if (__instance == null || __instance.gameObject == null)
+                return true;
+
             var gameObject = __instance.gameObject;
-            if (gameObject == null || hand == null)
+            if (hand == null)
                 return true;
 
             return CanGrab(hand, gameObject);
@@ -162,7 +175,7 @@ namespace AvatarInfection.Patches
             if (!hand.IsPartOfPlayer() || !hand.IsPartOfSelf())
                 return true;
 
-            var config = Infection.TeamManager.GetLocalTeam() == Infection.Infected ? Infection.InfectedMetadata : Infection.UnInfectedMetadata;
+            var config = Infection.TeamManager.GetLocalTeam() == Infection.Infected ? Infection.InfectedMetadata : Infection.TeamManager.GetLocalTeam() == Infection.InfectedChildren ? (Infection.Instance.SyncWithInfected ? Infection.InfectedMetadata : Infection.InfectedChildrenMetadata) : Infection.UnInfectedMetadata;
             if (config == null)
                 return true;
 
@@ -184,6 +197,12 @@ namespace AvatarInfection.Patches
             }
 
             if (Infection.Instance?.IsStarted != true)
+            {
+                HoldTime.Clear();
+                return;
+            }
+
+            if (Player.RigManager == null)
             {
                 HoldTime.Clear();
                 return;

@@ -65,7 +65,7 @@ namespace AvatarInfection.Patches
                     }
                     else
                     {
-                        if (Infection.TeamManager.GetLocalTeam() == Infection.Infected)
+                        if (Infection.TeamManager.GetLocalTeam() == Infection.Infected || Infection.TeamManager.GetLocalTeam() == Infection.InfectedChildren)
                         {
                             __result = new UniTask<bool>(true);
                             Ignore = true;
