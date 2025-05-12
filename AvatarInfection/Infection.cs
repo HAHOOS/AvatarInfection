@@ -1684,7 +1684,9 @@ namespace AvatarInfection
             }
             else
             {
-                var metadata = TeamManager.GetLocalTeam() == Survivors ? SurvivorsMetadata : TeamManager.GetLocalTeam() == InfectedChildren ? InfectedChildrenMetadata : InfectedMetadata;
+                var metadata = TeamManager.GetLocalTeam() == Survivors
+                    ? SurvivorsMetadata : TeamManager.GetLocalTeam() == InfectedChildren
+                    ? InfectedChildrenMetadata : InfectedMetadata;
 
                 Internal_SetStats(metadata);
             }
@@ -1769,6 +1771,7 @@ namespace AvatarInfection
                 var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
                 avatars.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
                 SelectedAvatar = avatars[UnityEngine.Random.RandomRangeInt(0, avatars.Count)].Barcode.ID;
+                _SelectedAvatar.SetValue(SelectedAvatar);
             }
 
             __DisableDevTools.SetValue(_DisableDevTools);
