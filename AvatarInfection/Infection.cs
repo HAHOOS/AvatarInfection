@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Metadata
+﻿// Ignore Spelling: Metadata Unragdoll
 
 using System;
 using System.Text.RegularExpressions;
@@ -38,6 +38,10 @@ using BoneLib.BoneMenu;
 using HarmonyLib;
 
 using AvatarInfection.Utilities;
+using LabFusion.RPC;
+using LabFusion.Preferences.Client;
+using LabFusion.Downloading;
+using LabFusion.Data;
 
 namespace AvatarInfection
 {
@@ -91,7 +95,7 @@ namespace AvatarInfection
 
         internal static class Defaults
         {
-            public const string Barcode = "HAHOOS.AvatarInfection.Gamemode.AvatarInfection";
+            public const string Barcode = "HAHOOS.AvatarInfection";
 
             public const int TimeLimit = 10;
 
@@ -201,7 +205,7 @@ namespace AvatarInfection
 
         internal static MetadataVariableT<string> _SelectedAvatar;
         internal static string SelectedAvatar;
-        public MusicPlaylist Playlist { get; } = new();
+        public MusicPlaylist PlayList { get; } = new();
 
         private bool UntilAllFound { get; set; } = Defaults.UntilAllFound;
 
@@ -733,6 +737,7 @@ namespace AvatarInfection
                     AllowKeepInventory = Defaults.AllowKeepInventory;
                     ShouldTeleportToHost = Defaults.ShouldTeleportToHost;
                     TeleportOnEnd = Defaults.TeleportOnEnd;
+                    ShowCountdownToAll = Defaults.ShowCountdownToAll;
 
                     ChangeElementTitle("Avatar", "Selected Avatar:", "Selected Avatar: N/A");
                     ChangeElementTitle("General", "Infect Type:", $"Infect Type: {Enum.GetName(InfectType)}");
@@ -955,7 +960,7 @@ namespace AvatarInfection
         {
             Instance = this;
             InfectedChildren.DisplayName = "Infected Children";
-            FusionOverrides.OnValidateNametag += OnValidateNametag;
+            FusionOverrides.OnValidateNametag += OnValidateNameTag;
 
             MultiplayerHooking.OnPlayerAction += OnPlayerAction;
             MultiplayerHooking.OnPlayerJoin += OnPlayerJoin;
@@ -1022,6 +1027,48 @@ namespace AvatarInfection
             MultiplayerHooking.OnJoinServer += PopulatePage;
             MultiplayerHooking.OnPlayerJoin += Hook;
             MultiplayerHooking.OnPlayerLeave += Hook;
+        }
+
+        public override void OnGamemodeUnregistered()
+        {
+            FusionOverrides.OnValidateNametag -= OnValidateNameTag;
+
+            MultiplayerHooking.OnPlayerAction -= OnPlayerAction;
+            MultiplayerHooking.OnPlayerJoin -= OnPlayerJoin;
+            MultiplayerHooking.OnPlayerLeave -= OnPlayerLeave;
+
+            InfectedElements = null;
+            SurvivorsElements = null;
+            InfectedChildrenElements = null;
+
+            TeamManager.Unregister();
+
+            Metadata.OnMetadataChanged -= OnMetadataChanged;
+
+            InfectEvent?.UnregisterEvent();
+            InfectEvent = null;
+
+            OneMinuteLeftEvent?.UnregisterEvent();
+            OneMinuteLeftEvent = null;
+
+            InfectedVictoryEvent?.UnregisterEvent();
+            InfectedVictoryEvent = null;
+
+            SurvivorsVictoryEvent?.UnregisterEvent();
+            SurvivorsVictoryEvent = null;
+
+            RefreshStatsEvent?.UnregisterEvent();
+            RefreshStatsEvent = null;
+
+            Teleport?.UnregisterEvent();
+            Teleport = null;
+
+            Menu.DestroyPage(ModPage);
+            ModPage = null;
+            MultiplayerHooking.OnDisconnect -= PopulatePage;
+            MultiplayerHooking.OnJoinServer -= PopulatePage;
+            MultiplayerHooking.OnPlayerJoin -= Hook;
+            MultiplayerHooking.OnPlayerLeave -= Hook;
         }
 
         private void OnPlayerLeave(PlayerId id)
@@ -1145,47 +1192,6 @@ namespace AvatarInfection
             }
         }
 
-        public override void OnGamemodeUnregistered()
-        {
-            FusionOverrides.OnValidateNametag -= OnValidateNametag;
-
-            MultiplayerHooking.OnPlayerAction -= OnPlayerAction;
-            MultiplayerHooking.OnPlayerJoin -= OnPlayerJoin;
-            MultiplayerHooking.OnPlayerLeave -= OnPlayerLeave;
-
-            InfectedElements = null;
-            SurvivorsElements = null;
-
-            TeamManager.Unregister();
-
-            Metadata.OnMetadataChanged -= OnMetadataChanged;
-
-            InfectEvent?.UnregisterEvent();
-            InfectEvent = null;
-
-            OneMinuteLeftEvent?.UnregisterEvent();
-            OneMinuteLeftEvent = null;
-
-            InfectedVictoryEvent?.UnregisterEvent();
-            InfectedVictoryEvent = null;
-
-            SurvivorsVictoryEvent?.UnregisterEvent();
-            SurvivorsVictoryEvent = null;
-
-            RefreshStatsEvent?.UnregisterEvent();
-            RefreshStatsEvent = null;
-
-            Teleport?.UnregisterEvent();
-            Teleport = null;
-
-            Menu.DestroyPage(ModPage);
-            ModPage = null;
-            MultiplayerHooking.OnDisconnect -= PopulatePage;
-            MultiplayerHooking.OnJoinServer -= PopulatePage;
-            MultiplayerHooking.OnPlayerJoin -= Hook;
-            MultiplayerHooking.OnPlayerLeave -= Hook;
-        }
-
         private void PlayerInfected(string stringID)
         {
             if (!IsStarted)
@@ -1245,7 +1251,7 @@ namespace AvatarInfection
             PopulatePage();
         }
 
-        private static void SwapAvatar(string barcode)
+        private static void SwapAvatar(string barcode, ModResult downloadResult = ModResult.SUCCEEDED)
         {
             if (string.IsNullOrWhiteSpace(barcode) || barcode == Il2CppSLZ.Marrow.Warehouse.Barcode.EMPTY)
             {
@@ -1256,12 +1262,33 @@ namespace AvatarInfection
             if (Player.RigManager == null)
                 return;
 
-            var obj = new GameObject("AI_PCFC");
-            var comp = obj.AddComponent<PullCordForceChange>();
-            comp.avatarCrate = new AvatarCrateReference(barcode);
-            comp.rigManager = Player.RigManager;
-            PullCordSender.SendBodyLogEffect();
-            comp.ForceChange(comp.rigManager.gameObject);
+            bool hasCrate = CrateFilterer.HasCrate<AvatarCrate>(new(barcode));
+            if (hasCrate)
+            {
+                var obj = new GameObject("AI_PCFC");
+                var comp = obj.AddComponent<PullCordForceChange>();
+                comp.avatarCrate = new AvatarCrateReference(barcode);
+                comp.rigManager = Player.RigManager;
+                PullCordSender.SendBodyLogEffect();
+                comp.ForceChange(comp.rigManager.gameObject);
+            }
+            else
+            {
+                if (!ClientSettings.Downloading.DownloadAvatars.Value)
+                    return;
+
+                if (downloadResult == ModResult.FAILED)
+                    return;
+
+                NetworkModRequester.RequestAndInstallMod(new NetworkModRequester.ModInstallInfo()
+                {
+                    barcode = barcode,
+                    target = PlayerIdManager.LocalSmallId,
+                    finishDownloadCallback = (ev) => SwapAvatar(barcode, ev.result),
+                    maxBytes = DataConversions.ConvertMegabytesToBytes(ClientSettings.Downloading.MaxFileSize.Value),
+                    highPriority = true
+                });
+            }
         }
 
         private IEnumerator InfectedLookingWait()
@@ -1779,8 +1806,8 @@ namespace AvatarInfection
         {
             base.OnGamemodeStarted();
 
-            Playlist.SetPlaylist(AudioReference.CreateReferences(Defaults.Tracks));
-            Playlist.Shuffle();
+            PlayList.SetPlaylist(AudioReference.CreateReferences(Defaults.Tracks));
+            PlayList.Shuffle();
 
             HasBeenInfected = false;
             _elapsedTime = 0f;
@@ -1801,7 +1828,7 @@ namespace AvatarInfection
                     Teleport.TryInvoke();
             }
 
-            Playlist.StartPlaylist();
+            PlayList.StartPlaylist();
 
             // Invoke player changes on level load
             FusionSceneManager.HookOnTargetLevelLoad(() =>
@@ -1848,9 +1875,7 @@ namespace AvatarInfection
 
             // Teleport to a random spawn point
             if (FusionPlayer.TryGetSpawnPoint(out var spawn) && teleport)
-            {
                 FusionPlayer.Teleport(spawn.position, spawn.forward);
-            }
         }
 
         private static void ClearDeathmatchSpawns()
@@ -1879,7 +1904,7 @@ namespace AvatarInfection
             HasBeenInfected = false;
             InitialTeam = true;
 
-            Playlist.StopPlaylist();
+            PlayList.StopPlaylist();
 
             if (NetworkInfo.IsServer)
             {
@@ -1927,7 +1952,7 @@ namespace AvatarInfection
             }
         }
 
-        protected bool OnValidateNametag(PlayerId id)
+        protected bool OnValidateNameTag(PlayerId id)
         {
             if (!IsStarted)
                 return true;
@@ -1984,8 +2009,12 @@ namespace AvatarInfection
                 if (!NetworkInfo.IsServer || otherPlayer == null || InfectType != InfectTypeEnum.DEATH)
                     return;
 
-                if (TeamManager.GetPlayerTeam(player) == Survivors && (TeamManager.GetPlayerTeam(otherPlayer) == Infected || TeamManager.GetPlayerTeam(otherPlayer) == InfectedChildren))
+                if (TeamManager.GetPlayerTeam(player) == Survivors
+                    && (TeamManager.GetPlayerTeam(otherPlayer) == Infected
+                    || TeamManager.GetPlayerTeam(otherPlayer) == InfectedChildren))
+                {
                     InfectEvent.TryInvoke(player.LongId.ToString());
+                }
             }
             else if (type == PlayerActionType.DYING)
             {
