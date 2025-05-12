@@ -58,7 +58,7 @@ namespace AvatarInfection.Patches
             if (!NetworkPlayerManager.TryGetPlayer(plrEntity, out var player))
                 return;
 
-            if (Infection.TeamManager.GetPlayerTeam(player.PlayerId) == Infection.UnInfected)
+            if (Infection.TeamManager.GetPlayerTeam(player.PlayerId) == Infection.Survivors)
                 return;
 
             if (!grip._marrowEntity)
@@ -67,7 +67,7 @@ namespace AvatarInfection.Patches
             if (!NetworkPlayerManager.TryGetPlayer(grip._marrowEntity, out var otherPlayer))
                 return;
 
-            if (Infection.TeamManager.GetPlayerTeam(otherPlayer.PlayerId) == Infection.UnInfected)
+            if (Infection.TeamManager.GetPlayerTeam(otherPlayer.PlayerId) == Infection.Survivors)
             {
                 var longId = otherPlayer.PlayerId.LongId;
 
@@ -175,7 +175,7 @@ namespace AvatarInfection.Patches
             if (!hand.IsPartOfPlayer() || !hand.IsPartOfSelf())
                 return true;
 
-            var config = Infection.TeamManager.GetLocalTeam() == Infection.Infected ? Infection.InfectedMetadata : Infection.TeamManager.GetLocalTeam() == Infection.InfectedChildren ? (Infection.Instance.SyncWithInfected ? Infection.InfectedMetadata : Infection.InfectedChildrenMetadata) : Infection.UnInfectedMetadata;
+            var config = Infection.TeamManager.GetLocalTeam() == Infection.Infected ? Infection.InfectedMetadata : Infection.TeamManager.GetLocalTeam() == Infection.InfectedChildren ? (Infection.Instance.SyncWithInfected ? Infection.InfectedMetadata : Infection.InfectedChildrenMetadata) : Infection.SurvivorsMetadata;
             if (config == null)
                 return true;
 

@@ -10,6 +10,7 @@ using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
 
 using HarmonyLib;
+
 using AvatarInfection.Utilities;
 
 namespace AvatarInfection.Patches
@@ -80,7 +81,7 @@ namespace AvatarInfection.Patches
                     }
                 }
 
-                bool returned = Infection.TeamManager.GetLocalTeam() == Infection.UnInfected;
+                bool returned = Infection.TeamManager.GetLocalTeam() == Infection.Survivors;
 
                 if (!returned) __result = new UniTask<bool>(true);
 

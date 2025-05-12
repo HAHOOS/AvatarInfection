@@ -24,7 +24,7 @@ namespace AvatarInfection.Utilities
                     return string.Empty;
 
                 var gamemode = (Infection)LabFusion.SDK.Gamemodes.GamemodeManager.ActiveGamemode;
-                return $"{Infection.UnInfected.PlayerCount} uninfected left!";
+                return $"{Infection.Survivors.PlayerCount} survivors left!";
             }, () =>
             {
                 if (LabFusion.SDK.Gamemodes.GamemodeManager.ActiveGamemode?.Barcode != Infection.Defaults.Barcode)

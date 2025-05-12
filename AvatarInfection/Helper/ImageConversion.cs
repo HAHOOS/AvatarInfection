@@ -2,6 +2,7 @@
 
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppInterop.Runtime;
+
 using UnityEngine;
 
 namespace AvatarInfection.Helper
