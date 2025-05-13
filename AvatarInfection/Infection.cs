@@ -1,7 +1,6 @@
 ﻿// Ignore Spelling: Metadata Unragdoll
 
 using System;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
@@ -63,10 +62,11 @@ namespace AvatarInfection
         public override bool AutoStopOnSceneLoad => true;
 
         public override bool ManualReady => false;
-
+#pragma warning disable IDE1006 // Naming Styles
         internal ServerSetting<bool> _DisableSpawnGun { get; private set; }
 
         internal ServerSetting<bool> _DisableDevTools { get; private set; }
+#pragma warning restore IDE1006 // Naming Styles
 
         public static Infection Instance { get; private set; }
 
@@ -871,23 +871,35 @@ namespace AvatarInfection
             InitialTeam = false;
 
             if (team == Infected)
-            {
                 SwapAvatar(SelectedAvatar.ClientValue);
-            }
             else
-            {
-                FusionNotifier.Send(new FusionNotification()
-                {
-                    ShowPopup = true,
-                    Title = "Survivor",
-                    Message = "Woah! You got lucky. Make sure you don't get infected!",
-                    PopupLength = 3,
-                    Type = NotificationType.INFORMATION,
-                });
-            }
+                SendNotif("Survivor", "Woah! You got lucky. Make sure you don't get infected!", 3);
 
             if (!InfectedLooking.GetValue())
                 MelonCoroutines.Start(HideVisionAndReveal(team != Infected ? 3 : 0));
+        }
+
+        public static void SendNotif
+            (string title,
+             string message,
+             float popupLength,
+             bool showPopup = true,
+             NotificationType type = NotificationType.INFORMATION,
+             bool saveToMenu = false,
+             Action onAccepted = null,
+             Action onDeclined = null)
+        {
+            FusionNotifier.Send(new FusionNotification
+            {
+                Message = message,
+                Title = title,
+                PopupLength = popupLength,
+                ShowPopup = showPopup,
+                Type = type,
+                OnAccepted = onAccepted,
+                OnDeclined = onDeclined,
+                SaveToMenu = saveToMenu
+            });
         }
 
         private void OneMinuteLeft()
@@ -895,14 +907,7 @@ namespace AvatarInfection
             if (!IsStarted)
                 return;
 
-            FusionNotifier.Send(new FusionNotification()
-            {
-                Title = "Avatar Infection",
-                Message = "One minute left!",
-                PopupLength = 3.5f,
-                ShowPopup = true,
-                Type = NotificationType.INFORMATION,
-            });
+            SendNotif("Avatar Infection", "One minute left!", 3.5f);
         }
 
         private void InfectedVictory()
@@ -910,14 +915,7 @@ namespace AvatarInfection
             if (!IsStarted)
                 return;
 
-            FusionNotifier.Send(new FusionNotification()
-            {
-                ShowPopup = true,
-                Title = "Infected Won",
-                Message = "Everyone has been infected!",
-                PopupLength = 4,
-                Type = NotificationType.INFORMATION,
-            });
+            SendNotif("Infected Won", "Everyone has been infected!", 4f);
         }
 
         private void SurvivorsVictory()
@@ -925,14 +923,7 @@ namespace AvatarInfection
             if (!IsStarted)
                 return;
 
-            FusionNotifier.Send(new FusionNotification()
-            {
-                ShowPopup = true,
-                Title = "Survivors Won",
-                Message = "There were people not infected in time!",
-                PopupLength = 4,
-                Type = NotificationType.INFORMATION,
-            });
+            SendNotif("Survivors Won", "There were people not infected in time!", 4f);
         }
 
         private IEnumerator HideVisionAndReveal(float delaySeconds = 0)
@@ -941,14 +932,9 @@ namespace AvatarInfection
             {
                 if ((ShowCountdownToAll.ClientValue && TeamManager.GetLocalTeam() != Infected) || TeamManager.GetLocalTeam() == Infected)
                 {
-#if DEBUG
-                    const bool skip = false;
-#else
-                const bool skip = false;
-#endif
                     try
                     {
-                        if (!skip && CountdownLength.ClientValue != 0 && CountdownValue.GetValue() != 0 && !InfectedLooking.GetValue())
+                        if (CountdownLength.ClientValue != 0 && CountdownValue.GetValue() != 0 && !InfectedLooking.GetValue())
                         {
                             if (delaySeconds > 0)
                                 yield return new WaitForSeconds(delaySeconds);
@@ -1091,16 +1077,7 @@ namespace AvatarInfection
             if (TeamManager.GetLocalTeam() == Survivors)
                 SurvivorsUpdate();
 
-            var rig = Player.RigManager;
-            if (rig != null)
-            {
-                var PCDs = rig.gameObject.GetComponentsInChildren<PullCordDevice>();
-
-                if (TeamManager.GetLocalTeam() != Survivors)
-                    PCDs.ForEach(x => x._bodyLogEnabled = false);
-                else
-                    PCDs.ForEach(x => x._bodyLogEnabled = true);
-            }
+            SetBodyLog(TeamManager.GetLocalTeam() == Survivors);
 
             if (!NoTimeLimit)
             {
@@ -1201,11 +1178,7 @@ namespace AvatarInfection
 
         private void ApplyGamemodeSettings()
         {
-            if (SelectMode == AvatarSelectMode.Config)
-            {
-                SelectedAvatar.Sync();
-            }
-            else if (SelectMode == AvatarSelectMode.Random)
+            if (SelectMode == AvatarSelectMode.Random)
             {
                 var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
                 avatars.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
@@ -1215,6 +1188,7 @@ namespace AvatarInfection
             CountdownValue.SetValue(CountdownLength);
 
             InfectedMetadata.ApplyConfig();
+            InfectedChildrenMetadata.ApplyConfig();
             SurvivorsMetadata.ApplyConfig();
 
             AKI.SetValue(AllowKeepInventory);
@@ -1341,12 +1315,7 @@ namespace AvatarInfection
                     TeleportToHost();
             }
 
-            var rig = Player.RigManager;
-            if (rig != null)
-            {
-                var PCDs = rig?.gameObject?.GetComponentsInChildren<PullCordDevice>();
-                PCDs?.ForEach(x => x._bodyLogEnabled = true);
-            }
+            SetBodyLog(true);
 
             _elapsedTime = 0f;
             _lastCheckedMinutes = 0;
@@ -1357,6 +1326,16 @@ namespace AvatarInfection
             ClearOverrides();
 
             FusionOverrides.ForceUpdateOverrides();
+        }
+
+        private static void SetBodyLog(bool enabled)
+        {
+            var rig = Player.RigManager;
+            if (rig != null)
+            {
+                var PCDs = rig?.gameObject?.GetComponentsInChildren<PullCordDevice>();
+                PCDs?.ForEach(x => x._bodyLogEnabled = enabled);
+            }
         }
 
         private static void TeleportToHost()
@@ -1436,9 +1415,11 @@ namespace AvatarInfection
                 if (!NetworkInfo.IsServer || otherPlayer == null || InfectType != InfectTypeEnum.DEATH)
                     return;
 
-                if (TeamManager.GetPlayerTeam(player) == Survivors
-                    && (TeamManager.GetPlayerTeam(otherPlayer) == Infected
-                    || TeamManager.GetPlayerTeam(otherPlayer) == InfectedChildren))
+                var playerTeam = TeamManager.GetPlayerTeam(player);
+                var otherPlayerTeam = TeamManager.GetPlayerTeam(otherPlayer);
+
+                if (playerTeam == Survivors &&
+                    (otherPlayerTeam == Infected || otherPlayerTeam == InfectedChildren))
                 {
                     InfectEvent.TryInvoke(player.LongId.ToString());
                 }
