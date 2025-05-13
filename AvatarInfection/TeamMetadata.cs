@@ -1,13 +1,10 @@
-﻿using AvatarInfection.Utilities;
-
-using BoneLib;
+﻿using BoneLib;
 
 using Il2CppSLZ.Marrow;
 
 using LabFusion.Extensions;
 using LabFusion.Network;
 using LabFusion.SDK.Gamemodes;
-using LabFusion.SDK.Metadata;
 
 namespace AvatarInfection
 {
@@ -15,34 +12,52 @@ namespace AvatarInfection
     {
         public readonly Team Team;
 
-        public TeamConfig Config;
+        private readonly Gamemode Gamemode;
 
-        public MetadataBool Mortality;
+        public ServerSetting<bool> Mortality;
 
-        public MetadataBool CanUseGuns;
+        public ServerSetting<bool> CanUseGuns;
 
-        public ToggleMetadataVariableT<float> Vitality;
+        public ToggleServerSetting<float> Vitality;
 
-        public ToggleMetadataVariableT<float> Speed;
+        public ToggleServerSetting<float> Speed;
 
-        public ToggleMetadataVariableT<float> JumpPower;
+        public ToggleServerSetting<float> JumpPower;
 
-        public ToggleMetadataVariableT<float> Agility;
+        public ToggleServerSetting<float> Agility;
 
-        public ToggleMetadataVariableT<float> StrengthUpper;
+        public ToggleServerSetting<float> StrengthUpper;
 
-        public TeamMetadata(Team team, NetworkMetadata metadata, TeamConfig config)
+        public TeamMetadata(Team team, Gamemode gamemode, TeamConfig? config = null)
         {
+            Gamemode = gamemode;
             Team = team;
-            Config = config;
-            metadata.OnMetadataChanged += OnMetadataChanged;
-            Mortality = new MetadataBool($"{team.TeamName}_{nameof(Mortality)}", metadata);
-            CanUseGuns = new MetadataBool($"{team.TeamName}_{nameof(CanUseGuns)}", metadata);
-            Vitality = new ToggleMetadataVariableT<float>($"{team.TeamName}_{nameof(Vitality)}", metadata);
-            Speed = new ToggleMetadataVariableT<float>($"{team.TeamName}_{nameof(Speed)}", metadata);
-            JumpPower = new ToggleMetadataVariableT<float>($"{team.TeamName}_{nameof(JumpPower)}", metadata);
-            Agility = new ToggleMetadataVariableT<float>($"{team.TeamName}_{nameof(Agility)}", metadata);
-            StrengthUpper = new ToggleMetadataVariableT<float>($"{team.TeamName}_{nameof(StrengthUpper)}", metadata);
+            Mortality = new ServerSetting<bool>(
+                gamemode, $"{team.TeamName}_{nameof(Mortality)}",
+                (config?.Mortality) ?? default, false);
+            CanUseGuns = new ServerSetting<bool>(
+                gamemode, $"{team.TeamName}_{nameof(CanUseGuns)}",
+                (config?.CanUseGuns) ?? default, false);
+            Vitality = new ToggleServerSetting<float>(
+                gamemode, $"{team.TeamName}_{nameof(Vitality)}",
+                (config?.Vitality) ?? default,
+                (config?.Vitality_Enabled) ?? default, false);
+            Speed = new ToggleServerSetting<float>(
+                gamemode, $"{team.TeamName}_{nameof(Speed)}",
+                 (config?.Speed) ?? default,
+                 (config?.Speed_Enabled) ?? default, false);
+            JumpPower = new ToggleServerSetting<float>(
+                gamemode, $"{team.TeamName}_{nameof(JumpPower)}",
+                (config?.JumpPower) ?? default,
+                (config?.JumpPower_Enabled) ?? default, false);
+            Agility = new ToggleServerSetting<float>(
+                gamemode, $"{team.TeamName}_{nameof(Agility)}",
+                (config?.Agility) ?? default,
+                (config?.Agility_Enabled) ?? default, false);
+            StrengthUpper = new ToggleServerSetting<float>(
+                gamemode, $"{team.TeamName}_{nameof(StrengthUpper)}",
+                (config?.StrengthUpper) ?? default,
+                (config?.StrengthUpper_Enabled) ?? default, false);
         }
 
         public void ApplyConfig()
@@ -50,63 +65,38 @@ namespace AvatarInfection
             if (!NetworkInfo.IsServer)
                 return;
 
-            Mortality.SetValue(Config.Mortality);
+            Mortality.Sync();
 
-            Vitality.SetValue(Config.Vitality);
-            Speed.SetValue(Config.Speed);
-            JumpPower.SetValue(Config.JumpPower);
-            Agility.SetValue(Config.Agility);
-            StrengthUpper.SetValue(Config.StrengthUpper);
+            Vitality.Sync();
+            Speed.Sync();
+            JumpPower.Sync();
+            Agility.Sync();
+            StrengthUpper.Sync();
 
-            Vitality.SetEnabled(Config.Vitality_Enabled);
-            Speed.SetEnabled(Config.Speed_Enabled);
-            JumpPower.SetEnabled(Config.JumpPower_Enabled);
-            Agility.SetEnabled(Config.Agility_Enabled);
-            StrengthUpper.SetEnabled(Config.StrengthUpper_Enabled);
-
-            CanUseGuns.SetValue(Config.CanUseGuns);
+            CanUseGuns.Sync();
         }
 
-        public void RefreshConfig(bool setStats = true)
+        public bool IsApplied
         {
-            Config.Mortality = Mortality.GetValue();
-            Config.Vitality = Vitality.GetValue();
-            Config.Speed = Speed.GetValue();
-            Config.JumpPower = JumpPower.GetValue();
-            Config.Agility = Agility.GetValue();
-            Config.StrengthUpper = StrengthUpper.GetValue();
-
-            Config.Vitality_Enabled = Vitality.IsEnabled;
-            Config.Speed_Enabled = Speed.IsEnabled;
-            Config.JumpPower_Enabled = JumpPower.IsEnabled;
-            Config.Agility_Enabled = Agility.IsEnabled;
-            Config.StrengthUpper_Enabled = StrengthUpper.IsEnabled;
-
-            Config.CanUseGuns = CanUseGuns.GetValue();
-
-            if (Infection.Instance.IsStarted && setStats)
-                Infection.Instance.SetStats();
-        }
-
-        public TeamConfig GetConfigFromMetadata()
-        {
-            var config = new TeamConfig
+            get
             {
-                Agility = Agility.GetValue(),
-                Vitality = Vitality.GetValue(),
-                Speed = Speed.GetValue(),
-                JumpPower = JumpPower.GetValue(),
-                StrengthUpper = StrengthUpper.GetValue(),
-                CanUseGuns = CanUseGuns.GetValue(),
-                Agility_Enabled = Agility.IsEnabled,
-                Speed_Enabled = Speed.IsEnabled,
-                Vitality_Enabled = Vitality.IsEnabled,
-                StrengthUpper_Enabled = StrengthUpper.IsEnabled,
-                JumpPower_Enabled = JumpPower.IsEnabled,
-                Mortality = Mortality.GetValue()
-            };
+                if (!Gamemode.IsStarted)
+                    return true;
 
-            return config;
+                if (Mortality.ClientValue != Mortality.ServerValue.GetValue()) return false;
+                else if (CanUseGuns.ClientValue != CanUseGuns.ServerValue.GetValue()) return false;
+                else if (Speed.ClientValue != Speed.ServerValue.GetValue()) return false;
+                else if (Speed.ClientEnabled != Speed.ServerValue.IsEnabled) return false;
+                else if (Agility.ClientValue != Agility.ServerValue.GetValue()) return false;
+                else if (Agility.ClientEnabled != Agility.ServerValue.IsEnabled) return false;
+                else if (StrengthUpper.ClientValue != StrengthUpper.ServerValue.GetValue()) return false;
+                else if (StrengthUpper.ClientEnabled != StrengthUpper.ServerValue.IsEnabled) return false;
+                else if (Vitality.ClientValue != Vitality.ServerValue.GetValue()) return false;
+                else if (Vitality.ClientEnabled != Vitality.ServerValue.IsEnabled) return false;
+                else if (JumpPower.ClientValue != JumpPower.ServerValue.GetValue()) return false;
+                else if (JumpPower.ClientEnabled != JumpPower.ServerValue.IsEnabled) return false;
+                else return true;
+            }
         }
 
         static void CheckForGun(Hand hand)
@@ -118,69 +108,10 @@ namespace AvatarInfection
 
         internal void CanUseGunsChanged()
         {
-            if (Infection.TeamManager.GetLocalTeam() == Team && !Config.CanUseGuns)
+            if (Infection.TeamManager.GetLocalTeam() == Team && !CanUseGuns.ClientValue)
             {
                 CheckForGun(Player.LeftHand);
                 CheckForGun(Player.RightHand);
-            }
-        }
-
-        internal void OnMetadataChanged(string name, string value)
-        {
-            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(value))
-                return;
-
-            if (!Infection.Instance.IsStarted)
-                return;
-
-            if (name == Mortality.Key)
-            {
-                Config.Mortality = Mortality.GetValue();
-            }
-            else if (name == Vitality.Key)
-            {
-                Config.Vitality = Vitality.GetValue();
-            }
-            else if (name == Speed.Key)
-            {
-                Config.Speed = Speed.GetValue();
-            }
-            else if (name == JumpPower.Key)
-            {
-                Config.JumpPower = JumpPower.GetValue();
-            }
-            else if (name == Agility.Key)
-            {
-                Config.Agility = Agility.GetValue();
-            }
-            else if (name == StrengthUpper.Key)
-            {
-                Config.StrengthUpper = StrengthUpper.GetValue();
-            }
-            else if (name == Vitality.ToggledKey)
-            {
-                Config.Vitality_Enabled = Vitality.IsEnabled;
-            }
-            else if (name == Speed.ToggledKey)
-            {
-                Config.Speed_Enabled = Speed.IsEnabled;
-            }
-            else if (name == JumpPower.ToggledKey)
-            {
-                Config.JumpPower_Enabled = JumpPower.IsEnabled;
-            }
-            else if (name == Agility.ToggledKey)
-            {
-                Config.Agility_Enabled = Agility.IsEnabled;
-            }
-            else if (name == StrengthUpper.ToggledKey)
-            {
-                Config.StrengthUpper_Enabled = StrengthUpper.IsEnabled;
-            }
-            else if (name == CanUseGuns.Key)
-            {
-                Config.CanUseGuns = CanUseGuns.GetValue();
-                CanUseGunsChanged();
             }
         }
     }

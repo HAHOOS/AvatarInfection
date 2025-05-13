@@ -2,6 +2,7 @@
 
 namespace AvatarInfection.Utilities;
 
+// https://github.com/Lakatrazz/BONELAB-Fusion/blob/main/LabFusion/src/Utilities/Internal/TimeUtilities.cs
 internal static class TimeUtilities
 {
     public static float DeltaTime

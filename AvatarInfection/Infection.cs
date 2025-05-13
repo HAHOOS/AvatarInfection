@@ -247,10 +247,6 @@ namespace AvatarInfection
 
         internal ServerSetting<bool> UseDeathmatchSpawns { get; private set; }
 
-        private List<ElementData> InfectedElements;
-        private List<ElementData> SurvivorsElements;
-        private List<ElementData> InfectedChildrenElements;
-
         internal bool SyncWithInfected { get; private set; } = Defaults.SyncWithInfected;
 
         internal AvatarSelectMode SelectMode { get; private set; } = Defaults.SelectMode;
@@ -262,6 +258,8 @@ namespace AvatarInfection
         internal MetadataVariableT<long?> StartUnix { get; private set; }
 
         internal MetadataVariableT<long?> EndUnix { get; private set; }
+
+        private readonly Dictionary<PlayerId, PlayerActionType> LastPlayerActions = [];
 
         public override GroupElementData CreateSettingsGroup()
         {
@@ -376,10 +374,9 @@ namespace AvatarInfection
             {
                 const string name = "Apply new settings";
                 var metadata = team == TeamEnum.Infected ? InfectedMetadata : team == TeamEnum.Survivors ? SurvivorsMetadata : InfectedChildrenMetadata;
-                var remote = metadata.GetConfigFromMetadata();
                 Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
                     string.Format(TeamConfigName, Infected.DisplayName),
-                    "Apply new settings", (el) => el.Title = remote != metadata.Config ? $"<color=#FF0000>{name}</color>" : name, false);
+                    "Apply new settings", (el) => el.Title = metadata.IsApplied ? $"<color=#FF0000>{name}</color>" : name, false);
             }
 
             group.AddElement("Apply new settings (use when the gamemode is already started)", () =>
@@ -390,23 +387,22 @@ namespace AvatarInfection
                     if (team == TeamEnum.InfectedChildren && SyncWithInfected)
                         _metadata = InfectedMetadata;
 
-                    var remote = _metadata.GetConfigFromMetadata();
-                    if (remote == _metadata.Config)
+                    if (_metadata.IsApplied)
                         return;
                     _metadata.ApplyConfig();
                     RefreshStatsEvent?.TryInvoke(team.ToString());
                 }
             });
-            group.AddElement("Mortality", metadata.Config.Mortality, (val) => { metadata.Config.Mortality = val; applyButtonUpdate(); });
-            group.AddElement("Can Use Guns", metadata.Config.CanUseGuns, (val) => { metadata.Config.CanUseGuns = val; applyButtonUpdate(); });
-            group.AddElement("Override Vitality", metadata.Config.Vitality_Enabled, (val) => { metadata.Config.Vitality_Enabled = val; applyButtonUpdate(); });
-            group.AddElement("Vitality", metadata.Config.Vitality, (val) => { metadata.Config.Vitality = val; applyButtonUpdate(); }, increment: Increment);
-            group.AddElement("Override Speed", metadata.Config.Speed_Enabled, (val) => { metadata.Config.Speed_Enabled = val; applyButtonUpdate(); });
-            group.AddElement("Speed", metadata.Config.Speed, (val) => { metadata.Config.Speed = val; applyButtonUpdate(); }, increment: Increment);
-            group.AddElement("Override Agility", metadata.Config.Agility_Enabled, (val) => { metadata.Config.Agility_Enabled = val; applyButtonUpdate(); });
-            group.AddElement("Agility", metadata.Config.Agility, (val) => { metadata.Config.Agility = val; applyButtonUpdate(); }, increment: Increment);
-            group.AddElement("Override Strength Upper", metadata.Config.StrengthUpper_Enabled, (val) => { metadata.Config.StrengthUpper_Enabled = val; applyButtonUpdate(); });
-            group.AddElement("Strength Upper", metadata.Config.StrengthUpper, (val) => { metadata.Config.StrengthUpper = val; applyButtonUpdate(); }, increment: Increment);
+            group.AddElement("Mortality", metadata.Mortality.ClientValue, (val) => { metadata.Mortality.ClientValue = val; applyButtonUpdate(); });
+            group.AddElement("Can Use Guns", metadata.CanUseGuns.ClientValue, (val) => { metadata.CanUseGuns.ClientValue = val; applyButtonUpdate(); });
+            group.AddElement("Override Vitality", metadata.Vitality.ClientEnabled, (val) => { metadata.Vitality.ClientEnabled = val; applyButtonUpdate(); });
+            group.AddElement("Vitality", metadata.Vitality.ClientValue, (val) => { metadata.Vitality.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
+            group.AddElement("Override Speed", metadata.Speed.ClientEnabled, (val) => { metadata.Speed.ClientEnabled = val; applyButtonUpdate(); });
+            group.AddElement("Speed", metadata.Speed.ClientValue, (val) => { metadata.Speed.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
+            group.AddElement("Override Agility", metadata.Agility.ClientEnabled, (val) => { metadata.Agility.ClientEnabled = val; applyButtonUpdate(); });
+            group.AddElement("Agility", metadata.Agility.ClientValue, (val) => { metadata.Agility.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
+            group.AddElement("Override Strength Upper", metadata.StrengthUpper.ClientEnabled, (val) => { metadata.StrengthUpper.ClientEnabled = val; applyButtonUpdate(); });
+            group.AddElement("Strength Upper", metadata.StrengthUpper.ClientValue, (val) => { metadata.StrengthUpper.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
 
             // Borrowed from Infect Type Enum element thingy which initially borrowed from BoneLib which then borrowed from LabFusion
             var increment = new FunctionElementData()
@@ -477,9 +473,9 @@ namespace AvatarInfection
             _DisableDevTools = new(Instance, nameof(DisableDevTools), Defaults.DisableDevTools);
             _DisableSpawnGun = new(Instance, nameof(DisableSpawnGun), Defaults.DisableSpawnGun);
 
-            InfectedMetadata = new TeamMetadata(Infected, Metadata, new TeamConfig(Defaults.InfectedStats));
-            SurvivorsMetadata = new TeamMetadata(Survivors, Metadata, new TeamConfig(Defaults.SurvivorsStats));
-            InfectedChildrenMetadata = new TeamMetadata(InfectedChildren, Metadata, new TeamConfig(Defaults.InfectedChildrenStats));
+            InfectedMetadata = new TeamMetadata(Infected, Instance, new TeamConfig(Defaults.InfectedStats));
+            SurvivorsMetadata = new TeamMetadata(Survivors, Instance, new TeamConfig(Defaults.SurvivorsStats));
+            InfectedChildrenMetadata = new TeamMetadata(InfectedChildren, Instance, new TeamConfig(Defaults.InfectedChildrenStats));
 
             SelectedAvatar = new(Instance, nameof(SelectedAvatar), null);
             SelectedAvatar.OnValueChanged += SelectedPlayerOverride;
@@ -565,10 +561,6 @@ namespace AvatarInfection
             MultiplayerHooking.OnPlayerAction -= OnPlayerAction;
             MultiplayerHooking.OnPlayerJoin -= OnPlayerJoin;
             MultiplayerHooking.OnPlayerLeave -= OnPlayerLeave;
-
-            InfectedElements = null;
-            SurvivorsElements = null;
-            InfectedChildrenElements = null;
 
             TeamManager.Unregister();
 
@@ -1034,7 +1026,7 @@ namespace AvatarInfection
                             if (TeamManager.GetLocalTeam() == Infected)
                             {
                                 var metadata = TeamManager.GetLocalTeam() == Infected ? InfectedMetadata : TeamManager.GetLocalTeam() == InfectedChildren ? InfectedChildrenMetadata : SurvivorsMetadata;
-                                FusionPlayer.SetMortality(metadata.Config.Mortality);
+                                FusionPlayer.SetMortality(metadata.Mortality.ClientValue);
 
                                 LocalControls.UnlockMovement();
 
@@ -1133,17 +1125,17 @@ namespace AvatarInfection
             // Push nametag updates
             FusionOverrides.ForceUpdateOverrides();
 
-            float? jumpPower = metadata.Config.JumpPower_Enabled ? metadata.Config.JumpPower : null;
-            float? speed = metadata.Config.Speed_Enabled ? metadata.Config.Speed : null;
-            float? agility = metadata.Config.Agility_Enabled ? metadata.Config.Agility : null;
-            float? strengthUpper = metadata.Config.StrengthUpper_Enabled ? metadata.Config.StrengthUpper : null;
+            float? jumpPower = metadata.JumpPower.ClientEnabled ? metadata.JumpPower.ClientValue : null;
+            float? speed = metadata.Speed.ClientEnabled ? metadata.Speed.ClientValue : null;
+            float? agility = metadata.Agility.ClientEnabled ? metadata.Agility.ClientValue : null;
+            float? strengthUpper = metadata.StrengthUpper.ClientEnabled ? metadata.StrengthUpper.ClientValue : null;
 
             FusionPlayerExtended.SetOverrides(jumpPower, speed, agility, strengthUpper);
 
             // Force mortality
-            FusionPlayer.SetMortality(metadata.Config.Mortality);
+            FusionPlayer.SetMortality(metadata.Mortality.ClientValue);
 
-            if (metadata.Config.Vitality_Enabled) FusionPlayer.SetPlayerVitality(metadata.Config.Vitality);
+            if (metadata.Vitality.ClientEnabled) FusionPlayer.SetPlayerVitality(metadata.Vitality.ClientValue);
         }
 
         internal void SetStats()
@@ -1204,8 +1196,6 @@ namespace AvatarInfection
             InfectedLooking.SetValue(false);
         }
 
-        bool assignedTeams = false;
-
         public override void OnGamemodeStarted()
         {
             base.OnGamemodeStarted();
@@ -1217,7 +1207,6 @@ namespace AvatarInfection
             _elapsedTime = 0f;
             _lastCheckedMinutes = 0;
             _oneMinuteLeft = false;
-            assignedTeams = false;
             HideVision = false;
             InitialTeam = true;
 
@@ -1237,11 +1226,6 @@ namespace AvatarInfection
             FusionSceneManager.HookOnTargetLevelLoad(() =>
             {
                 PopulatePage();
-                if (!NetworkInfo.IsServer)
-                {
-                    InfectedMetadata.RefreshConfig(false);
-                    SurvivorsMetadata.RefreshConfig(false);
-                }
                 SetStats();
 
                 SelectedPlayerOverride();
@@ -1400,10 +1384,7 @@ namespace AvatarInfection
 
             foreach (var plr in players)
                 TeamManager.TryAssignTeam(plr, Survivors);
-            assignedTeams = true;
         }
-
-        private readonly Dictionary<PlayerId, PlayerActionType> lastActions = [];
 
         protected void OnPlayerAction(PlayerId player, PlayerActionType type, PlayerId otherPlayer = null)
         {
@@ -1429,13 +1410,13 @@ namespace AvatarInfection
                 if (!NetworkInfo.IsServer || !SuicideInfects || otherPlayer != null)
                     return;
 
-                if (lastActions.ContainsKey(player) && lastActions[player] == PlayerActionType.DYING_BY_OTHER_PLAYER)
+                if (LastPlayerActions.ContainsKey(player) && LastPlayerActions[player] == PlayerActionType.DYING_BY_OTHER_PLAYER)
                     return;
 
                 if (TeamManager.GetPlayerTeam(player) == Survivors)
                     InfectEvent.TryInvoke(player.LongId.ToString());
             }
-            lastActions[player] = type;
+            LastPlayerActions[player] = type;
         }
 
         public enum InfectTypeEnum

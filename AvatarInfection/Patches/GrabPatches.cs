@@ -185,7 +185,7 @@ namespace AvatarInfection.Patches
             if (spawnGun != null)
                 return true;
 
-            return gun == null || config.Config.CanUseGuns;
+            return gun == null || config.CanUseGuns.ClientValue;
         }
 
         internal static void Update()
