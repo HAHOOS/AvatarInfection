@@ -20,13 +20,10 @@ using LabFusion.Network;
 using LabFusion.Extensions;
 using LabFusion.SDK.Points;
 using LabFusion.Marrow;
-using LabFusion.Menu.Gamemodes;
 using LabFusion.Scene;
 using LabFusion.Senders;
-using LabFusion.Marrow.Proxies;
 using LabFusion.Marrow.Integration;
 using LabFusion.SDK.Metadata;
-using FloatElement = LabFusion.Marrow.Proxies.FloatElement;
 
 using UnityEngine;
 
@@ -35,9 +32,9 @@ using MelonLoader;
 using BoneLib;
 using BoneLib.BoneMenu;
 
-using HarmonyLib;
-
 using AvatarInfection.Utilities;
+using AvatarInfection.Helper;
+
 using LabFusion.RPC;
 using LabFusion.Preferences.Client;
 using LabFusion.Downloading;
@@ -55,9 +52,9 @@ namespace AvatarInfection
 
         public override Texture Logo => Core.Icon;
 
-        public override bool DisableSpawnGun => _DisableSpawnGun;
+        public override bool DisableSpawnGun => _DisableSpawnGun.ClientValue;
 
-        public override bool DisableDevTools => _DisableDevTools;
+        public override bool DisableDevTools => _DisableDevTools.ClientValue;
 
         public override bool AutoHolsterOnDeath => true;
 
@@ -67,13 +64,9 @@ namespace AvatarInfection
 
         public override bool ManualReady => false;
 
-        internal MetadataBool __DisableSpawnGun;
+        internal ServerSetting<bool> _DisableSpawnGun { get; private set; }
 
-        private static bool _DisableSpawnGun = Defaults.DisableSpawnGun;
-
-        internal MetadataBool __DisableDevTools;
-
-        private static bool _DisableDevTools = Defaults.DisableDevTools;
+        internal ServerSetting<bool> _DisableDevTools { get; private set; }
 
         public static Infection Instance { get; private set; }
 
@@ -203,11 +196,10 @@ namespace AvatarInfection
         ];
         }
 
-        internal static MetadataVariableT<string> _SelectedAvatar;
-        internal static string SelectedAvatar;
+        internal static ServerSetting<string> SelectedAvatar;
         public MusicPlaylist PlayList { get; } = new();
 
-        private bool UntilAllFound { get; set; } = Defaults.UntilAllFound;
+        private bool NoTimeLimit { get; set; } = Defaults.UntilAllFound;
 
         internal TriggerEvent InfectEvent;
         internal TriggerEvent OneMinuteLeftEvent;
@@ -237,15 +229,13 @@ namespace AvatarInfection
 
         internal static TriggerEvent Teleport { get; private set; }
 
-        internal static bool ShouldTeleportToHost { get; private set; } = Defaults.ShouldTeleportToHost;
+        internal static bool TeleportOnStart { get; private set; } = Defaults.ShouldTeleportToHost;
 
         internal static InfectTypeEnum InfectType { get; private set; } = Defaults.InfectType;
 
         internal MetadataBool AKI { get; private set; }
 
-        internal static MetadataInt _CountdownLength;
-
-        internal static int CountdownLength { get; private set; } = Defaults.CountdownLength;
+        internal static ServerSetting<int> CountdownLength { get; private set; }
 
         internal bool AllowKeepInventory { get; private set; } = Defaults.AllowKeepInventory;
 
@@ -253,13 +243,9 @@ namespace AvatarInfection
 
         internal int HoldTime { get; private set; } = Defaults.HoldTime;
 
-        internal MetadataBool _TeleportOnEnd;
+        internal ServerSetting<bool> TeleportOnEnd { get; private set; }
 
-        internal bool TeleportOnEnd { get; private set; } = Defaults.TeleportOnEnd;
-
-        internal MetadataBool _UseDeathmatchSpawns;
-
-        internal bool UseDeathmatchSpawns { get; private set; } = Defaults.UseDeathMatchSpawns;
+        internal ServerSetting<bool> UseDeathmatchSpawns { get; private set; }
 
         private List<ElementData> InfectedElements;
         private List<ElementData> SurvivorsElements;
@@ -269,95 +255,13 @@ namespace AvatarInfection
 
         internal AvatarSelectMode SelectMode { get; private set; } = Defaults.SelectMode;
 
-        internal MetadataBool _ShowCountdownToAll;
-        internal bool ShowCountdownToAll { get; private set; } = Defaults.ShowCountdownToAll;
+        internal ServerSetting<bool> ShowCountdownToAll { get; private set; }
 
         internal MetadataInt CountdownValue;
 
         internal MetadataVariableT<long?> StartUnix { get; private set; }
 
         internal MetadataVariableT<long?> EndUnix { get; private set; }
-
-        private static MenuElement GetElement(string groupName, string elementName, bool startsWith = true)
-        {
-            if (MenuGamemode.SelectedGamemode != Infection.Instance)
-                return null;
-
-            var group = MenuGamemode.SettingsPageElement.Elements.FirstOrDefault(x => x.Title == groupName) as GroupElement;
-            if (group == null)
-            {
-                Logger.Warn("Cannot find group");
-                return null;
-            }
-
-            var element = group.Elements?.FirstOrDefault(x => startsWith ? x.Title.StartsWith(elementName) : x.Title.Contains(elementName));
-            if (element == null)
-            {
-                Logger.Warn("Cannot find element");
-                return null;
-            }
-
-            return element;
-        }
-
-        private static void ChangeElementTitle(string groupName, string elementTitle, string newTitle, bool startsWith = true)
-        {
-            var element = GetElement(groupName, elementTitle, startsWith);
-            if (element != null)
-                element.Title = newTitle;
-        }
-
-        private static void ChangeElementIncrement(string groupName, string elementTitle, float increment, bool startsWith = true)
-        {
-            var element = GetElement(groupName, elementTitle, startsWith);
-            if (element != null && element.GetType() == typeof(FloatElement))
-                (element as FloatElement).Increment = increment;
-        }
-
-        private static void ChangeElementColor(string groupName, string elementTitle, System.Drawing.Color? color, bool startsWith = true)
-        {
-            if (MenuGamemode.SelectedGamemode != Infection.Instance)
-                return;
-
-            var group = MenuGamemode.SettingsPageElement.Elements.FirstOrDefault(x => x.Title == groupName) as GroupElement;
-            if (group == null)
-            {
-                Logger.Warn("Cannot find group");
-                return;
-            }
-
-            bool found = false;
-
-            foreach (var element in group.Elements)
-            {
-                var title = RemoveColor(element.Title);
-                if (!(startsWith ? title.StartsWith(elementTitle) : title.Contains(elementTitle)))
-                    continue;
-
-                found = true;
-
-                if (color.HasValue)
-                    element.Title = $"<color=#{color.Value.R:X2}{color.Value.G:X2}{color.Value.B:X2}>{title}</color>";
-                else
-                    element.Title = title;
-            }
-            if (!found)
-                Logger.Warn("Cannot find element");
-        }
-
-        private static string RemoveColor(string text)
-        {
-            static string match(Match match)
-            {
-                if (match.Success)
-                {
-                    if (match.Groups.Count > 2)
-                        return match.Groups[2].Value;
-                }
-                return string.Empty;
-            }
-            return Regex.Replace(text, @"<color=#(.*?)>(.*?)<\/color>", match);
-        }
 
         public override GroupElementData CreateSettingsGroup()
         {
@@ -372,379 +276,82 @@ namespace AvatarInfection
                 return null;
             }
 
-            GroupElementData avatarGroup = new("Avatar");
+            GroupElementData avatarGroup = group.AddGroup("Avatar");
 
-            group.AddElement(avatarGroup);
-
-            FunctionElementData select = new()
+            avatarGroup.AddElement("Selected Avatar: ", () =>
             {
-                Title = $"Selected Avatar: {(!string.IsNullOrWhiteSpace(SelectedAvatar) && SelectedAvatar != Il2CppSLZ.Marrow.Warehouse.Barcode.EMPTY ? new AvatarCrateReference(SelectedAvatar)?.Scannable?.Title ?? "N/A" : "N/A")}",
-                OnPressed = () =>
+                if (IsStarted)
+                    return;
+
+                var rigManager = Player.RigManager;
+                if (rigManager?.AvatarCrate?.Barcode != null)
                 {
-                    try
-                    {
-                        if (IsStarted)
-                            return;
+                    var avatar = rigManager.AvatarCrate.Barcode.ID;
 
-                        var rigManager = Player.RigManager;
-                        if (rigManager?.AvatarCrate?.Barcode != null)
-                        {
-                            var avatar = rigManager.AvatarCrate.Barcode.ID;
-
-                            if (string.IsNullOrWhiteSpace(avatar))
-                            {
-                                FusionNotifier.Send(new FusionNotification()
-                                {
-                                    Title = "Failure",
-                                    Message = "Could not retrieve your current avatar :(",
-                                    PopupLength = 2.5f,
-                                    ShowPopup = true,
-                                    Type = NotificationType.ERROR,
-                                    SaveToMenu = false
-                                });
-                            }
-                            SelectedAvatar = avatar;
-
-                            if (IsStarted)
-                                _SelectedAvatar.SetValue<string>(SelectedAvatar);
-
-                            string title = !string.IsNullOrWhiteSpace(rigManager.AvatarCrate?.Scannable?.Title) ? rigManager.AvatarCrate.Scannable.Title : "N/A";
-                            if (MenuGamemode.SelectedGamemode == this)
-                            {
-                                // HACK: This should not exist, but it does because you only send data for the elements
-                                ChangeElementTitle(avatarGroup.Title, "Selected Avatar:", $"Selected Avatar: {title}");
-                            }
-                            if (new Barcode(rigManager.AvatarCrate.Barcode.ID)?.IsValid() == true)
-                            {
-                                FusionNotifier.Send(new FusionNotification()
-                                {
-                                    Title = "Success",
-                                    Message = $"Successfully selected avatar '{title}' as the infected one!",
-                                    PopupLength = 2.5f,
-                                    Type = NotificationType.SUCCESS,
-                                    SaveToMenu = false,
-                                    ShowPopup = true
-                                });
-                            }
-                            else
-                            {
-                                FusionNotifier.Send(new FusionNotification()
-                                {
-                                    Title = "Failure",
-                                    Message = "Failed to select a new infected avatar :(",
-                                    PopupLength = 2.5f,
-                                    Type = NotificationType.ERROR,
-                                    SaveToMenu = false,
-                                    ShowPopup = true
-                                });
-                            }
-                        }
-                        else
-                        {
-                            FusionNotifier.Send(new FusionNotification()
-                            {
-                                Title = "Failure",
-                                Message = "Failed to select a new infected avatar :( RigManager for local player was not found!",
-                                PopupLength = 2.5f,
-                                Type = NotificationType.ERROR,
-                                SaveToMenu = false,
-                                ShowPopup = true
-                            });
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogException("Select new Avatar", ex);
-                        FusionNotifier.Send(new FusionNotification()
-                        {
-                            Title = "Failure",
-                            Message = "An unexpected error has occured while trying to select a new avatar. Check console or logs for more information",
-                            PopupLength = 3f,
-                            Type = NotificationType.ERROR,
-                            SaveToMenu = false,
-                        });
-                    }
-                }
-            };
-            avatarGroup.AddElement(select);
-
-            var selectMode = new FunctionElementData()
-            {
-                Title = $"Select Mode: {SelectMode}",
-                OnPressed = () =>
-                {
-                    var values = Enum.GetValues(typeof(AvatarSelectMode));
-                    int index = (int)SelectMode;
-
-                    // Politely borrowed from BoneLib
-                    // Oh sorry my bad, from LabFusion, because the BoneLib one didn't do anything
-                    index++;
-                    index %= values.Length;
-                    SelectMode = (AvatarSelectMode)values.GetValue(index);
-                    ChangeElementTitle(avatarGroup.Title, "Select Mode:", $"Select Mode: {SelectMode}");
-                }
-            };
-            avatarGroup.AddElement(selectMode);
-
-            GroupElementData gr = new(string.Format(TeamConfigName, Infected.DisplayName));
-
-            group.AddElement(gr);
-
-            InfectedElements ??= GetElementsForTeam(TeamEnum.Infected);
-
-            InfectedElements.ForEach(x => gr.AddElement(x));
-
-            var gr2 = new GroupElementData(string.Format(TeamConfigName, InfectedChildren.DisplayName));
-            group.AddElement(gr2);
-
-            InfectedChildrenElements ??= GetElementsForTeam(TeamEnum.InfectedChildren);
-
-            InfectedChildrenElements.ForEach(x => gr2.AddElement(x));
-
-            var gr3 = new GroupElementData(string.Format(TeamConfigName, Survivors.DisplayName));
-            group.AddElement(gr3);
-
-            SurvivorsElements ??= GetElementsForTeam(TeamEnum.Survivors);
-
-            SurvivorsElements.ForEach(x => gr3.AddElement(x));
-
-            GroupElementData generalGroup = new("General");
-
-            group.AddElement(generalGroup);
-
-            var infectedCount = new IntElementData()
-            {
-                Title = "Infected Start Number",
-                Increment = 1,
-                MinValue = 1,
-                MaxValue = 5,
-                Value = InfectedCount,
-                OnValueChanged = (val) => InfectedCount = val,
-            };
-
-            generalGroup.AddElement(infectedCount);
-
-            var timeLimit = new IntElementData()
-            {
-                Title = "Time Limit",
-                Value = TimeLimit,
-                Increment = 1,
-                MinValue = 1,
-                MaxValue = 60,
-                OnValueChanged = (val) =>
-                {
-                    TimeLimit = val;
-                    if (IsStarted)
-                        EndUnix.SetValue(DateTimeOffset.FromUnixTimeMilliseconds((long)StartUnix.GetValue()).AddMinutes(val).ToUnixTimeMilliseconds());
-                }
-            };
-
-            generalGroup.AddElement(timeLimit);
-
-            var spawnGunDisabled = new BoolElementData()
-            {
-                Title = "Disable Spawn Gun",
-                Value = DisableSpawnGun,
-                OnValueChanged = (val) =>
-                {
-                    _DisableSpawnGun = val;
-                    __DisableSpawnGun.SetValue(val);
-                }
-            };
-
-            generalGroup.AddElement(spawnGunDisabled);
-
-            var devToolsDisabled = new BoolElementData()
-            {
-                Title = "Disable Dev Tools",
-                Value = DisableDevTools,
-                OnValueChanged = (val) =>
-                {
-                    _DisableDevTools = val;
-                    __DisableDevTools.SetValue(val);
-                }
-            };
-
-            generalGroup.AddElement(devToolsDisabled);
-
-            var allowKI = new BoolElementData()
-            {
-                Title = "Allow Keep Inventory",
-                Value = AllowKeepInventory,
-                OnValueChanged = (val) =>
-                {
-                    AllowKeepInventory = val;
-                    if (IsStarted)
-                        AKI.SetValue(val);
-                }
-            };
-
-            generalGroup.AddElement(allowKI);
-
-            var untilAllFound = new BoolElementData()
-            {
-                Title = "No Time Limit",
-                Value = UntilAllFound,
-                OnValueChanged = (val) =>
-                {
-                    UntilAllFound = val;
-                    if (IsStarted)
-                        EndUnix.SetValue(-1);
-                }
-            };
-
-            generalGroup.AddElement(untilAllFound);
-
-            var useDeathmatchSpawns = new BoolElementData()
-            {
-                Title = "Use Deathmatch Spawns",
-                Value = UseDeathmatchSpawns,
-                OnValueChanged = (val) =>
-                {
-                    UseDeathmatchSpawns = val;
-                    if (IsStarted)
-                        _UseDeathmatchSpawns.SetValue(val);
-                }
-            };
-
-            generalGroup.AddElement(useDeathmatchSpawns);
-
-            var teleportToHostOnStart = new BoolElementData()
-            {
-                Title = "Teleport To Host On Start",
-                Value = ShouldTeleportToHost,
-                OnValueChanged = (val) => ShouldTeleportToHost = val,
-            };
-
-            generalGroup.AddElement(teleportToHostOnStart);
-
-            var teleportToHostOnEnd = new BoolElementData()
-            {
-                Title = "Teleport To Host On End",
-                Value = TeleportOnEnd,
-                OnValueChanged = (val) =>
-                {
-                    TeleportOnEnd = val;
-                    if (IsStarted)
-                        _TeleportOnEnd.SetValue(val);
-                }
-            };
-
-            generalGroup.AddElement(teleportToHostOnEnd);
-
-            var countdownLength = new IntElementData()
-            {
-                Title = "Countdown Length",
-                Increment = 5,
-                MaxValue = 3600,
-                MinValue = 0,
-                Value = CountdownLength,
-                OnValueChanged = (val) =>
-                {
-                    CountdownLength = val;
-                    if (IsStarted)
-                        _CountdownLength.SetValue(val);
-                }
-            };
-
-            var countdownShowToAll = new BoolElementData()
-            {
-                Title = "Show Countdown to All Players",
-                Value = ShowCountdownToAll,
-                OnValueChanged = (val) => ShowCountdownToAll = val
-            };
-
-            generalGroup.AddElement(countdownLength);
-
-            var infectType = new FunctionElementData()
-            {
-                Title = $"Infect Type: {InfectType}",
-                OnPressed = () =>
-                {
-                    var values = Enum.GetValues(typeof(InfectTypeEnum));
-                    int index = (int)InfectType;
-
-                    // Politely borrowed from BoneLib
-                    // Oh sorry my bad, from LabFusion, because the BoneLib one didn't do anything
-                    index++;
-                    index %= values.Length;
-                    InfectType = (InfectTypeEnum)values.GetValue(index);
-                    ChangeElementTitle(generalGroup.Title, "Infect Type:", $"Infect Type: {InfectType}");
-                }
-            };
-
-            // I didn't think what I was doing and instead of doing "Suicide Infects" i did "Suicide Kills"
-            // Yeah it fucking kills dumbass
-            // I'm keeping 'suicideKills' as the variable name to remind myself how smart I am
-            var suicideKills = new BoolElementData()
-            {
-                Title = "Suicide Infects",
-                Value = true,
-                OnValueChanged = (val) => SuicideInfects = val,
-            };
-
-            generalGroup.AddElement(suicideKills);
-
-            var holdTime = new IntElementData()
-            {
-                Title = "Hold Time (Touch Infect Type)",
-                Value = HoldTime,
-                Increment = 1,
-                MaxValue = 60,
-                MinValue = 0,
-                OnValueChanged = (val) => HoldTime = val,
-            };
-
-            generalGroup.AddElement(holdTime);
-
-            /*
-            var infectType = new EnumElementData()
-            {
-                Title = "Infect Type",
-                EnumType = typeof(InfectTypeEnum),
-                Value = InfectType,
-                OnValueChanged = (val) =>
-                {
-                    InfectType = (InfectTypeEnum)val;
-                    if (IsStarted || GamemodeManager.ActiveGamemode == this)
-                        _InfectType.SetValue(InfectType);
-                }
-            };
-            */
-            generalGroup.AddElement(infectType);
-
-            var resetToDefault = new FunctionElementData()
-            {
-                Title = "Reset To Default Settings",
-                OnPressed = () =>
-                {
-                    if (IsStarted)
+                    if (string.IsNullOrWhiteSpace(avatar))
                         return;
+                    SelectedAvatar.ClientValue = avatar;
 
-                    InfectedMetadata.Config = new TeamConfig(Defaults.InfectedStats);
-                    SurvivorsMetadata.Config = new TeamConfig(Defaults.SurvivorsStats);
-                    InfectedChildrenMetadata.Config = new TeamConfig(Defaults.InfectedChildrenStats);
-                    UntilAllFound = Defaults.UntilAllFound;
-                    SelectedAvatar = string.Empty;
-                    TimeLimit = Defaults.TimeLimit;
-                    InfectType = Defaults.InfectType;
-                    SuicideInfects = Defaults.SuicideInfects;
-                    HoldTime = Defaults.HoldTime;
-                    InfectedCount = Defaults.InfectedCount;
-                    CountdownLength = Defaults.CountdownLength;
-                    _DisableSpawnGun = Defaults.DisableSpawnGun;
-                    _DisableDevTools = Defaults.DisableDevTools;
-                    AllowKeepInventory = Defaults.AllowKeepInventory;
-                    ShouldTeleportToHost = Defaults.ShouldTeleportToHost;
-                    TeleportOnEnd = Defaults.TeleportOnEnd;
-                    ShowCountdownToAll = Defaults.ShowCountdownToAll;
+                    string title = !string.IsNullOrWhiteSpace(rigManager.AvatarCrate?.Scannable?.Title) ? rigManager.AvatarCrate.Scannable.Title : "N/A";
 
-                    ChangeElementTitle("Avatar", "Selected Avatar:", "Selected Avatar: N/A");
-                    ChangeElementTitle("General", "Infect Type:", $"Infect Type: {Enum.GetName(InfectType)}");
+                    Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
+                        avatarGroup.Title,
+                        "Selected Avatar:",
+                        (element) => element.Title = $"Selected Avatar: {title}",
+                        true);
                 }
-            };
+            });
 
-            generalGroup.AddElement(resetToDefault);
+            avatarGroup.AddElement("Select Mode", SelectMode, Instance, (val) => SelectMode = (AvatarSelectMode)val);
+
+            group.AddElement(CreateElementsForTeam(TeamEnum.Infected));
+
+            group.AddElement(CreateElementsForTeam(TeamEnum.InfectedChildren));
+
+            group.AddElement(CreateElementsForTeam(TeamEnum.Survivors));
+
+            GroupElementData generalGroup = group.AddGroup("General");
+
+            generalGroup.AddElement("Infected Start Number", InfectedCount, (val) => InfectedCount = val, min: 1, max: 5);
+
+            generalGroup.AddElement("Time Limit", TimeLimit, (val) =>
+            {
+                TimeLimit = val;
+                if (IsStarted)
+                    EndUnix.SetValue(DateTimeOffset.FromUnixTimeMilliseconds((long)StartUnix.GetValue()).AddMinutes(val).ToUnixTimeMilliseconds());
+            }, min: 1);
+
+            generalGroup.AddElement("Disable Spawn Gun", DisableSpawnGun, (val) => _DisableSpawnGun.ClientValue = val);
+
+            generalGroup.AddElement("Disable Dev Tools", DisableDevTools, (val) => _DisableDevTools.ClientValue = val);
+
+            generalGroup.AddElement("Allow Keep Inventory", AllowKeepInventory, (val) =>
+            {
+                AllowKeepInventory = val;
+                if (IsStarted)
+                    AKI.SetValue(val);
+            });
+
+            generalGroup.AddElement("No Time Limit", NoTimeLimit, (val) =>
+            {
+                NoTimeLimit = val;
+                if (IsStarted)
+                    EndUnix.SetValue(-1);
+            });
+
+            generalGroup.AddElement("Use Deathmatch Spawns", UseDeathmatchSpawns.ClientValue, (val) => UseDeathmatchSpawns.ClientValue = val);
+
+            generalGroup.AddElement("Teleport To Host On Start", TeleportOnStart, (val) => TeleportOnStart = val);
+
+            generalGroup.AddElement("Teleport To Host On End", TeleportOnEnd.ClientValue, (val) => TeleportOnEnd.ClientValue = val);
+
+            generalGroup.AddElement("Countdown Length", CountdownLength.ClientValue, (val) => CountdownLength.ClientValue = val, 5, 0, 3600);
+            generalGroup.AddElement("Show Countdown to All Players", ShowCountdownToAll.ClientValue, (val) => ShowCountdownToAll.ClientValue = val);
+
+            generalGroup.AddElement("Infect Type", InfectType, Instance, (val) => InfectType = (InfectTypeEnum)val);
+
+            generalGroup.AddElement("Suicide Infects", SuicideInfects, (val) => SuicideInfects = val);
+            generalGroup.AddElement("Hold Time (Touch Infect Type)", HoldTime, (val) => HoldTime = val, max: 60);
 
             return group;
         }
@@ -756,150 +363,50 @@ namespace AvatarInfection
             Random
         }
 
-        private List<ElementData> GetElementsForTeam(TeamEnum team)
+        private GroupElementData CreateElementsForTeam(TeamEnum team)
         {
             var metadata = team == TeamEnum.Infected ? InfectedMetadata : team == TeamEnum.Survivors ? SurvivorsMetadata : InfectedChildrenMetadata;
-            var group = new List<ElementData>();
-
-            var apply = new FunctionElementData()
+            var group = new GroupElementData()
             {
-                Title = "Apply new settings (use when the gamemode is already started)",
-                OnPressed = () =>
+                Title = $"{(team == TeamEnum.Survivors ? "Survivors Stats"
+                   : team == TeamEnum.InfectedChildren ? "Infected Children Stats" : "Infected Stats")}"
+            };
+
+            void applyButtonUpdate()
+            {
+                const string name = "Apply new settings";
+                var metadata = team == TeamEnum.Infected ? InfectedMetadata : team == TeamEnum.Survivors ? SurvivorsMetadata : InfectedChildrenMetadata;
+                var remote = metadata.GetConfigFromMetadata();
+                Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
+                    string.Format(TeamConfigName, Infected.DisplayName),
+                    "Apply new settings", (el) => el.Title = remote != metadata.Config ? $"<color=#FF0000>{name}</color>" : name, false);
+            }
+
+            group.AddElement("Apply new settings (use when the gamemode is already started)", () =>
+            {
+                if (IsStarted)
                 {
-                    if (IsStarted)
-                    {
-                        var _metadata = metadata;
-                        if (team == TeamEnum.InfectedChildren && SyncWithInfected)
-                            _metadata = InfectedMetadata;
+                    var _metadata = metadata;
+                    if (team == TeamEnum.InfectedChildren && SyncWithInfected)
+                        _metadata = InfectedMetadata;
 
-                        var remote = _metadata.GetConfigFromMetadata();
-                        if (remote == _metadata.Config)
-                            return;
-                        _metadata.ApplyConfig();
-                        RefreshStatsEvent?.TryInvoke(team.ToString());
-                    }
+                    var remote = _metadata.GetConfigFromMetadata();
+                    if (remote == _metadata.Config)
+                        return;
+                    _metadata.ApplyConfig();
+                    RefreshStatsEvent?.TryInvoke(team.ToString());
                 }
-            };
-            group.Add(apply);
-
-            var mortality = new BoolElementData()
-            {
-                Title = "Mortality",
-                Value = metadata.Config.Mortality,
-                OnValueChanged = (val) => metadata.Config.Mortality = val
-            };
-            group.Add(mortality);
-
-            var canUseGuns = new BoolElementData()
-            {
-                Title = "Can Use Guns",
-                Value = metadata.Config.CanUseGuns,
-                OnValueChanged = (val) => metadata.Config.CanUseGuns = val
-            };
-            group.Add(canUseGuns);
-
-            var overrideVitality = new BoolElementData()
-            {
-                Title = "Override Vitality",
-                Value = metadata.Config.Vitality_Enabled,
-                OnValueChanged = (val) => metadata.Config.Vitality_Enabled = val
-            };
-
-            group.Add(overrideVitality);
-
-            var vitality = new FloatElementData()
-            {
-                Title = "Vitality",
-                Value = metadata.Config.Vitality,
-                Increment = Increment,
-                MinValue = 0.2f,
-                MaxValue = 100f,
-                OnValueChanged = (v) => metadata.Config.Vitality = v
-            };
-            group.Add(vitality);
-
-            var overrideSpeed = new BoolElementData()
-            {
-                Title = "Override Speed",
-                Value = metadata.Config.Speed_Enabled,
-                OnValueChanged = (val) => metadata.Config.Speed_Enabled = val
-            };
-
-            group.Add(overrideSpeed);
-
-            var speed = new FloatElementData()
-            {
-                Title = "Speed",
-                Value = metadata.Config.Speed,
-                Increment = Increment,
-                MinValue = 0.2f,
-                MaxValue = 100f,
-                OnValueChanged = (v) => metadata.Config.Speed = v
-            };
-            group.Add(speed);
-
-            /*
-            var overrideJumpPower = new BoolElementData()
-            {
-                Title = "Override Jump Power",
-                Value = metadata.Config.JumpPower_Enabled,
-                OnValueChanged = (val) => metadata.Config.JumpPower_Enabled = val
-            };
-
-            group.Add(overrideJumpPower);
-
-            var jumpPower = new FloatElementData()
-            {
-                Title = "Jump Power",
-                Value = metadata.Config.JumpPower,
-                Increment = Increment,
-                MinValue = 0.2f,
-                MaxValue = 100f,
-                OnValueChanged = (v) => metadata.Config.JumpPower = v
-            };
-            group.Add(jumpPower);
-            */
-
-            var overrideAgility = new BoolElementData()
-            {
-                Title = "Override Agility",
-                Value = metadata.Config.Agility_Enabled,
-                OnValueChanged = (val) => metadata.Config.Agility_Enabled = val
-            };
-
-            group.Add(overrideAgility);
-
-            var agility = new FloatElementData()
-            {
-                Title = "Agility",
-                Value = metadata.Config.Agility,
-                Increment = Increment,
-                MinValue = 0.2f,
-                MaxValue = 100f,
-                OnValueChanged = (v) => metadata.Config.Agility = v
-            };
-            group.Add(agility);
-
-            var overrideStrengthUpper = new BoolElementData()
-            {
-                Title = "Override Strength Upper",
-                Value = metadata.Config.StrengthUpper_Enabled,
-                OnValueChanged = (val) => metadata.Config.StrengthUpper_Enabled = val
-            };
-
-            group.Add(overrideStrengthUpper);
-
-            var strengthUpper = new FloatElementData()
-            {
-                Title = "Strength Upper",
-                Value = metadata.Config.StrengthUpper,
-                Increment = Increment,
-                MinValue = 0.2f,
-                MaxValue = 100f,
-                OnValueChanged = (v) => metadata.Config.StrengthUpper = v
-            };
-
-            group.Add(strengthUpper);
+            });
+            group.AddElement("Mortality", metadata.Config.Mortality, (val) => { metadata.Config.Mortality = val; applyButtonUpdate(); });
+            group.AddElement("Can Use Guns", metadata.Config.CanUseGuns, (val) => { metadata.Config.CanUseGuns = val; applyButtonUpdate(); });
+            group.AddElement("Override Vitality", metadata.Config.Vitality_Enabled, (val) => { metadata.Config.Vitality_Enabled = val; applyButtonUpdate(); });
+            group.AddElement("Vitality", metadata.Config.Vitality, (val) => { metadata.Config.Vitality = val; applyButtonUpdate(); }, increment: Increment);
+            group.AddElement("Override Speed", metadata.Config.Speed_Enabled, (val) => { metadata.Config.Speed_Enabled = val; applyButtonUpdate(); });
+            group.AddElement("Speed", metadata.Config.Speed, (val) => { metadata.Config.Speed = val; applyButtonUpdate(); }, increment: Increment);
+            group.AddElement("Override Agility", metadata.Config.Agility_Enabled, (val) => { metadata.Config.Agility_Enabled = val; applyButtonUpdate(); });
+            group.AddElement("Agility", metadata.Config.Agility, (val) => { metadata.Config.Agility = val; applyButtonUpdate(); }, increment: Increment);
+            group.AddElement("Override Strength Upper", metadata.Config.StrengthUpper_Enabled, (val) => { metadata.Config.StrengthUpper_Enabled = val; applyButtonUpdate(); });
+            group.AddElement("Strength Upper", metadata.Config.StrengthUpper, (val) => { metadata.Config.StrengthUpper = val; applyButtonUpdate(); }, increment: Increment);
 
             // Borrowed from Infect Type Enum element thingy which initially borrowed from BoneLib which then borrowed from LabFusion
             var increment = new FunctionElementData()
@@ -911,27 +418,22 @@ namespace AvatarInfection
 
                     IncrementIndex++;
                     IncrementIndex %= IncrementValues.Count;
-                    ChangeElementTitle(group, "Increment:", $"Increment: {Increment}");
+                    Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
+                        group,
+                        "Increment:",
+                        (el) => el.Title = $"Increment: {Increment}");
 
-                    ChangeElementIncrement(group, "Strength Upper", Increment);
-                    ChangeElementIncrement(group, "Agility", Increment);
-                    ChangeElementIncrement(group, "Jump Power", Increment);
-                    ChangeElementIncrement(group, "Speed", Increment);
-                    ChangeElementIncrement(group, "Vitality", Increment);
+                    Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Strength Upper", (el) => el.Increment = Increment);
+                    Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Agility", (el) => el.Increment = Increment);
+                    Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Jump Power", (el) => el.Increment = Increment);
+                    Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Speed", (el) => el.Increment = Increment);
+                    Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Vitality", (el) => el.Increment = Increment);
                 }
             };
-            group.Add(increment);
+            group.AddElement(increment);
 
             if (team == TeamEnum.InfectedChildren)
-            {
-                var sync = new BoolElementData()
-                {
-                    Title = "Sync with Infected",
-                    Value = SyncWithInfected,
-                    OnValueChanged = (v) => SyncWithInfected = v
-                };
-                group.Add(sync);
-            }
+                group.AddElement("Sync with Infected", SyncWithInfected, (val) => SyncWithInfected = val);
 
             return group;
         }
@@ -972,26 +474,34 @@ namespace AvatarInfection
             TeamManager.AddTeam(InfectedChildren);
             TeamManager.OnAssignedToTeam += OnAssignedToTeam;
 
-            __DisableDevTools = new MetadataBool(nameof(DisableDevTools), Metadata);
-            __DisableSpawnGun = new MetadataBool(nameof(DisableSpawnGun), Metadata);
+            _DisableDevTools = new(Instance, nameof(DisableDevTools), Defaults.DisableDevTools);
+            _DisableSpawnGun = new(Instance, nameof(DisableSpawnGun), Defaults.DisableSpawnGun);
 
             InfectedMetadata = new TeamMetadata(Infected, Metadata, new TeamConfig(Defaults.InfectedStats));
             SurvivorsMetadata = new TeamMetadata(Survivors, Metadata, new TeamConfig(Defaults.SurvivorsStats));
             InfectedChildrenMetadata = new TeamMetadata(InfectedChildren, Metadata, new TeamConfig(Defaults.InfectedChildrenStats));
 
-            _SelectedAvatar = new MetadataVariableT<string>(nameof(SelectedAvatar), Metadata);
+            SelectedAvatar = new(Instance, nameof(SelectedAvatar), null);
+            SelectedAvatar.OnValueChanged += SelectedPlayerOverride;
 
-            _CountdownLength = new MetadataInt(nameof(CountdownLength), Metadata);
+            CountdownLength = new(Instance, nameof(CountdownLength), Defaults.CountdownLength);
 
             AKI = new MetadataBool("AllowKeepInventory", Metadata);
 
-            InfectedLooking = new MetadataBool(nameof(InfectedLooking), Metadata);
+            InfectedLooking = new(nameof(InfectedLooking), Metadata);
 
-            _TeleportOnEnd = new MetadataBool(nameof(TeleportOnEnd), Metadata);
+            TeleportOnEnd = new(Instance, nameof(TeleportOnEnd), Defaults.TeleportOnEnd);
 
-            _UseDeathmatchSpawns = new MetadataBool(nameof(UseDeathmatchSpawns), Metadata);
+            UseDeathmatchSpawns = new(Instance, nameof(UseDeathmatchSpawns), Defaults.UseDeathMatchSpawns);
+            UseDeathmatchSpawns.OnValueChanged += () =>
+            {
+                if (UseDeathmatchSpawns.ClientValue)
+                    UseDeathmatchSpawns_Init(false);
+                else
+                    ClearDeathmatchSpawns();
+            };
 
-            _ShowCountdownToAll = new MetadataBool(nameof(ShowCountdownToAll), Metadata);
+            ShowCountdownToAll = new(Instance, nameof(ShowCountdownToAll), Defaults.ShowCountdownToAll);
 
             CountdownValue = new MetadataInt(nameof(CountdownValue), Metadata);
 
@@ -1027,6 +537,25 @@ namespace AvatarInfection
             MultiplayerHooking.OnJoinServer += PopulatePage;
             MultiplayerHooking.OnPlayerJoin += Hook;
             MultiplayerHooking.OnPlayerLeave += Hook;
+        }
+
+        private new void OnMetadataChanged(string key, string value)
+        {
+            base.OnMetadataChanged(key, value);
+
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
+                return;
+
+            if (!IsStarted)
+                return;
+
+            switch (key)
+            {
+                case nameof(InfectedLooking):
+                    if (InfectedLooking.GetValue())
+                        InfectedLookingEvent();
+                    break;
+            }
         }
 
         public override void OnGamemodeUnregistered()
@@ -1205,7 +734,7 @@ namespace AvatarInfection
             if (playerId == null)
                 return;
 
-            if (NetworkInfo.IsServer && !InfectedChildren.HasPlayer(playerId) && !Infected.HasPlayer(playerId))
+            if (NetworkInfo.IsServer && Survivors.HasPlayer(playerId))
             {
                 if (Survivors.PlayerCount <= 1)
                 {
@@ -1221,7 +750,7 @@ namespace AvatarInfection
             if (playerId.IsMe && !HasBeenInfected)
             {
                 if (Survivors.PlayerCount > 1)
-                    SwapAvatar(SelectedAvatar);
+                    SwapAvatar(SelectedAvatar.ClientValue);
 
                 FusionNotifier.Send(new FusionNotification()
                 {
@@ -1293,7 +822,7 @@ namespace AvatarInfection
 
         private IEnumerator InfectedLookingWait()
         {
-            int target = CountdownLength;
+            int target = CountdownLength.ClientValue;
 
             float remaining = target;
 
@@ -1336,15 +865,14 @@ namespace AvatarInfection
                 PCDs.ForEach(x => x._bodyLogEnabled = true);
             }
 
-            if (InfectedLooking.GetValue() && !InitialTeam)
-                InitialTeam = true;
-
             if (!InitialTeam)
                 return;
 
+            InitialTeam = false;
+
             if (team == Infected)
             {
-                SwapAvatar(SelectedAvatar);
+                SwapAvatar(SelectedAvatar.ClientValue);
             }
             else
             {
@@ -1360,8 +888,6 @@ namespace AvatarInfection
 
             if (!InfectedLooking.GetValue())
                 MelonCoroutines.Start(HideVisionAndReveal(team != Infected ? 3 : 0));
-
-            InitialTeam = false;
         }
 
         private void OneMinuteLeft()
@@ -1413,7 +939,7 @@ namespace AvatarInfection
         {
             if (IsStarted)
             {
-                if ((_ShowCountdownToAll.GetValue() && TeamManager.GetLocalTeam() != Infected) || TeamManager.GetLocalTeam() == Infected)
+                if ((ShowCountdownToAll.ClientValue && TeamManager.GetLocalTeam() != Infected) || TeamManager.GetLocalTeam() == Infected)
                 {
 #if DEBUG
                     const bool skip = false;
@@ -1422,8 +948,7 @@ namespace AvatarInfection
 #endif
                     try
                     {
-                        CountdownLength = _CountdownLength.GetValue();
-                        if (!skip && CountdownLength != 0 && CountdownValue.GetValue() != 0 && !InfectedLooking.GetValue())
+                        if (!skip && CountdownLength.ClientValue != 0 && CountdownValue.GetValue() != 0 && !InfectedLooking.GetValue())
                         {
                             if (delaySeconds > 0)
                                 yield return new WaitForSeconds(delaySeconds);
@@ -1558,35 +1083,6 @@ namespace AvatarInfection
 
         protected override void OnUpdate()
         {
-            if (!IsStarted)
-            {
-                ChangeElementColor(string.Format(TeamConfigName, Infected.DisplayName), "Apply new settings", null, false);
-                ChangeElementColor(string.Format(TeamConfigName, Survivors.DisplayName), "Apply new settings", null, false);
-                ChangeElementColor(string.Format(TeamConfigName, InfectedChildren.DisplayName), "Apply new settings", null, false);
-
-                return;
-            }
-            else
-            {
-                var remote = InfectedMetadata.GetConfigFromMetadata();
-                if (remote != InfectedMetadata.Config)
-                    ChangeElementColor(string.Format(TeamConfigName, Infected.DisplayName), "Apply new settings", System.Drawing.Color.Red, false);
-                else
-                    ChangeElementColor(string.Format(TeamConfigName, Infected.DisplayName), "Apply new settings", null, false);
-
-                var remote2 = SurvivorsMetadata.GetConfigFromMetadata();
-                if (remote2 != SurvivorsMetadata.Config)
-                    ChangeElementColor(string.Format(TeamConfigName, Survivors.DisplayName), "Apply new settings", System.Drawing.Color.Red, false);
-                else
-                    ChangeElementColor(string.Format(TeamConfigName, Survivors.DisplayName), "Apply new settings", null, false);
-
-                var remote3 = SyncWithInfected ? InfectedMetadata.GetConfigFromMetadata() : InfectedChildrenMetadata.GetConfigFromMetadata();
-                if (remote3 != (SyncWithInfected ? InfectedMetadata.Config : InfectedChildrenMetadata.Config))
-                    ChangeElementColor(string.Format(TeamConfigName, InfectedChildren.DisplayName), "Apply new settings", System.Drawing.Color.Red, false);
-                else
-                    ChangeElementColor(string.Format(TeamConfigName, InfectedChildren.DisplayName), "Apply new settings", null, false);
-            }
-
             if (HideVision && !LocalVision.Blind)
                 LocalVision.Blind = true;
 
@@ -1606,7 +1102,7 @@ namespace AvatarInfection
                     PCDs.ForEach(x => x._bodyLogEnabled = true);
             }
 
-            if (!UntilAllFound)
+            if (!NoTimeLimit)
             {
                 // Check for one minute left
                 if (!_oneMinuteLeft && TimeLimit - ElapsedMinutes == 1)
@@ -1692,15 +1188,6 @@ namespace AvatarInfection
             }
         }
 
-        private void UpdateDevToolsSpawnGunBlacklist()
-        {
-            if (!NetworkInfo.IsServer)
-            {
-                _DisableDevTools = __DisableDevTools.GetValue();
-                _DisableSpawnGun = __DisableSpawnGun.GetValue();
-            }
-        }
-
         private void SelectedPlayerOverride()
         {
             if (!IsStarted)
@@ -1709,81 +1196,21 @@ namespace AvatarInfection
             if (TeamManager.GetLocalTeam() != Infected && TeamManager.GetLocalTeam() != InfectedChildren)
                 return;
 
-            SwapAvatar(SelectedAvatar);
-        }
-
-        private new void OnMetadataChanged(string key, string value)
-        {
-            base.OnMetadataChanged(key, value);
-
-            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
-                return;
-
-            if (!IsStarted)
-                return;
-
-            switch (key)
-            {
-                case nameof(DisableDevTools):
-                case nameof(DisableSpawnGun):
-                    UpdateDevToolsSpawnGunBlacklist();
-                    break;
-
-                case nameof(SelectedAvatar):
-                    if (SelectedAvatar == value)
-                        return;
-
-                    SelectedAvatar = _SelectedAvatar.GetValue();
-                    SelectedPlayerOverride();
-                    break;
-
-                case nameof(CountdownLength):
-                    CountdownLength = _CountdownLength.GetValue();
-                    break;
-
-                case nameof(InfectedLooking):
-                    if (InfectedLooking.GetValue())
-                        InfectedLookingEvent();
-                    break;
-
-                case nameof(TeleportOnEnd):
-                    TeleportOnEnd = _TeleportOnEnd.GetValue();
-                    break;
-
-                case nameof(UseDeathmatchSpawns):
-                    UseDeathmatchSpawns = _UseDeathmatchSpawns.GetValue();
-                    if (UseDeathmatchSpawns)
-                        UseDeathmatchSpawns_Init(false);
-                    else
-                        ClearDeathmatchSpawns();
-                    break;
-            }
+            SwapAvatar(SelectedAvatar.ClientValue);
         }
 
         private void ApplyGamemodeSettings()
         {
             if (SelectMode == AvatarSelectMode.Config)
             {
-                _SelectedAvatar.SetValue(SelectedAvatar);
+                SelectedAvatar.Sync();
             }
             else if (SelectMode == AvatarSelectMode.Random)
             {
                 var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
                 avatars.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
-                SelectedAvatar = avatars[UnityEngine.Random.RandomRangeInt(0, avatars.Count)].Barcode.ID;
-                _SelectedAvatar.SetValue(SelectedAvatar);
+                SelectedAvatar.ClientValue = avatars[UnityEngine.Random.RandomRangeInt(0, avatars.Count)].Barcode.ID;
             }
-
-            __DisableDevTools.SetValue(_DisableDevTools);
-            __DisableSpawnGun.SetValue(_DisableSpawnGun);
-
-            _CountdownLength.SetValue(CountdownLength);
-
-            _TeleportOnEnd.SetValue(TeleportOnEnd);
-
-            _UseDeathmatchSpawns.SetValue(UseDeathmatchSpawns);
-
-            _ShowCountdownToAll.SetValue(ShowCountdownToAll);
 
             CountdownValue.SetValue(CountdownLength);
 
@@ -1795,7 +1222,7 @@ namespace AvatarInfection
             var now = DateTimeOffset.Now;
             lastTimeLimit = TimeLimit;
             StartUnix.SetValue(now.ToUnixTimeMilliseconds());
-            if (!UntilAllFound)
+            if (!NoTimeLimit)
                 EndUnix.SetValue(now.AddMinutes(TimeLimit).ToUnixTimeMilliseconds());
             else
                 EndUnix.SetValue(-1);
@@ -1818,6 +1245,7 @@ namespace AvatarInfection
             _oneMinuteLeft = false;
             assignedTeams = false;
             HideVision = false;
+            InitialTeam = true;
 
             if (NetworkInfo.IsServer)
             {
@@ -1825,9 +1253,7 @@ namespace AvatarInfection
                 AssignTeams();
                 MelonCoroutines.Start(InfectedLookingWait());
 
-                var markers = GamemodeMarker.FilterMarkers(null);
-
-                if (ShouldTeleportToHost)
+                if (TeleportOnStart)
                     Teleport.TryInvoke();
             }
 
@@ -1844,14 +1270,10 @@ namespace AvatarInfection
                 }
                 SetStats();
 
-                UpdateDevToolsSpawnGunBlacklist();
-
-                if (!NetworkInfo.IsServer)
-                    SelectedAvatar = _SelectedAvatar.GetValue();
                 SelectedPlayerOverride();
 
-                if (UseDeathmatchSpawns)
-                    UseDeathmatchSpawns_Init(!ShouldTeleportToHost);
+                if (UseDeathmatchSpawns.ClientValue)
+                    UseDeathmatchSpawns_Init(!TeleportOnStart);
                 else
                     ClearDeathmatchSpawns();
             });
@@ -1915,7 +1337,7 @@ namespace AvatarInfection
             }
             else
             {
-                if (TeleportOnEnd)
+                if (TeleportOnEnd.ClientValue)
                     TeleportToHost();
             }
 
@@ -1960,9 +1382,12 @@ namespace AvatarInfection
             if (!IsStarted)
                 return true;
 
-            return TeamManager.GetPlayerTeam(id) == TeamManager.GetLocalTeam() ||
-                (TeamManager.GetPlayerTeam(id) == Infected && TeamManager.GetLocalTeam() == InfectedChildren) ||
-                (TeamManager.GetPlayerTeam(id) == InfectedChildren && TeamManager.GetLocalTeam() == Infected);
+            var playerTeam = TeamManager.GetPlayerTeam(id);
+            var localTeam = TeamManager.GetLocalTeam();
+
+            return playerTeam == localTeam ||
+                (playerTeam == Infected && localTeam == InfectedChildren) ||
+                (playerTeam == InfectedChildren && localTeam == Infected);
         }
 
         private void AssignTeams()
@@ -1986,8 +1411,7 @@ namespace AvatarInfection
                         if (!string.IsNullOrWhiteSpace(avatar))
                         {
                             selected = avatar;
-                            SelectedAvatar = avatar;
-                            _SelectedAvatar.SetValue(avatar);
+                            SelectedAvatar.ClientValue = avatar;
                         }
                     }
                 }
