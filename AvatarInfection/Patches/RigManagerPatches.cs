@@ -54,10 +54,10 @@ namespace AvatarInfection.Patches
                 if (Infection.TeamManager.GetLocalTeam() == null)
                     return true;
 
-                if (string.IsNullOrWhiteSpace(Infection.SelectedAvatar) || new Barcode(Infection.SelectedAvatar) == null)
+                if (string.IsNullOrWhiteSpace(Infection.SelectedAvatar.ClientValue) || new Barcode(Infection.SelectedAvatar.ClientValue) == null)
                     return true;
 
-                if (barcode == new Barcode(Infection.SelectedAvatar))
+                if (barcode == new Barcode(Infection.SelectedAvatar.ClientValue))
                 {
                     if (Ignore)
                     {
@@ -70,7 +70,7 @@ namespace AvatarInfection.Patches
                         {
                             __result = new UniTask<bool>(true);
                             Ignore = true;
-                            FusionPlayerExtended.SetAvatarOverride(Infection.SelectedAvatar);
+                            FusionPlayerExtended.SetAvatarOverride(Infection.SelectedAvatar.ClientValue);
                             return false;
                         }
                         else
