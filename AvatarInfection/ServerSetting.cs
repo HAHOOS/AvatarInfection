@@ -38,8 +38,6 @@ namespace AvatarInfection
         public void Sync()
             => ServerValue.SetValue(_clientValue);
 
-        private string GetName() => "ServerSetting_" + name;
-
         private void InitEvent()
         {
             GamemodeManager.OnGamemodeStarted += () =>
@@ -49,7 +47,7 @@ namespace AvatarInfection
             };
             gamemode.Metadata.OnMetadataChanged += (key, _) =>
             {
-                if (key == GetName())
+                if (key == ServerValue.Key)
                 {
                     var value = ServerValue.GetValue();
                     if (EqualityComparer<T>.Default.Equals(ClientValue, value))
