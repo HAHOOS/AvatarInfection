@@ -11,7 +11,6 @@ namespace AvatarInfection
     public class ServerSetting<T>
     {
         private readonly Gamemode gamemode;
-        private readonly string name;
 
         public bool AutoSync { get; set; } = true;
 
@@ -61,7 +60,6 @@ namespace AvatarInfection
         public ServerSetting(Gamemode gamemode, string name, bool autoSync = true)
         {
             this.AutoSync = autoSync;
-            this.name = name;
             this.gamemode = gamemode;
             this.ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             this.ClientValue = default;
@@ -71,7 +69,6 @@ namespace AvatarInfection
         public ServerSetting(Gamemode gamemode, string name, T value, bool autoSync = true)
         {
             this.AutoSync = autoSync;
-            this.name = name;
             this.gamemode = gamemode;
             this.ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             this.ClientValue = value;
@@ -82,7 +79,6 @@ namespace AvatarInfection
     public class ToggleServerSetting<T>
     {
         private readonly Gamemode gamemode;
-        private readonly string name;
 
         public bool AutoSync { get; set; } = true;
 
@@ -154,7 +150,6 @@ namespace AvatarInfection
         public ToggleServerSetting(Gamemode gamemode, string name, bool autoSync = true)
         {
             this.AutoSync = autoSync;
-            this.name = name;
             this.gamemode = gamemode;
             this.ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             this.ClientValue = default;
@@ -165,7 +160,6 @@ namespace AvatarInfection
         public ToggleServerSetting(Gamemode gamemode, string name, T value, bool autoSync = true)
         {
             this.AutoSync = autoSync;
-            this.name = name;
             this.gamemode = gamemode;
             this.ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             this.ClientValue = value;
@@ -176,7 +170,6 @@ namespace AvatarInfection
         public ToggleServerSetting(Gamemode gamemode, string name, T value, bool enabled, bool autoSync = true)
         {
             this.AutoSync = autoSync;
-            this.name = name;
             this.gamemode = gamemode;
             this.ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             this.ClientValue = value;
