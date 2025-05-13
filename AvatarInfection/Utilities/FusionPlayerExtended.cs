@@ -23,79 +23,6 @@ namespace AvatarInfection.Utilities
 
         public static string LastAvatar { get; private set; } = null;
 
-        internal static void UpdateSpeed(bool refreshAvatar = true)
-        {
-            if (Player.RigManager != null)
-            {
-                var rm = Player.RigManager;
-                var avatar = rm._avatar;
-                if (avatar != null)
-                {
-                    if (SpeedOverride.HasValue)
-                    {
-                        if (avatar._speed != SpeedOverride.Value)
-                        {
-                            avatar._speed = SpeedOverride.Value;
-                            if (refreshAvatar) rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
-                        }
-                    }
-                    else
-                    {
-                        if (refreshAvatar) rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
-                    }
-                }
-            }
-        }
-
-        internal static void UpdateAgility(bool refreshAvatar = true)
-        {
-            if (Player.RigManager != null)
-            {
-                var rm = Player.RigManager;
-                var avatar = rm._avatar;
-                if (avatar != null)
-                {
-                    if (AgilityOverride.HasValue)
-                    {
-                        if (avatar._agility != AgilityOverride.Value)
-                        {
-                            avatar._agility = AgilityOverride.Value;
-                            if (refreshAvatar) rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
-                        }
-                    }
-                    else
-                    {
-                        if (refreshAvatar) rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
-                    }
-                }
-            }
-        }
-
-        internal static void UpdateStrengthUpper(bool refreshAvatar = true)
-        {
-            if (Player.RigManager != null)
-            {
-                var rm = Player.RigManager;
-                var avatar = rm._avatar;
-                if (avatar != null)
-                {
-                    if (StrengthUpperOverride.HasValue)
-                    {
-                        if (avatar._strengthUpper != StrengthUpperOverride.Value)
-                        {
-                            avatar._strengthUpper = StrengthUpperOverride.Value;
-                            avatar._strengthGrip = StrengthUpperOverride.Value;
-                            if (refreshAvatar) rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
-                        }
-                    }
-                    else
-                    {
-                        rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
-                    }
-                }
-            }
-        }
-
         internal static void SetOverrides(float? jumpPower, float? speed, float? agility, float? strengthUpper)
         {
             SpeedOverride = speed;
@@ -175,30 +102,6 @@ namespace AvatarInfection.Utilities
             }
         }
 
-        public static void ClearAgilityOverride()
-        {
-            AgilityOverride = null;
-            UpdateAgility();
-        }
-
-        public static void SetAgilityOverride(float agility, bool refreshAvatar = true)
-        {
-            AgilityOverride = agility;
-            UpdateAgility(refreshAvatar);
-        }
-
-        public static void ClearStrengthUpperOverride()
-        {
-            StrengthUpperOverride = null;
-            UpdateAgility();
-        }
-
-        public static void SetStrengthUpperOverride(float strengthUpper, bool refreshAvatar = true)
-        {
-            AgilityOverride = strengthUpper;
-            UpdateAgility(refreshAvatar);
-        }
-
         public static void SetAvatarOverride(string barcode)
         {
             bool wasEmpty = string.IsNullOrWhiteSpace(AvatarOverride);
@@ -221,54 +124,6 @@ namespace AvatarInfection.Utilities
                 DataManager.ActiveSave.PlayerSettings.CurrentAvatar = LastAvatar;
                 DataManager.TrySaveActiveSave(Il2CppSLZ.Marrow.SaveData.SaveFlags.DefaultAndPlayerSettingsAndUnlocks);
             }
-        }
-
-        public static void ClearSpeedOverride()
-        {
-            SpeedOverride = null;
-            UpdateSpeed();
-        }
-
-        public static void SetSpeedOverride(float speed, bool refreshAvatar = true)
-        {
-            SpeedOverride = speed;
-            UpdateSpeed(refreshAvatar);
-        }
-
-        internal static void UpdateJumpPower(bool refreshAvatar = true)
-        {
-            if (Player.RigManager != null)
-            {
-                var rm = Player.RigManager;
-                var avatar = rm._avatar;
-                if (avatar != null)
-                {
-                    if (JumpPowerOverride.HasValue)
-                    {
-                        if (avatar._strengthLower != JumpPowerOverride.Value)
-                        {
-                            avatar._strengthLower = JumpPowerOverride.Value;
-                            if (refreshAvatar) rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
-                        }
-                    }
-                    else
-                    {
-                        rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
-                    }
-                }
-            }
-        }
-
-        public static void ClearJumpPowerOverride()
-        {
-            JumpPowerOverride = null;
-            UpdateJumpPower();
-        }
-
-        public static void SetJumpPowerOverride(float jumpPower, bool refreshAvatar = true)
-        {
-            JumpPowerOverride = jumpPower;
-            UpdateJumpPower(refreshAvatar);
         }
     }
 }
