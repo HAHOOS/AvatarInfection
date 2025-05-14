@@ -23,6 +23,9 @@ namespace AvatarInfection.Managers
 
         public static void RegisterEvent(string name, Action callback, bool serverOnly = false)
         {
+            if (_events.Any(x => x.Key.Name == name))
+                throw new ArgumentException("An event with the same name is registered!");
+
             var ev = new TriggerEvent(name, Infection.Instance.Relay, serverOnly);
             ev.OnTriggered += callback;
             _events.Add(new TriggerEvent(name, Infection.Instance.Relay, serverOnly), null);
@@ -30,6 +33,9 @@ namespace AvatarInfection.Managers
 
         public static void RegisterEvent<T>(string name, Action<T> callback, bool serverOnly = false)
         {
+            if (_events.Any(x => x.Key.Name == name))
+                throw new ArgumentException("An event with the same name is registered!");
+
             var ev = new TriggerEvent(name, Infection.Instance.Relay, serverOnly);
             ev.OnTriggeredWithValue += (val) =>
             {

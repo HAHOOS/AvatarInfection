@@ -686,9 +686,8 @@ namespace AvatarInfection
             appliedDeathmatchSpawns = true;
 
             var transforms = new List<Transform>();
-            var markers = GamemodeMarker.FilterMarkers(null);
 
-            foreach (var marker in markers)
+            foreach (var marker in GamemodeMarker.FilterMarkers(null))
             {
                 transforms.Add(marker.transform);
             }
