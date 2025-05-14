@@ -262,17 +262,28 @@ namespace AvatarInfection
 
             Metadata.OnMetadataChanged += OnMetadataChanged;
 
-            EventManager.RegisterEvent<ulong>("InfectPlayer", PlayerInfected, true);
-            EventManager.RegisterEvent<TeamEnum>("RefreshEvent", RefreshStats, true);
+            EventManager.RegisterEvent<ulong>(EventType.PlayerInfected, PlayerInfected, true);
+            EventManager.RegisterEvent<TeamEnum>(EventType.RefreshStats, RefreshStats, true);
 
-            EventManager.RegisterEvent("TeleportToHost", TeleportToHost, true);
+            EventManager.RegisterEvent(EventType.TeleportToHost, TeleportToHost, true);
 
-            EventManager.RegisterGlobalNotification("OneMinuteLeft", "Avatar Infection", "One minute left!", 3.5f, true);
-            EventManager.RegisterGlobalNotification("InfectedVictory", "Infected Won", "Everyone has been infected!", 4f, true);
-            EventManager.RegisterGlobalNotification("SurvivorsVictory", "Survivors Won", "There were people not infected in time!", 4f, true);
+            EventManager.RegisterGlobalNotification(EventType.OneMinuteLeft, "Avatar Infection", "One minute left!", 3.5f, true);
+            EventManager.RegisterGlobalNotification(EventType.InfectedVictory, "Infected Won", "Everyone has been infected!", 4f, true);
+            EventManager.RegisterGlobalNotification(EventType.SurvivorsVictory, "Survivors Won", "There were people not infected in time!", 4f, true);
 
             BoneMenuManager.Setup();
             VisionManager.Setup();
+        }
+
+        public enum EventType
+        {
+            PlayerInfected,
+            RefreshStats,
+            TeleportToHost,
+
+            OneMinuteLeft,
+            InfectedVictory,
+            SurvivorsVictory
         }
 
         private new void OnMetadataChanged(string key, string value)
@@ -322,12 +333,12 @@ namespace AvatarInfection
 
             if (Infected.PlayerCount == 0 && InfectedChildren.PlayerCount == 0)
             {
-                EventManager.TryInvokeEvent("InfectedVictory");
+                EventManager.TryInvokeEvent(EventType.SurvivorsVictory);
                 GamemodeManager.StopGamemode();
             }
             else if (Survivors.PlayerCount == 0)
             {
-                EventManager.TryInvokeEvent("SurvivorsVictory");
+                EventManager.TryInvokeEvent(EventType.InfectedVictory);
                 GamemodeManager.StopGamemode();
             }
         }
@@ -373,7 +384,7 @@ namespace AvatarInfection
             {
                 if (Survivors.PlayerCount <= 1)
                 {
-                    EventManager.TryInvokeEvent("InfectedVictory");
+                    EventManager.TryInvokeEvent(EventType.InfectedVictory);
                     GamemodeManager.StopGamemode();
                 }
                 else
@@ -531,12 +542,12 @@ namespace AvatarInfection
             {
                 if (!_oneMinuteLeft && Config.TimeLimit - ElapsedMinutes == 1)
                 {
-                    if (NetworkInfo.IsServer) EventManager.TryInvokeEvent("OneMinuteLeft");
+                    if (NetworkInfo.IsServer) EventManager.TryInvokeEvent(EventType.OneMinuteLeft);
                     _oneMinuteLeft = true;
                 }
                 if (NetworkInfo.IsServer && ElapsedMinutes >= Config.TimeLimit)
                 {
-                    EventManager.TryInvokeEvent("SurvivorsVictory");
+                    EventManager.TryInvokeEvent(EventType.SurvivorsVictory);
                     GamemodeManager.StopGamemode();
                 }
             }
@@ -656,7 +667,7 @@ namespace AvatarInfection
                 MelonCoroutines.Start(InfectedLookingWait());
 
                 if (Config.TeleportOnStart)
-                    EventManager.TryInvokeEvent("TeleportToHost");
+                    EventManager.TryInvokeEvent(EventType.TeleportToHost);
             }
 
             PlayList.StartPlaylist();
@@ -838,7 +849,7 @@ namespace AvatarInfection
                 if (playerTeam == Survivors &&
                     (otherPlayerTeam == Infected || otherPlayerTeam == InfectedChildren))
                 {
-                    EventManager.TryInvokeEvent("InfectPlayer", player.LongId);
+                    EventManager.TryInvokeEvent(EventType.PlayerInfected, player.LongId);
                 }
             }
             else if (type == PlayerActionType.DYING)
@@ -850,7 +861,7 @@ namespace AvatarInfection
                     return;
 
                 if (TeamManager.GetPlayerTeam(player) == Survivors)
-                    EventManager.TryInvokeEvent("InfectPlayer", player.LongId);
+                    EventManager.TryInvokeEvent(EventType.PlayerInfected, player.LongId);
             }
             LastPlayerActions[player] = type;
         }

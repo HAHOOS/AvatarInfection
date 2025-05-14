@@ -73,7 +73,7 @@ namespace AvatarInfection.Patches
                 var longId = otherPlayer.PlayerId.LongId;
 
                 if (Infection.Instance.Config.HoldTime == 0)
-                    EventManager.TryInvokeEvent("InfectPlayer", longId);
+                    EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, longId);
                 else
                     HoldTime.Add(grip, 0);
             }
@@ -231,7 +231,7 @@ namespace AvatarInfection.Patches
                         continue;
 
                     HoldTime.Remove(grip);
-                    EventManager.TryInvokeEvent("InfectPlayer", player.PlayerId.LongId);
+                    EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, player.PlayerId.LongId);
                 }
             }
         }

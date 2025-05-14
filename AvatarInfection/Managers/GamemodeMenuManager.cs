@@ -143,7 +143,7 @@ namespace AvatarInfection.Managers
                     if (_metadata.IsApplied)
                         return;
                     _metadata.ApplyConfig();
-                    EventManager.TryInvokeEvent("RefreshStats", team);
+                    EventManager.TryInvokeEvent(EventType.RefreshStats, team);
                 }
             });
             group.AddElement("Mortality", metadata.Mortality.ClientValue, (val) => { metadata.Mortality.ClientValue = val; applyButtonUpdate(); });
