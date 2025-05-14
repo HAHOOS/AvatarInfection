@@ -356,7 +356,7 @@ namespace AvatarInfection
                 return;
 
             if (TeamManager.GetLocalTeam() != Infected && TeamManager.GetLocalTeam() != InfectedChildren)
-                SendNotif("Run...", "The infected have awaken... you have to run... save yourselves.. please", 5f, type: NotificationType.WARNING);
+                ShowNotification("Run...", "The infected have awaken... you have to run... save yourselves.. please", 5f, type: NotificationType.WARNING);
         }
 
         private void PlayerInfected(ulong userId)
@@ -387,7 +387,7 @@ namespace AvatarInfection
                 if (Survivors.PlayerCount > 1)
                     SwapAvatar(Config.SelectedAvatar.ClientValue);
 
-                SendNotif("Infected", "Oh no, you got infected! Now you have to infect others...", 4f);
+                ShowNotification("Infected", "Oh no, you got infected! Now you have to infect others...", 4f);
 
                 HasBeenInfected = true;
             }
@@ -395,7 +395,7 @@ namespace AvatarInfection
             {
                 playerId.TryGetDisplayName(out var displayName);
 
-                SendNotif(
+                ShowNotification(
                     "Infected",
                     $"{(string.IsNullOrWhiteSpace(displayName) ? "N/A" : displayName)} is now infected, {(Survivors.PlayerCount > 1 ? "look out for them..." : "the last survivor has fallen...")}",
                     4f);
@@ -487,13 +487,13 @@ namespace AvatarInfection
             if (team == Infected)
                 SwapAvatar(Config.SelectedAvatar.ClientValue);
             else
-                SendNotif("Survivor", "Woah! You got lucky. Make sure you don't get infected!", 3);
+                ShowNotification("Survivor", "Woah! You got lucky. Make sure you don't get infected!", 3);
 
             if (!InfectedLooking.GetValue())
                 VisionManager.HideVisionAndReveal(team != Infected ? 3 : 0);
         }
 
-        public static void SendNotif
+        public static void ShowNotification
             (string title,
              string message,
              float popupLength,

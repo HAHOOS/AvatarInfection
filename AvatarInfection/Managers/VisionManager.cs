@@ -121,7 +121,7 @@ namespace AvatarInfection.Managers
                             TutorialRig.Instance.headTitles.CLOSEDISPLAY();
                         }
                         if (TeamManager.GetLocalTeam() == Infected)
-                            Infection.SendNotif("Countdown Over", "GO AND INFECT THEM ALL!", 3.5f);
+                            Infection.ShowNotification("Countdown Over", "GO AND INFECT THEM ALL!", 3.5f);
                     }
                     finally
                     {

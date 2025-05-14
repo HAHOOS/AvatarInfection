@@ -78,7 +78,7 @@ namespace AvatarInfection.Managers
                 if (!Infection.Instance.IsStarted)
                     return;
 
-                Infection.SendNotif(title, message, popupDuration, showPopup, type, saveToMenu, onAccepted, onDeclined);
+                Infection.ShowNotification(title, message, popupDuration, showPopup, type, saveToMenu, onAccepted, onDeclined);
             }, serverOnly);
         }
 
