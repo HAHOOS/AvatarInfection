@@ -108,7 +108,7 @@ namespace AvatarInfection
 
         internal void CanUseGunsChanged()
         {
-            if (Infection.TeamManager.GetLocalTeam() == Team && !CanUseGuns.ClientValue)
+            if (Infection.Instance.TeamManager.GetLocalTeam() == Team && !CanUseGuns.ClientValue)
             {
                 CheckForGun(Player.LeftHand);
                 CheckForGun(Player.RightHand);

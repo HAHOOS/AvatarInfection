@@ -5,6 +5,7 @@ using LabFusion.SDK.Gamemodes;
 using LabFusion.SDK.Metadata;
 
 using AvatarInfection.Utilities;
+using System.Text.Json;
 
 namespace AvatarInfection
 {
@@ -35,7 +36,7 @@ namespace AvatarInfection
         public event Action OnValueChanged;
 
         public void Sync()
-            => ServerValue.SetValue(_clientValue);
+            => ServerValue.SetValue(JsonSerializer.Serialize(_clientValue));
 
         private void InitEvent()
         {

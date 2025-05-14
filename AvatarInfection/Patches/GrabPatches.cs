@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+using AvatarInfection.Managers;
 using AvatarInfection.Utilities;
 
 using BoneLib;
@@ -44,7 +45,7 @@ namespace AvatarInfection.Patches
                 return;
 
             if (!Infection.Instance.IsStarted ||
-                Infection.InfectType != Infection.InfectTypeEnum.TOUCH ||
+                Infection.Instance.Config.InfectType != Infection.InfectTypeEnum.TOUCH ||
                 !Infection.Instance.InfectedLooking.GetValue())
             {
                 return;
@@ -58,7 +59,7 @@ namespace AvatarInfection.Patches
             if (!NetworkPlayerManager.TryGetPlayer(plrEntity, out var player))
                 return;
 
-            if (Infection.TeamManager.GetPlayerTeam(player.PlayerId) == Infection.Survivors)
+            if (Infection.Instance.TeamManager.GetPlayerTeam(player.PlayerId) == Infection.Instance.Survivors)
                 return;
 
             if (!grip._marrowEntity)
@@ -67,12 +68,12 @@ namespace AvatarInfection.Patches
             if (!NetworkPlayerManager.TryGetPlayer(grip._marrowEntity, out var otherPlayer))
                 return;
 
-            if (Infection.TeamManager.GetPlayerTeam(otherPlayer.PlayerId) == Infection.Survivors)
+            if (Infection.Instance.TeamManager.GetPlayerTeam(otherPlayer.PlayerId) == Infection.Instance.Survivors)
             {
                 var longId = otherPlayer.PlayerId.LongId;
 
-                if (Infection.Instance.HoldTime == 0)
-                    Infection.Instance.InfectEvent.TryInvoke(longId.ToString());
+                if (Infection.Instance.Config.HoldTime == 0)
+                    EventManager.TryInvokeEvent("InfectPlayer", longId);
                 else
                     HoldTime.Add(grip, 0);
             }
@@ -175,7 +176,11 @@ namespace AvatarInfection.Patches
             if (!hand.IsPartOfPlayer() || !hand.IsPartOfSelf())
                 return true;
 
-            var config = Infection.TeamManager.GetLocalTeam() == Infection.Infected ? Infection.InfectedMetadata : Infection.TeamManager.GetLocalTeam() == Infection.InfectedChildren ? (Infection.Instance.SyncWithInfected ? Infection.InfectedMetadata : Infection.InfectedChildrenMetadata) : Infection.SurvivorsMetadata;
+            var config =
+                Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected ? Infection.Instance.InfectedMetadata
+                : Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren ?
+                (Infection.Instance.Config.SyncWithInfected ? Infection.Instance.InfectedMetadata : Infection.Instance.InfectedChildrenMetadata)
+                : Infection.Instance.SurvivorsMetadata;
             if (config == null)
                 return true;
 
@@ -214,7 +219,7 @@ namespace AvatarInfection.Patches
             {
                 var grip = hold.Key;
                 HoldTime[grip] = hold.Value + TimeUtilities.DeltaTime;
-                if (HoldTime[grip] >= Infection.Instance.HoldTime)
+                if (HoldTime[grip] >= Infection.Instance.Config.HoldTime)
                 {
                     if (!grip._marrowEntity)
                         continue;
@@ -222,11 +227,11 @@ namespace AvatarInfection.Patches
                     if (!NetworkPlayerManager.TryGetPlayer(grip._marrowEntity, out var player))
                         continue;
 
-                    if (Infection.TeamManager.GetPlayerTeam(player.PlayerId) == Infection.Infected)
+                    if (Infection.Instance.TeamManager.GetPlayerTeam(player.PlayerId) == Infection.Instance.Infected)
                         continue;
 
                     HoldTime.Remove(grip);
-                    Infection.Instance.InfectEvent.TryInvoke(player.PlayerId.LongId.ToString());
+                    EventManager.TryInvokeEvent("InfectPlayer", player.PlayerId.LongId);
                 }
             }
         }

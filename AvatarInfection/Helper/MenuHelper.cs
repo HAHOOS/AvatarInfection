@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,8 +22,7 @@ namespace AvatarInfection.Helper
             if (MenuGamemode.SettingsPageElement.Elements.FirstOrDefault(x => x.Title == groupName) is not GroupElement group)
                 return null;
 
-            var element = group.Elements?.FirstOrDefault(x => startsWith ? x.Title.StartsWith(elementName) : x.Title.Contains(elementName));
-            return (MenuElement)element ?? null;
+            return group.Elements?.FirstOrDefault(x => startsWith ? x.Title.StartsWith(elementName) : x.Title.Contains(elementName));
         }
 
         public static ElementT ChangeElement<ElementT>(this Gamemode gamemode, string groupName, string elementName, Action<ElementT> changes, bool startsWith = true) where ElementT : MenuElement
@@ -41,7 +41,7 @@ namespace AvatarInfection.Helper
 
             return new FunctionElementData()
             {
-                Title = string.Format(TitleFormat, title, val),
+                Title = string.Format(TitleFormat, title, EnumName.GetName(val)),
                 OnPressed = () =>
                 {
                     var previous = val;
@@ -58,7 +58,7 @@ namespace AvatarInfection.Helper
                     index %= values.Length;
                     val = (Enum)values.GetValue(index);
 
-                    ChangeElement<FunctionElement>(gamemode, groupName, string.Format(TitleFormat, title, previous), (el) => el.Title = string.Format(TitleFormat, title, val), false);
+                    ChangeElement<FunctionElement>(gamemode, groupName, string.Format(TitleFormat, title, EnumName.GetName(previous)), (el) => el.Title = string.Format(TitleFormat, title, EnumName.GetName(val)), false);
                     callback.Invoke(val);
                 }
             };
@@ -141,6 +141,20 @@ namespace AvatarInfection.Helper
             var groupData = new GroupElementData(title);
             group.AddElement(groupData);
             return groupData;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
+    public class EnumName(string name) : Attribute
+    {
+        public string Name { get; } = name;
+
+        public static string GetName(Enum @enum)
+        {
+            var attr = @enum.GetType().GetCustomAttributes(typeof(EnumName), false);
+            if (attr.Length > 0)
+                return attr.Cast<EnumName>().ToArray().FirstOrDefault()?.ToString() ?? @enum.ToString();
+            return @enum.ToString();
         }
     }
 }

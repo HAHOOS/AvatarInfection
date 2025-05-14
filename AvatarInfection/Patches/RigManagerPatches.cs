@@ -30,34 +30,34 @@ namespace AvatarInfection.Patches
                 if (barcode == null || string.IsNullOrWhiteSpace(barcode.ID) || barcode.ID == Barcode.EMPTY)
                     return true;
 
-                if (__instance == null)
-                    return true;
-
                 if (!NetworkInfo.HasServer)
                     return true;
 
-                if (__instance?.IsLocalPlayer() != true)
+                if (__instance == null || __instance?.IsLocalPlayer() != true)
                     return true;
 
                 if (!GamemodeManager.IsGamemodeStarted)
                     return true;
 
-                if (GamemodeManager.ActiveGamemode == null)
+                if (GamemodeManager.ActiveGamemode == null
+                    || GamemodeManager.ActiveGamemode.Barcode != Infection.Defaults.Barcode)
+                {
                     return true;
+                }
 
-                if (GamemodeManager.ActiveGamemode.Barcode != Infection.Defaults.Barcode)
+                if (Infection.Instance.TeamManager == null
+                    || Infection.Instance.TeamManager.GetLocalTeam() == null)
+                {
                     return true;
+                }
 
-                if (Infection.TeamManager == null)
+                if (string.IsNullOrWhiteSpace(Infection.Instance.Config.SelectedAvatar.ClientValue)
+                    || new Barcode(Infection.Instance.Config.SelectedAvatar.ClientValue) == null)
+                {
                     return true;
+                }
 
-                if (Infection.TeamManager.GetLocalTeam() == null)
-                    return true;
-
-                if (string.IsNullOrWhiteSpace(Infection.SelectedAvatar.ClientValue) || new Barcode(Infection.SelectedAvatar.ClientValue) == null)
-                    return true;
-
-                if (barcode == new Barcode(Infection.SelectedAvatar.ClientValue))
+                if (barcode == new Barcode(Infection.Instance.Config.SelectedAvatar.ClientValue))
                 {
                     if (Ignore)
                     {
@@ -66,11 +66,12 @@ namespace AvatarInfection.Patches
                     }
                     else
                     {
-                        if (Infection.TeamManager.GetLocalTeam() == Infection.Infected || Infection.TeamManager.GetLocalTeam() == Infection.InfectedChildren)
+                        if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected
+                            || Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren)
                         {
                             __result = new UniTask<bool>(true);
                             Ignore = true;
-                            FusionPlayerExtended.SetAvatarOverride(Infection.SelectedAvatar.ClientValue);
+                            FusionPlayerExtended.SetAvatarOverride(Infection.Instance.Config.SelectedAvatar.ClientValue);
                             return false;
                         }
                         else
@@ -81,7 +82,7 @@ namespace AvatarInfection.Patches
                     }
                 }
 
-                bool returned = Infection.TeamManager.GetLocalTeam() == Infection.Survivors;
+                bool returned = Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Survivors;
 
                 if (!returned) __result = new UniTask<bool>(true);
 

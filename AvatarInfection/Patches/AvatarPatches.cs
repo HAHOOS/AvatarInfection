@@ -14,10 +14,7 @@ namespace AvatarInfection.Patches
         [HarmonyPatch(nameof(Avatar.ComputeBaseStats))]
         public static void Postfix(Avatar __instance)
         {
-            if (__instance == null)
-                return;
-
-            if (__instance.name == "[RealHeptaRig (Marrow1)]")
+            if (__instance == null || __instance.name == "[RealHeptaRig (Marrow1)]")
                 return;
 
             if (!__instance.IsPartOfPlayer() || !__instance.IsPartOfSelf())
