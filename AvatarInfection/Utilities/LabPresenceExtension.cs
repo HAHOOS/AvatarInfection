@@ -18,23 +18,14 @@ namespace AvatarInfection.Utilities
 
         internal static void Internal_Init()
         {
-            LabPresence.Gamemodes.RegisterGamemode(Infection.Defaults.Barcode, () =>
+            LabPresence.Gamemodes.RegisterGamemode(Infection.Defaults.Barcode,
+                () => $"{Infection.Instance.Survivors.PlayerCount} survivors left!", () =>
             {
-                if (LabFusion.SDK.Gamemodes.GamemodeManager.ActiveGamemode?.Barcode != Infection.Defaults.Barcode)
-                    return string.Empty;
-
-                var gamemode = (Infection)LabFusion.SDK.Gamemodes.GamemodeManager.ActiveGamemode;
-                return $"{Infection.Instance.Survivors.PlayerCount} survivors left!";
-            }, () =>
-            {
-                if (LabFusion.SDK.Gamemodes.GamemodeManager.ActiveGamemode?.Barcode != Infection.Defaults.Barcode)
-                    return null;
-
-                var gamemode = (Infection)LabFusion.SDK.Gamemodes.GamemodeManager.ActiveGamemode;
-                if ((gamemode.EndUnix as MetadataVariable).GetValue() != null && (gamemode.StartUnix as MetadataVariable).GetValue() != null)
+                if ((Infection.Instance.EndUnix as MetadataVariable).GetValue() != null
+                    && (Infection.Instance.StartUnix as MetadataVariable).GetValue() != null)
                 {
-                    var value = gamemode.EndUnix.GetValue();
-                    return new((ulong?)gamemode.StartUnix.GetValue(), value == -1 ? null : (ulong?)value);
+                    var value = Infection.Instance.EndUnix.GetValue();
+                    return new((ulong?)Infection.Instance.StartUnix.GetValue(), value == -1 ? null : (ulong?)value);
                 }
                 return null;
             });
