@@ -33,7 +33,7 @@ namespace AvatarInfection.Patches
                 if (!NetworkInfo.HasServer)
                     return true;
 
-                if (__instance == null || __instance?.IsLocalPlayer() != true)
+                if (__instance?.IsLocalPlayer() != true)
                     return true;
 
                 if (!GamemodeManager.IsGamemodeStarted)

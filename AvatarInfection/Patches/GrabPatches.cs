@@ -84,7 +84,7 @@ namespace AvatarInfection.Patches
         [HarmonyPriority(10000)]
         public static bool GrabAttempt(Hand __instance, GameObject objectToAttach)
         {
-            if (__instance == null || objectToAttach == null)
+            if (objectToAttach == null)
                 return true;
 
             return CanGrab(__instance, objectToAttach);
@@ -96,7 +96,7 @@ namespace AvatarInfection.Patches
         [HarmonyPriority(10000)]
         public static bool InventoryGrabAttempt(InventorySlotReceiver __instance, Hand hand)
         {
-            if (__instance == null || hand == null || __instance._weaponHost == null)
+            if (hand == null || __instance._weaponHost == null)
                 return true;
 
             var weapon = __instance._weaponHost?.GetHostGameObject();
@@ -111,7 +111,7 @@ namespace AvatarInfection.Patches
         [HarmonyPriority(10000)]
         public static bool InventoryGrabAttempt2(InventorySlotReceiver __instance, Hand hand)
         {
-            if (__instance == null || hand == null || __instance._weaponHost == null)
+            if (hand == null || __instance._weaponHost == null)
                 return true;
 
             var weapon = __instance._weaponHost?.GetHostGameObject();
@@ -131,7 +131,7 @@ namespace AvatarInfection.Patches
         [HarmonyPriority(10000)]
         public static bool IconAttempt(InteractableIcon __instance, Hand hand)
         {
-            if (__instance == null || __instance.gameObject == null)
+            if (__instance.gameObject == null)
                 return true;
 
             var gameObject = __instance.gameObject;
@@ -164,16 +164,10 @@ namespace AvatarInfection.Patches
             if (!NetworkInfo.HasServer)
                 return true;
 
-            if (Infection.Instance == null)
+            if (Infection.Instance?.IsStarted != true)
                 return true;
 
-            if (!Infection.Instance.IsStarted)
-                return true;
-
-            if (gameObject == null || hand == null)
-                return true;
-
-            if (!hand.IsPartOfPlayer() || !hand.IsPartOfSelf())
+            if (gameObject == null || hand?.IsPartOfSelf() != true)
                 return true;
 
             var config =
@@ -195,27 +189,16 @@ namespace AvatarInfection.Patches
 
         internal static void Update()
         {
-            if (!NetworkInfo.HasServer || !NetworkInfo.IsServer)
+            if (!NetworkInfo.HasServer
+                || !NetworkInfo.IsServer
+                || Infection.Instance?.IsStarted != true
+                || Player.RigManager == null)
             {
                 HoldTime.Clear();
                 return;
             }
 
-            if (Infection.Instance?.IsStarted != true)
-            {
-                HoldTime.Clear();
-                return;
-            }
-
-            if (Player.RigManager == null)
-            {
-                HoldTime.Clear();
-                return;
-            }
-
-            var copy = new Dictionary<Grip, float>(HoldTime);
-
-            foreach (var hold in copy)
+            foreach (var hold in new Dictionary<Grip, float>(HoldTime))
             {
                 var grip = hold.Key;
                 HoldTime[grip] = hold.Value + TimeUtilities.DeltaTime;
