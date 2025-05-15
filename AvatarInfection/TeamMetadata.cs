@@ -60,6 +60,28 @@ namespace AvatarInfection
                 (config?.StrengthUpper_Enabled) ?? default, false);
         }
 
+        public void Save()
+        {
+            Mortality.Load();
+            CanUseGuns.Load();
+
+            Speed.Load();
+            JumpPower.Save();
+            Agility.Save();
+            StrengthUpper.Save();
+        }
+
+        public void Load()
+        {
+            Mortality.Save();
+            CanUseGuns.Save();
+
+            Speed.Save();
+            JumpPower.Load();
+            Agility.Load();
+            StrengthUpper.Load();
+        }
+
         public void ApplyConfig()
         {
             if (!NetworkInfo.IsServer)

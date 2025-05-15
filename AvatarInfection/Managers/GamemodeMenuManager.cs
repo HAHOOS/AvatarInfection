@@ -7,6 +7,7 @@ using AvatarInfection.Helper;
 using BoneLib;
 
 using LabFusion.Menu.Data;
+using LabFusion.SDK.Gamemodes;
 
 using static AvatarInfection.Infection;
 
@@ -110,6 +111,16 @@ namespace AvatarInfection.Managers
 
             generalGroup.AddElement("Suicide Infects", Infection.Instance.Config.SuicideInfects, (val) => Infection.Instance.Config.SuicideInfects = val);
             generalGroup.AddElement("Hold Time (Touch Infect Type)", Infection.Instance.Config.HoldTime, (val) => Infection.Instance.Config.HoldTime = val, max: 60);
+            generalGroup.AddElement("Dont Show Any Nametags", Infection.Instance.Config.DontShowAnyNametags.ClientValue, (val) => Infection.Instance.Config.DontShowAnyNametags.ClientValue = val);
+            generalGroup.AddElement("Save Settings", Infection.Instance.Config.Save);
+            generalGroup.AddElement("Load Settings", () =>
+            {
+                Infection.Instance.Config.Load();
+                typeof(LabFusion.Menu.Gamemodes.MenuGamemode)
+                    .GetMethod("OverrideSettingsPage",
+                                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                    .Invoke(null, [(Gamemode)Infection.Instance]);
+            });
 
             return group;
         }

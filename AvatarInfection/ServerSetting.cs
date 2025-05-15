@@ -7,6 +7,7 @@ using LabFusion.SDK.Metadata;
 using AvatarInfection.Utilities;
 using LabFusion.Network;
 using LabFusion.Utilities;
+using MelonLoader;
 
 namespace AvatarInfection
 {
@@ -31,6 +32,8 @@ namespace AvatarInfection
 
         public MetadataVariableT<T> ServerValue;
 
+        private MelonPreferences_Entry<T> Entry { get; set; }
+
         /// <summary>
         /// This gets only triggered when the client value is set to the new server value
         /// </summary>
@@ -39,17 +42,21 @@ namespace AvatarInfection
         public void Sync()
             => ServerValue.SetValue(_clientValue);
 
-        private void InitEvent()
+        public void Load()
+            => ClientValue = Entry.Value;
+
+        public void Save()
+            => Entry.Value = ClientValue;
+
+        private void InitEvent(string name)
         {
+            Entry = Core.Category.CreateEntry(name, ClientValue);
             GamemodeManager.OnGamemodeStarted += () =>
             {
                 if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsServer)
                     Sync();
             };
-            MultiplayerHooking.OnJoinServer += () =>
-            {
-                _clientValue = ServerValue.GetValue();
-            };
+            MultiplayerHooking.OnJoinServer += () => _clientValue = ServerValue.GetValue();
             gamemode.Metadata.OnMetadataChanged += (key, _) =>
             {
                 if (key == ServerValue.Key)
@@ -71,7 +78,7 @@ namespace AvatarInfection
             this.gamemode = gamemode;
             this.ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             this.ClientValue = default;
-            InitEvent();
+            InitEvent(name);
         }
 
         public ServerSetting(Gamemode gamemode, string name, T value, bool autoSync = true)
@@ -80,7 +87,7 @@ namespace AvatarInfection
             this.gamemode = gamemode;
             this.ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             this.ClientValue = value;
-            InitEvent();
+            InitEvent(name);
         }
     }
 
@@ -116,6 +123,9 @@ namespace AvatarInfection
             }
         }
 
+        private MelonPreferences_Entry<T> Entry { get; set; }
+        private MelonPreferences_Entry<bool> EnabledEntry { get; set; }
+
         public ToggleMetadataVariableT<T> ServerValue;
 
         /// <summary>
@@ -129,8 +139,22 @@ namespace AvatarInfection
             ServerValue.SetEnabled(_clientEnabled);
         }
 
-        private void InitEvent()
+        public void Load()
         {
+            ClientValue = Entry.Value;
+            ClientEnabled = EnabledEntry.Value;
+        }
+
+        public void Save()
+        {
+            Entry.Value = ClientValue;
+            EnabledEntry.Value = ClientEnabled;
+        }
+
+        private void InitEvent(string name)
+        {
+            Entry = Core.Category.CreateEntry(name, ClientValue);
+            EnabledEntry = Core.Category.CreateEntry($"{name}_Enabled", ClientEnabled);
             GamemodeManager.OnGamemodeStarted += () =>
             {
                 if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsServer)
@@ -171,7 +195,7 @@ namespace AvatarInfection
             this.ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             this.ClientValue = default;
             this.ClientEnabled = default;
-            InitEvent();
+            InitEvent(name);
         }
 
         public ToggleServerSetting(Gamemode gamemode, string name, T value, bool autoSync = true)
@@ -181,7 +205,7 @@ namespace AvatarInfection
             this.ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             this.ClientValue = value;
             this.ClientEnabled = default;
-            InitEvent();
+            InitEvent(name);
         }
 
         public ToggleServerSetting(Gamemode gamemode, string name, T value, bool enabled, bool autoSync = true)
@@ -191,7 +215,7 @@ namespace AvatarInfection
             this.ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             this.ClientValue = value;
             this.ClientEnabled = enabled;
-            InitEvent();
+            InitEvent(name);
         }
     }
 }

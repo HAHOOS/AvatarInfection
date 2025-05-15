@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 
 using AvatarInfection.Helper;
@@ -9,6 +10,7 @@ using AvatarInfection.Utilities;
 using LabFusion.SDK.Modules;
 
 using MelonLoader;
+using MelonLoader.Utils;
 
 using UnityEngine;
 
@@ -22,10 +24,13 @@ namespace AvatarInfection
 
         public static Texture2D Icon { get; private set; }
 
+        public static MelonPreferences_Category Category { get; private set; }
+
         public override void OnInitializeMelon()
         {
             Logger = LoggerInstance;
-
+            Category = MelonPreferences.CreateCategory("AvatarInfection_Save");
+            Category.SetFilePath(Path.Combine(MelonEnvironment.UserDataDirectory, "AvatarInfection.cfg"));
             try
             {
                 LoggerInstance.Msg("Loading icon");

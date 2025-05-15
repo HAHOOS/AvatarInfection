@@ -89,6 +89,8 @@ namespace AvatarInfection
 
             public const bool UntilAllFound = false;
 
+            public const bool DontShowAnyNametags = false;
+
             public readonly static TeamConfig InfectedStats = new()
             {
                 Vitality = 0.75f,
@@ -264,6 +266,7 @@ namespace AvatarInfection
 
             EventManager.RegisterEvent<ulong>(EventType.PlayerInfected, PlayerInfected, true);
             EventManager.RegisterEvent<TeamEnum>(EventType.RefreshStats, RefreshStats, true);
+            EventManager.RegisterEvent<SwapAvatarData>(EventType.SwapAvatar, SwapAvatarEvent, true);
 
             EventManager.RegisterEvent(EventType.TeleportToHost, TeleportToHost, true);
 
@@ -275,15 +278,12 @@ namespace AvatarInfection
             VisionManager.Setup();
         }
 
-        public enum EventType
+        private void SwapAvatarEvent(SwapAvatarData data)
         {
-            PlayerInfected,
-            RefreshStats,
-            TeleportToHost,
+            if (data.Target != PlayerIdManager.LocalLongId)
+                return;
 
-            OneMinuteLeft,
-            InfectedVictory,
-            SurvivorsVictory
+            SwapAvatar(data.Barcode);
         }
 
         private new void OnMetadataChanged(string key, string value)
@@ -390,14 +390,12 @@ namespace AvatarInfection
                 else
                 {
                     TeamManager.TryAssignTeam(playerId, InfectedChildren);
+                    EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(playerId.LongId, Config.SelectedAvatar.ClientValue));
                 }
             }
 
             if (playerId.IsMe && !HasBeenInfected)
             {
-                if (Survivors.PlayerCount > 1)
-                    SwapAvatar(Config.SelectedAvatar.ClientValue);
-
                 ShowNotification("Infected", "Oh no, you got infected! Now you have to infect others...", 4f);
 
                 HasBeenInfected = true;
@@ -495,9 +493,7 @@ namespace AvatarInfection
 
             InitialTeam = false;
 
-            if (team == Infected)
-                SwapAvatar(Config.SelectedAvatar.ClientValue);
-            else
+            if (team != Infected)
                 ShowNotification("Survivor", "Woah! You got lucky. Make sure you don't get infected!", 3);
 
             if (!InfectedLooking.GetValue())
@@ -536,7 +532,10 @@ namespace AvatarInfection
             if (TeamManager.GetLocalTeam() == Survivors)
                 SurvivorsUpdate();
 
-            SetBodyLog(TeamManager.GetLocalTeam() == Survivors);
+            if (IsStarted)
+                SetBodyLog(TeamManager.GetLocalTeam() == Survivors);
+            else if (!IsBodyLogEnabled)
+                SetBodyLog(true);
 
             if (!Config.NoTimeLimit)
             {
@@ -732,6 +731,7 @@ namespace AvatarInfection
         {
             base.OnGamemodeStopped();
             BoneMenuManager.PopulatePage();
+            VisionManager.HideVision = false;
 
             HasBeenInfected = false;
             InitialTeam = true;
@@ -763,11 +763,33 @@ namespace AvatarInfection
 
         private static void SetBodyLog(bool enabled)
         {
+            if (IsBodyLogEnabled == enabled)
+                return;
             var rig = Player.RigManager;
             if (rig != null)
             {
                 var PCDs = rig?.gameObject?.GetComponentsInChildren<PullCordDevice>();
                 PCDs?.ForEach(x => x._bodyLogEnabled = enabled);
+            }
+        }
+
+        private static bool IsBodyLogEnabled
+        {
+            get
+            {
+                var rig = Player.RigManager;
+                if (rig != null)
+                {
+                    bool disabled = false;
+                    var PCDs = rig?.gameObject?.GetComponentsInChildren<PullCordDevice>();
+                    PCDs?.ForEach(x =>
+                    {
+                        if (!x._bodyLogEnabled)
+                            disabled = true;
+                    });
+                    return !disabled;
+                }
+                return true;
             }
         }
 
@@ -795,6 +817,9 @@ namespace AvatarInfection
             var playerTeam = TeamManager.GetPlayerTeam(id);
             var localTeam = TeamManager.GetLocalTeam();
 
+            if (Config.DontShowAnyNametags.ClientValue)
+                return false;
+
             return playerTeam == localTeam ||
                 (playerTeam == Infected && localTeam == InfectedChildren) ||
                 (playerTeam == InfectedChildren && localTeam == Infected);
@@ -812,6 +837,7 @@ namespace AvatarInfection
             {
                 var player = players[rand.Next(0, players.Count)];
                 TeamManager.TryAssignTeam(player, Infected);
+                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.LongId, Config.SelectedAvatar.ClientValue));
 
                 if (Config.SelectMode == AvatarSelectMode.FIRSTINFECTED && string.IsNullOrWhiteSpace(selected))
                 {
@@ -881,5 +907,24 @@ namespace AvatarInfection
 
             RANDOM
         }
+
+        public enum EventType
+        {
+            PlayerInfected,
+            SwapAvatar,
+            RefreshStats,
+            TeleportToHost,
+
+            OneMinuteLeft,
+            InfectedVictory,
+            SurvivorsVictory
+        }
+    }
+
+    internal class SwapAvatarData(ulong target, string barcode)
+    {
+        public ulong Target { get; set; } = target;
+
+        public string Barcode { get; set; } = barcode;
     }
 }
