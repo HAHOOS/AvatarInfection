@@ -34,7 +34,7 @@ namespace AvatarInfection.Helper
             return el;
         }
 
-        public static FunctionElementData CreateSetting(this Gamemode gamemode, Enum @enum, string groupName, string title, Action<Enum> callback)
+        public static FunctionElementData CreateEnumElement(this Gamemode gamemode, Enum @enum, string groupName, string title, Action<Enum> callback)
         {
             const string TitleFormat = "{0}: {1}";
             Enum val = @enum;
@@ -131,7 +131,7 @@ namespace AvatarInfection.Helper
 
         public static FunctionElementData AddElement(this GroupElementData group, string title, Enum @enum, Gamemode gamemode, Action<Enum> callback)
         {
-            var data = CreateSetting(gamemode, @enum, group.Title, title, callback);
+            var data = CreateEnumElement(gamemode, @enum, group.Title, title, callback);
             group.AddElement(data);
             return data;
         }
