@@ -5,7 +5,8 @@ using LabFusion.SDK.Gamemodes;
 using LabFusion.SDK.Metadata;
 
 using AvatarInfection.Utilities;
-using System.Text.Json;
+using LabFusion.Network;
+using LabFusion.Utilities;
 
 namespace AvatarInfection
 {
@@ -36,14 +37,18 @@ namespace AvatarInfection
         public event Action OnValueChanged;
 
         public void Sync()
-            => ServerValue.SetValue(JsonSerializer.Serialize(_clientValue));
+            => ServerValue.SetValue(_clientValue);
 
         private void InitEvent()
         {
             GamemodeManager.OnGamemodeStarted += () =>
             {
-                if (GamemodeManager.ActiveGamemode == gamemode)
+                if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsServer)
                     Sync();
+            };
+            MultiplayerHooking.OnJoinServer += () =>
+            {
+                _clientValue = ServerValue.GetValue();
             };
             gamemode.Metadata.OnMetadataChanged += (key, _) =>
             {
@@ -52,6 +57,8 @@ namespace AvatarInfection
                     var value = ServerValue.GetValue();
                     if (EqualityComparer<T>.Default.Equals(ClientValue, value))
                         return;
+
+                    _clientValue = ServerValue.GetValue();
 
                     OnValueChanged?.Invoke();
                 }
@@ -126,8 +133,13 @@ namespace AvatarInfection
         {
             GamemodeManager.OnGamemodeStarted += () =>
             {
-                if (GamemodeManager.ActiveGamemode == gamemode)
+                if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsServer)
                     Sync();
+            };
+            MultiplayerHooking.OnJoinServer += () =>
+            {
+                _clientValue = ServerValue.GetValue();
+                _clientEnabled = ServerValue.IsEnabled;
             };
             gamemode.Metadata.OnMetadataChanged += (key, _) =>
             {
@@ -136,12 +148,16 @@ namespace AvatarInfection
                     if (EqualityComparer<T>.Default.Equals(ClientValue, ServerValue.GetValue()))
                         return;
 
+                    _clientValue = ServerValue.GetValue();
+
                     OnValueChanged?.Invoke();
                 }
                 else if (key == ServerValue.ToggledKey)
                 {
                     if (ClientEnabled == ServerValue.IsEnabled)
                         return;
+
+                    _clientEnabled = ServerValue.IsEnabled;
 
                     OnValueChanged?.Invoke();
                 }
