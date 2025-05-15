@@ -21,7 +21,7 @@ namespace AvatarInfection
         /// <inheritdoc cref="Module.Version"/>
         public override Version Version => new(1, 0, 0);
 
-        internal static ModuleLogger Logger;
+        internal static ModuleLogger Logger { get; private set; }
 
         protected override void OnModuleRegistered()
         {

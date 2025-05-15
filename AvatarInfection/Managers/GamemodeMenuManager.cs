@@ -69,11 +69,11 @@ namespace AvatarInfection.Managers
 
             avatarGroup.AddElement("Select Mode", Infection.Instance.Config.SelectMode, Instance, (val) => Infection.Instance.Config.SelectMode = (AvatarSelectMode)val);
 
-            group.AddElement(CreateElementsForTeam(Infection.TeamEnum.Infected));
+            group.AddElement(CreateElementsForTeam(Infection.Instance.Infected));
 
-            group.AddElement(CreateElementsForTeam(Infection.TeamEnum.InfectedChildren));
+            group.AddElement(CreateElementsForTeam(Infection.Instance.InfectedChildren));
 
-            group.AddElement(CreateElementsForTeam(Infection.TeamEnum.Survivors));
+            group.AddElement(CreateElementsForTeam(Infection.Instance.Survivors));
             GroupElementData generalGroup = group.AddGroup("General");
 
             generalGroup.AddElement("Infected Start Number", Infection.Instance.Config.InfectedCount, (val) => Infection.Instance.Config.InfectedCount = val, min: 1, max: 5);
@@ -107,7 +107,7 @@ namespace AvatarInfection.Managers
             generalGroup.AddElement("Countdown Length", Infection.Instance.Config.CountdownLength.ClientValue, (val) => Infection.Instance.Config.CountdownLength.ClientValue = val, 5, 0, 3600);
             generalGroup.AddElement("Show Countdown to All Players", Infection.Instance.Config.ShowCountdownToAll.ClientValue, (val) => Infection.Instance.Config.ShowCountdownToAll.ClientValue = val);
 
-            generalGroup.AddElement("Infect Type", Infection.Instance.Config.InfectType, Instance, (val) => Infection.Instance.Config.InfectType = (InfectTypeEnum)val);
+            generalGroup.AddElement("Infect Type", Infection.Instance.Config.InfectType, Instance, (val) => Infection.Instance.Config.InfectType = (InfectType)val);
 
             generalGroup.AddElement("Suicide Infects", Infection.Instance.Config.SuicideInfects, (val) => Infection.Instance.Config.SuicideInfects = val);
             generalGroup.AddElement("Hold Time (Touch Infect Type)", Infection.Instance.Config.HoldTime, (val) => Infection.Instance.Config.HoldTime = val, max: 60);
@@ -125,14 +125,12 @@ namespace AvatarInfection.Managers
             return group;
         }
 
-        internal static GroupElementData CreateElementsForTeam(TeamEnum team)
+        internal static GroupElementData CreateElementsForTeam(Team team)
         {
-            var metadata = team == TeamEnum.Infected ? Infection.Instance.InfectedMetadata :
-                team == TeamEnum.Survivors ? Infection.Instance.SurvivorsMetadata : Infection.Instance.InfectedChildrenMetadata;
+            var metadata = GetTeamMetadata(team);
             var group = new GroupElementData()
             {
-                Title = $"{(team == TeamEnum.Survivors ? "Survivors Stats"
-                   : team == TeamEnum.InfectedChildren ? "Infected Children Stats" : "Infected Stats")}"
+                Title = $"{team.DisplayName} Stats"
             };
 
             void applyButtonUpdate()
@@ -148,7 +146,7 @@ namespace AvatarInfection.Managers
                 if (Infection.Instance.IsStarted)
                 {
                     var _metadata = metadata;
-                    if (team == TeamEnum.InfectedChildren && Infection.Instance.Config.SyncWithInfected)
+                    if (team == Infection.Instance.InfectedChildren && Infection.Instance.Config.SyncWithInfected)
                         _metadata = Infection.Instance.InfectedMetadata;
 
                     if (_metadata.IsApplied)
@@ -185,7 +183,7 @@ namespace AvatarInfection.Managers
                 Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Vitality", (el) => el.Increment = Increment);
             });
 
-            if (team == TeamEnum.InfectedChildren)
+            if (team == Infection.Instance.InfectedChildren)
                 group.AddElement("Sync with Infected", Infection.Instance.Config.SyncWithInfected, (val) => Infection.Instance.Config.SyncWithInfected = val);
 
             return group;

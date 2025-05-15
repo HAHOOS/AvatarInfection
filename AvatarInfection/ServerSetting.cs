@@ -15,7 +15,7 @@ namespace AvatarInfection
     {
         private readonly Gamemode gamemode;
 
-        public bool AutoSync { get; set; } = true;
+        public bool AutoSync { get; set; }
 
         private T _clientValue;
 
@@ -30,7 +30,7 @@ namespace AvatarInfection
             }
         }
 
-        public MetadataVariableT<T> ServerValue;
+        public MetadataVariableT<T> ServerValue { get; }
 
         private MelonPreferences_Entry<T> Entry { get; set; }
 
@@ -95,7 +95,7 @@ namespace AvatarInfection
     {
         private readonly Gamemode gamemode;
 
-        public bool AutoSync { get; set; } = true;
+        public bool AutoSync { get; set; }
 
         private T _clientValue;
 
@@ -126,7 +126,7 @@ namespace AvatarInfection
         private MelonPreferences_Entry<T> Entry { get; set; }
         private MelonPreferences_Entry<bool> EnabledEntry { get; set; }
 
-        public ToggleMetadataVariableT<T> ServerValue;
+        public ToggleMetadataVariableT<T> ServerValue { get; }
 
         /// <summary>
         /// This gets only triggered when the client value is set to the new server value

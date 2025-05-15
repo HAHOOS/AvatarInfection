@@ -21,7 +21,7 @@ namespace AvatarInfection.Patches
 {
     public static class GrabPatches
     {
-        internal static Dictionary<Grip, float> HoldTime = [];
+        internal readonly static Dictionary<Grip, float> HoldTime = [];
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
@@ -45,7 +45,7 @@ namespace AvatarInfection.Patches
                 return;
 
             if (!Infection.Instance.IsStarted ||
-                Infection.Instance.Config.InfectType != Infection.InfectTypeEnum.TOUCH ||
+                Infection.Instance.Config.InfectType != Infection.InfectType.TOUCH ||
                 !Infection.Instance.InfectedLooking.GetValue())
             {
                 return;
@@ -170,11 +170,23 @@ namespace AvatarInfection.Patches
             if (gameObject == null || hand?.IsPartOfSelf() != true)
                 return true;
 
-            var config =
-                Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected ? Infection.Instance.InfectedMetadata
-                : Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren ?
-                (Infection.Instance.Config.SyncWithInfected ? Infection.Instance.InfectedMetadata : Infection.Instance.InfectedChildrenMetadata)
-                : Infection.Instance.SurvivorsMetadata;
+            AvatarInfection.TeamMetadata config;
+            if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected)
+            {
+                config = Infection.Instance.InfectedMetadata;
+            }
+            else if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren)
+            {
+                if (Infection.Instance.Config.SyncWithInfected)
+                    config = Infection.Instance.InfectedMetadata;
+                else
+                    config = Infection.Instance.InfectedChildrenMetadata;
+            }
+            else
+            {
+                config = Infection.Instance.SurvivorsMetadata;
+            }
+
             if (config == null)
                 return true;
 

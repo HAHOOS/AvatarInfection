@@ -6,7 +6,7 @@ using static AvatarInfection.Infection;
 
 namespace AvatarInfection
 {
-    internal class InfectionConfig
+    internal class InfectionSettings
     {
         internal ServerSetting<bool> DisableSpawnGun { get; set; }
 
@@ -30,9 +30,9 @@ namespace AvatarInfection
 
         internal MelonPreferences_Entry<bool> TeleportOnStart_Entry { get; set; }
 
-        internal InfectTypeEnum InfectType { get; set; } = Defaults.InfectType;
+        internal InfectType InfectType { get; set; } = Defaults._InfectType;
 
-        internal MelonPreferences_Entry<InfectTypeEnum> InfectType_Entry { get; set; }
+        internal MelonPreferences_Entry<InfectType> InfectType_Entry { get; set; }
 
         internal ServerSetting<bool> AllowKeepInventory { get; set; }
 
@@ -62,7 +62,7 @@ namespace AvatarInfection
 
         internal ServerSetting<bool> ShowCountdownToAll { get; set; }
 
-        internal InfectionConfig()
+        internal InfectionSettings()
         {
             DisableDevTools = new(Instance, nameof(DisableDevTools), Defaults.DisableDevTools);
             DisableSpawnGun = new(Instance, nameof(DisableSpawnGun), Defaults.DisableSpawnGun);

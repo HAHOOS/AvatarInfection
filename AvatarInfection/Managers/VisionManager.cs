@@ -20,7 +20,7 @@ namespace AvatarInfection.Managers
 
         private static TeamManager TeamManager => Infection.Instance.TeamManager;
 
-        private static InfectionConfig Config => Infection.Instance.Config;
+        private static InfectionSettings Config => Infection.Instance.Config;
 
         private static Team Infected => Infection.Instance.Infected;
 

@@ -91,7 +91,7 @@ namespace AvatarInfection
 
             public const bool DontShowAnyNametags = false;
 
-            public readonly static TeamConfig InfectedStats = new()
+            public readonly static TeamSettings InfectedStats = new()
             {
                 Vitality = 0.75f,
                 JumpPower = 1.5f,
@@ -110,7 +110,7 @@ namespace AvatarInfection
                 CanUseGuns = false,
             };
 
-            public readonly static TeamConfig InfectedChildrenStats = new()
+            public readonly static TeamSettings InfectedChildrenStats = new()
             {
                 Vitality = 0.5f,
                 JumpPower = 1.25f,
@@ -129,7 +129,7 @@ namespace AvatarInfection
                 CanUseGuns = false,
             };
 
-            public readonly static TeamConfig SurvivorsStats = new()
+            public readonly static TeamSettings SurvivorsStats = new()
             {
                 Vitality = 1f,
                 JumpPower = 1f,
@@ -160,7 +160,7 @@ namespace AvatarInfection
 
             public const int CountdownLength = 30;
 
-            public const InfectTypeEnum InfectType = InfectTypeEnum.TOUCH;
+            public const InfectType _InfectType = InfectType.TOUCH;
 
             public const bool SuicideInfects = true;
 
@@ -210,33 +210,37 @@ namespace AvatarInfection
 
         internal MetadataVariableT<long?> EndUnix { get; private set; }
 
-        internal InfectionConfig Config { get; set; }
+        internal InfectionSettings Config { get; set; }
 
         private readonly Dictionary<PlayerId, PlayerActionType> LastPlayerActions = [];
 
         public static TeamMetadata GetTeamMetadata(Team team)
         {
-            return team == Instance.Infected ? Instance.InfectedMetadata :
-                team == Instance.Survivors ? Instance.SurvivorsMetadata :
-                team == Instance.InfectedChildren ?
-                (Instance.Config.SyncWithInfected ? Instance.InfectedMetadata : Instance.InfectedChildrenMetadata)
-                : null;
+            if (team == Instance.Infected)
+            {
+                return Instance.InfectedMetadata;
+            }
+            else if (team == Instance.Survivors)
+            {
+                return Instance.SurvivorsMetadata;
+            }
+            else if (team == Instance.InfectedChildren)
+            {
+                if (Instance.Config.SyncWithInfected)
+                    return Instance.InfectedMetadata;
+                else
+                    return Instance.InfectedChildrenMetadata;
+            }
+            return null;
         }
 
         public override GroupElementData CreateSettingsGroup()
             => GamemodeMenuManager.CreateSettingsGroup();
 
-        internal enum TeamEnum
-        {
-            Survivors,
-            InfectedChildren,
-            Infected
-        }
-
         public override void OnGamemodeRegistered()
         {
             Instance = this;
-            Config = new InfectionConfig();
+            Config = new InfectionSettings();
             InfectedChildren.DisplayName = "Infected Children";
             FusionOverrides.OnValidateNametag += OnValidateNameTag;
 
@@ -250,9 +254,9 @@ namespace AvatarInfection
             TeamManager.AddTeam(InfectedChildren);
             TeamManager.OnAssignedToTeam += OnAssignedToTeam;
 
-            InfectedMetadata = new TeamMetadata(Infected, Instance, new TeamConfig(Defaults.InfectedStats));
-            SurvivorsMetadata = new TeamMetadata(Survivors, Instance, new TeamConfig(Defaults.SurvivorsStats));
-            InfectedChildrenMetadata = new TeamMetadata(InfectedChildren, Instance, new TeamConfig(Defaults.InfectedChildrenStats));
+            InfectedMetadata = new TeamMetadata(Infected, Instance, new TeamSettings(Defaults.InfectedStats));
+            SurvivorsMetadata = new TeamMetadata(Survivors, Instance, new TeamSettings(Defaults.SurvivorsStats));
+            InfectedChildrenMetadata = new TeamMetadata(InfectedChildren, Instance, new TeamSettings(Defaults.InfectedChildrenStats));
 
             InfectedLooking = new MetadataBool(nameof(InfectedLooking), Metadata);
 
@@ -265,7 +269,7 @@ namespace AvatarInfection
             Metadata.OnMetadataChanged += OnMetadataChanged;
 
             EventManager.RegisterEvent<ulong>(EventType.PlayerInfected, PlayerInfected, true);
-            EventManager.RegisterEvent<TeamEnum>(EventType.RefreshStats, RefreshStats, true);
+            EventManager.RegisterEvent<string>(EventType.RefreshStats, RefreshStats, true);
             EventManager.RegisterEvent<SwapAvatarData>(EventType.SwapAvatar, SwapAvatarEvent, true);
 
             EventManager.RegisterEvent(EventType.TeleportToHost, TeleportToHost, true);
@@ -278,7 +282,7 @@ namespace AvatarInfection
             VisionManager.Setup();
         }
 
-        private void SwapAvatarEvent(SwapAvatarData data)
+        private static void SwapAvatarEvent(SwapAvatarData data)
         {
             if (data.Target != PlayerIdManager.LocalLongId)
                 return;
@@ -355,9 +359,11 @@ namespace AvatarInfection
                 TeamManager.TryAssignTeam(playerId, Survivors);
         }
 
-        private void RefreshStats(TeamEnum team)
+        private void RefreshStats(string teamName)
         {
-            if (TeamManager.GetLocalTeam() == (team == TeamEnum.Infected ? Infected : team == TeamEnum.Survivors ? Survivors : InfectedChildren))
+            Team team = TeamManager.GetTeamByName(teamName);
+
+            if (team != null && TeamManager.GetLocalTeam() == team)
                 SetStats();
         }
 
@@ -481,7 +487,7 @@ namespace AvatarInfection
                 return;
 
             SetStats();
-            var config = team == Infected ? InfectedMetadata : team == Survivors ? SurvivorsMetadata : team == InfectedChildren ? InfectedChildrenMetadata : null;
+            var config = GetTeamMetadata(team);
             config?.CanUseGunsChanged();
             if (team != Survivors)
                 SetBodyLog(false);
@@ -607,17 +613,9 @@ namespace AvatarInfection
                 return;
 
             if (TeamManager.GetLocalTeam() == null)
-            {
                 ClearOverrides();
-            }
             else
-            {
-                var metadata = TeamManager.GetLocalTeam() == Survivors
-                    ? SurvivorsMetadata : TeamManager.GetLocalTeam() == InfectedChildren
-                    ? InfectedChildrenMetadata : InfectedMetadata;
-
-                Internal_SetStats(metadata);
-            }
+                Internal_SetStats(GetTeamMetadata(TeamManager.GetLocalTeam()));
         }
 
         private void ApplyGamemodeSettings()
@@ -839,16 +837,14 @@ namespace AvatarInfection
                 TeamManager.TryAssignTeam(player, Infected);
                 EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.LongId, Config.SelectedAvatar.ClientValue));
 
-                if (Config.SelectMode == AvatarSelectMode.FIRSTINFECTED && string.IsNullOrWhiteSpace(selected))
+                if (Config.SelectMode == AvatarSelectMode.FIRSTINFECTED && string.IsNullOrWhiteSpace(selected)
+                    && NetworkPlayerManager.TryGetPlayer(player.SmallId, out NetworkPlayer plr) && plr.HasRig)
                 {
-                    if (NetworkPlayerManager.TryGetPlayer(player.SmallId, out NetworkPlayer plr) && plr.HasRig)
+                    var avatar = plr.RigRefs?.RigManager?.AvatarCrate?.Barcode?.ID;
+                    if (!string.IsNullOrWhiteSpace(avatar))
                     {
-                        var avatar = plr.RigRefs?.RigManager?.AvatarCrate?.Barcode?.ID;
-                        if (!string.IsNullOrWhiteSpace(avatar))
-                        {
-                            selected = avatar;
-                            Config.SelectedAvatar.ClientValue = avatar;
-                        }
+                        selected = avatar;
+                        Config.SelectedAvatar.ClientValue = avatar;
                     }
                 }
 
@@ -866,7 +862,7 @@ namespace AvatarInfection
 
             if (type == PlayerActionType.DYING_BY_OTHER_PLAYER)
             {
-                if (!NetworkInfo.IsServer || otherPlayer == null || Config.InfectType != InfectTypeEnum.DEATH)
+                if (!NetworkInfo.IsServer || otherPlayer == null || Config.InfectType != InfectType.DEATH)
                     return;
 
                 var playerTeam = TeamManager.GetPlayerTeam(player);
@@ -892,10 +888,10 @@ namespace AvatarInfection
             LastPlayerActions[player] = type;
         }
 
-        public enum InfectTypeEnum
+        public enum InfectType
         {
-            TOUCH,
-            DEATH
+            TOUCH = 0,
+            DEATH = 1
         }
 
         public enum AvatarSelectMode

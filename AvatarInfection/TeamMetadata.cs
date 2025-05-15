@@ -28,7 +28,7 @@ namespace AvatarInfection
 
         public ToggleServerSetting<float> StrengthUpper;
 
-        public TeamMetadata(Team team, Gamemode gamemode, TeamConfig? config = null)
+        public TeamMetadata(Team team, Gamemode gamemode, TeamSettings? config = null)
         {
             Gamemode = gamemode;
             Team = team;

@@ -2,7 +2,7 @@
 
 namespace AvatarInfection
 {
-    public struct TeamConfig
+    public struct TeamSettings
     {
         public bool Vitality_Enabled;
 
@@ -28,11 +28,11 @@ namespace AvatarInfection
 
         public bool CanUseGuns;
 
-        public TeamConfig()
+        public TeamSettings()
         {
         }
 
-        public TeamConfig(TeamConfig old)
+        public TeamSettings(TeamSettings old)
         {
             Vitality_Enabled = old.Vitality_Enabled;
             Vitality = old.Vitality;
@@ -50,7 +50,7 @@ namespace AvatarInfection
 
         public override readonly bool Equals([NotNullWhen(true)] object obj)
         {
-            if (obj is not TeamConfig config)
+            if (obj is not TeamSettings config)
                 return false;
 
             if (Vitality != config.Vitality)
@@ -102,12 +102,12 @@ namespace AvatarInfection
                    Mortality.GetHashCode() + CanUseGuns.GetHashCode();
         }
 
-        public static bool operator ==(TeamConfig left, TeamConfig right)
+        public static bool operator ==(TeamSettings left, TeamSettings right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(TeamConfig left, TeamConfig right)
+        public static bool operator !=(TeamSettings left, TeamSettings right)
         {
             return !(left == right);
         }
