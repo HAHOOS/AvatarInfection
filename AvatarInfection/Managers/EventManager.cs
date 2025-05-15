@@ -113,7 +113,7 @@ namespace AvatarInfection.Managers
             var ev = _events.FirstOrDefault(x => x.Key.Name == name);
             if (ev.Key != null)
             {
-                if (ev.Value != null && typeof(T).Equals(ev.Value))
+                if (ev.Value != null)
                     return ev.Key.TryInvoke(JsonSerializer.Serialize(value));
                 else
                     return false;
