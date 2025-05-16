@@ -11,7 +11,10 @@ namespace AvatarInfection.Settings
         internal readonly List<ISetting> _settingsList = [];
 
         public void Save()
-            => _settingsList.ForEach(x => x.Save());
+        {
+            _settingsList.ForEach(x => x.Save());
+            Core.Category.SaveToFile();
+        }
 
         public void Load()
             => _settingsList.ForEach(x => x.Load());
