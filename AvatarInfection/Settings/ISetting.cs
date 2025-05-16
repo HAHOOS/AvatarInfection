@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AvatarInfection.Settings
 {
-    internal interface ISetting
+    public interface ISetting
     {
         public string Name { get; }
 

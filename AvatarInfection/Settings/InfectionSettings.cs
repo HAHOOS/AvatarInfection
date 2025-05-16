@@ -1,14 +1,10 @@
-﻿using System.Collections.Generic;
-
-using LabFusion.Utilities;
-
-using MelonLoader;
+﻿using LabFusion.Utilities;
 
 using static AvatarInfection.Infection;
 
 namespace AvatarInfection.Settings
 {
-    internal class InfectionSettings
+    internal class InfectionSettings : SettingsCollection
     {
         internal ServerSetting<bool> DisableSpawnGun { get; set; }
 
@@ -46,8 +42,6 @@ namespace AvatarInfection.Settings
 
         internal ServerSetting<bool> ShowCountdownToAll { get; set; }
 
-        private readonly List<ISetting> _settings = [];
-
         internal InfectionSettings()
         {
             DisableDevTools = CreateServerSetting(nameof(DisableDevTools), Defaults.DisableDevTools);
@@ -84,40 +78,6 @@ namespace AvatarInfection.Settings
             SyncWithInfected = CreateLocalSetting(nameof(SyncWithInfected), Defaults.SyncWithInfected);
             TeleportOnStart = CreateLocalSetting(nameof(TeleportOnStart), Defaults.TeleportOnStart);
             TimeLimit = CreateLocalSetting(nameof(TimeLimit), Defaults.TimeLimit);
-        }
-
-        internal ServerSetting<T> CreateServerSetting<T>(string name, T value, bool autoSync = true)
-        {
-            var setting = new ServerSetting<T>(Instance, name, value, autoSync);
-            _settings.Add(setting);
-            return setting;
-        }
-
-        internal LocalSetting<T> CreateLocalSetting<T>(string name, T value)
-        {
-            var setting = new LocalSetting<T>(name, value);
-            _settings.Add(setting);
-            return setting;
-        }
-
-        internal void Save()
-        {
-            _settings.ForEach(setting => setting.Save());
-
-            Instance.InfectedMetadata.Save();
-            Instance.SurvivorsMetadata.Save();
-            Instance.InfectedChildrenMetadata.Save();
-
-            Core.Category.SaveToFile();
-        }
-
-        internal void Load()
-        {
-            _settings.ForEach(setting => setting.Load());
-
-            Instance.InfectedMetadata.Load();
-            Instance.SurvivorsMetadata.Load();
-            Instance.InfectedChildrenMetadata.Load();
         }
 
         internal void SelectedPlayerOverride()

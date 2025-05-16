@@ -67,7 +67,7 @@ namespace AvatarInfection.Managers
                 }
             });
 
-            avatarGroup.AddElement("Select Mode", Infection.Instance.Config.SelectMode, Instance, (val) => Infection.Instance.Config.SelectMode = (AvatarSelectMode)val);
+            avatarGroup.AddElement("Select Mode", Infection.Instance.Config.SelectMode.Value, Instance, (val) => Infection.Instance.Config.SelectMode.Value = (AvatarSelectMode)val);
 
             group.AddElement(CreateElementsForTeam(Infection.Instance.Infected));
 
@@ -76,11 +76,11 @@ namespace AvatarInfection.Managers
             group.AddElement(CreateElementsForTeam(Infection.Instance.Survivors));
             GroupElementData generalGroup = group.AddGroup("General");
 
-            generalGroup.AddElement("Infected Start Number", Infection.Instance.Config.InfectedCount, (val) => Infection.Instance.Config.InfectedCount = val, min: 1, max: 5);
+            generalGroup.AddElement("Infected Start Number", Infection.Instance.Config.InfectedCount.Value, (val) => Infection.Instance.Config.InfectedCount.Value = val, min: 1, max: 5);
 
-            generalGroup.AddElement("Time Limit", Infection.Instance.Config.TimeLimit, (val) =>
+            generalGroup.AddElement("Time Limit", Infection.Instance.Config.TimeLimit.Value, (val) =>
             {
-                Infection.Instance.Config.TimeLimit = val;
+                Infection.Instance.Config.TimeLimit.Value = val;
                 if (Infection.Instance.IsStarted)
                     Infection.Instance.EndUnix.SetValue(DateTimeOffset.FromUnixTimeMilliseconds((long)Infection.Instance.StartUnix.GetValue()).AddMinutes(val).ToUnixTimeMilliseconds());
             }, min: 1);
@@ -91,26 +91,26 @@ namespace AvatarInfection.Managers
 
             generalGroup.AddElement("Allow Keep Inventory", Infection.Instance.Config.AllowKeepInventory.ClientValue, (val) => Infection.Instance.Config.AllowKeepInventory.ClientValue = val);
 
-            generalGroup.AddElement("No Time Limit", Infection.Instance.Config.NoTimeLimit, (val) =>
+            generalGroup.AddElement("No Time Limit", Infection.Instance.Config.NoTimeLimit.Value, (val) =>
             {
-                Infection.Instance.Config.NoTimeLimit = val;
+                Infection.Instance.Config.NoTimeLimit.Value = val;
                 if (Infection.Instance.IsStarted)
                     Infection.Instance.EndUnix.SetValue(-1);
             });
 
             generalGroup.AddElement("Use Deathmatch Spawns", Infection.Instance.Config.UseDeathmatchSpawns.ClientValue, (val) => Infection.Instance.Config.UseDeathmatchSpawns.ClientValue = val);
 
-            generalGroup.AddElement("Teleport To Host On Start", Infection.Instance.Config.TeleportOnStart, (val) => Infection.Instance.Config.TeleportOnStart = val);
+            generalGroup.AddElement("Teleport To Host On Start", Infection.Instance.Config.TeleportOnStart.Value, (val) => Infection.Instance.Config.TeleportOnStart.Value = val);
 
             generalGroup.AddElement("Teleport To Host On End", Infection.Instance.Config.TeleportOnEnd.ClientValue, (val) => Infection.Instance.Config.TeleportOnEnd.ClientValue = val);
 
             generalGroup.AddElement("Countdown Length", Infection.Instance.Config.CountdownLength.ClientValue, (val) => Infection.Instance.Config.CountdownLength.ClientValue = val, 5, 0, 3600);
             generalGroup.AddElement("Show Countdown to All Players", Infection.Instance.Config.ShowCountdownToAll.ClientValue, (val) => Infection.Instance.Config.ShowCountdownToAll.ClientValue = val);
 
-            generalGroup.AddElement("Infect Type", Infection.Instance.Config.InfectType, Instance, (val) => Infection.Instance.Config.InfectType = (InfectType)val);
+            generalGroup.AddElement("Infect Type", Infection.Instance.Config.InfectType.Value, Instance, (val) => Infection.Instance.Config.InfectType.Value = (InfectType)val);
 
-            generalGroup.AddElement("Suicide Infects", Infection.Instance.Config.SuicideInfects, (val) => Infection.Instance.Config.SuicideInfects = val);
-            generalGroup.AddElement("Hold Time (Touch Infect Type)", Infection.Instance.Config.HoldTime, (val) => Infection.Instance.Config.HoldTime = val, max: 60);
+            generalGroup.AddElement("Suicide Infects", Infection.Instance.Config.SuicideInfects.Value, (val) => Infection.Instance.Config.SuicideInfects.Value = val);
+            generalGroup.AddElement("Hold Time (Touch Infect Type)", Infection.Instance.Config.HoldTime.Value, (val) => Infection.Instance.Config.HoldTime.Value = val, max: 60);
             generalGroup.AddElement("Dont Show Any Nametags", Infection.Instance.Config.DontShowAnyNametags.ClientValue, (val) => Infection.Instance.Config.DontShowAnyNametags.ClientValue = val);
             generalGroup.AddElement("Save Settings", Infection.Instance.Config.Save);
             generalGroup.AddElement("Load Settings", () =>
@@ -146,7 +146,7 @@ namespace AvatarInfection.Managers
                 if (Infection.Instance.IsStarted)
                 {
                     var _metadata = metadata;
-                    if (team == Infection.Instance.InfectedChildren && Infection.Instance.Config.SyncWithInfected)
+                    if (team == Infection.Instance.InfectedChildren && Infection.Instance.Config.SyncWithInfected.Value)
                         _metadata = Infection.Instance.InfectedMetadata;
 
                     if (_metadata.IsApplied)
@@ -184,7 +184,7 @@ namespace AvatarInfection.Managers
             });
 
             if (team == Infection.Instance.InfectedChildren)
-                group.AddElement("Sync with Infected", Infection.Instance.Config.SyncWithInfected, (val) => Infection.Instance.Config.SyncWithInfected = val);
+                group.AddElement("Sync with Infected", Infection.Instance.Config.SyncWithInfected.Value, (val) => Infection.Instance.Config.SyncWithInfected.Value = val);
 
             return group;
         }

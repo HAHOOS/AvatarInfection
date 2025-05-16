@@ -10,7 +10,7 @@ using LabFusion.SDK.Gamemodes;
 
 namespace AvatarInfection.Settings
 {
-    public class TeamMetadata
+    public class TeamMetadata : SettingsCollection
     {
         public readonly Team Team;
 
@@ -29,8 +29,6 @@ namespace AvatarInfection.Settings
         public ToggleServerSetting<float> Agility;
 
         public ToggleServerSetting<float> StrengthUpper;
-
-        private readonly List<IServerSetting> _settings = [];
 
         public TeamMetadata(Team team, Gamemode gamemode, TeamSettings? config = null)
         {
@@ -64,32 +62,16 @@ namespace AvatarInfection.Settings
                 (config?.StrengthUpper_Enabled) ?? default, false);
         }
 
-        internal ServerSetting<T> CreateServerSetting<T>(string name, T value, bool autoSync = true)
-        {
-            var setting = new ServerSetting<T>(Gamemode, name, value, autoSync);
-            _settings.Add(setting);
-            return setting;
-        }
-
-        internal ToggleServerSetting<T> CreateToggleServerSetting<T>(string name, T value, bool enabled, bool autoSync = true)
-        {
-            var setting = new ToggleServerSetting<T>(Gamemode, name, value, enabled, autoSync);
-            _settings.Add(setting);
-            return setting;
-        }
-
-        public void Save()
-            => _settings.ForEach(setting => setting.Save());
-
-        public void Load()
-            => _settings.ForEach(setting => setting.Load());
-
         public void ApplyConfig()
         {
             if (!NetworkInfo.IsServer)
                 return;
 
-            _settings.ForEach(setting => setting.Sync());
+            _settingsList.ForEach(setting =>
+            {
+                if (setting.IsServerSetting())
+                    ((IServerSetting)setting).Sync();
+            });
         }
 
         public bool IsApplied
@@ -100,14 +82,18 @@ namespace AvatarInfection.Settings
                     return true;
 
                 bool synced = true;
-                foreach (var setting in _settings)
+                foreach (var setting in _settingsList)
                 {
-                    if (!setting.IsSynced)
+                    if (setting.IsServerSetting())
                     {
-                        synced = false;
-                        break;
+                        if (!((IServerSetting)setting).IsSynced)
+                        {
+                            synced = false;
+                            break;
+                        }
                     }
                 }
+
                 return synced;
             }
         }

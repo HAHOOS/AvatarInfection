@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AvatarInfection.Settings
 {
-    internal interface IServerSetting : ISetting
+    public interface IServerSetting : ISetting
     {
         public bool IsSynced { get; }
 
