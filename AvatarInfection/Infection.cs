@@ -275,12 +275,18 @@ namespace AvatarInfection
 
             EventManager.RegisterEvent(EventType.TeleportToHost, TeleportToHost, true);
 
-            EventManager.RegisterGlobalNotification(EventType.OneMinuteLeft, "Avatar Infection", "One minute left!", 3.5f, true);
+            EventManager.RegisterEvent(EventType.OneMinuteLeft, OneMinuteLeft, true);
             EventManager.RegisterGlobalNotification(EventType.InfectedVictory, "Infected Won", "Everyone has been infected!", 4f, true);
             EventManager.RegisterGlobalNotification(EventType.SurvivorsVictory, "Survivors Won", "There were people not infected in time!", 4f, true);
 
             BoneMenuManager.Setup();
             VisionManager.Setup();
+        }
+
+        private void OneMinuteLeft()
+        {
+            ShowNotification("Avatar Infection", "One minute left!", 3.5f);
+            _oneMinuteLeft = true;
         }
 
         private static void SwapAvatarEvent(SwapAvatarData data)
@@ -544,14 +550,12 @@ namespace AvatarInfection
             else if (!IsBodyLogEnabled)
                 SetBodyLog(true);
 
-            if (!Config.NoTimeLimit.Value)
+            if (!Config.NoTimeLimit.Value && NetworkInfo.IsServer)
             {
                 if (!_oneMinuteLeft && Config.TimeLimit.Value - ElapsedMinutes == 1)
-                {
-                    if (NetworkInfo.IsServer) EventManager.TryInvokeEvent(EventType.OneMinuteLeft);
-                    _oneMinuteLeft = true;
-                }
-                if (NetworkInfo.IsServer && ElapsedMinutes >= Config.TimeLimit.Value)
+                    EventManager.TryInvokeEvent(EventType.OneMinuteLeft);
+
+                if (ElapsedMinutes >= Config.TimeLimit.Value)
                 {
                     EventManager.TryInvokeEvent(EventType.SurvivorsVictory);
                     GamemodeManager.StopGamemode();
@@ -734,6 +738,9 @@ namespace AvatarInfection
 
             HasBeenInfected = false;
             InitialTeam = true;
+            _elapsedTime = 0f;
+            _lastCheckedMinutes = 0;
+            _oneMinuteLeft = false;
 
             PlayList.StopPlaylist();
 
@@ -748,10 +755,6 @@ namespace AvatarInfection
             }
 
             SetBodyLog(true);
-
-            _elapsedTime = 0f;
-            _lastCheckedMinutes = 0;
-            _oneMinuteLeft = false;
 
             ClearDeathmatchSpawns();
 
