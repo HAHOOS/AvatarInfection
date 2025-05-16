@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace AvatarInfection
+namespace AvatarInfection.Settings
 {
     public struct TeamSettings
     {

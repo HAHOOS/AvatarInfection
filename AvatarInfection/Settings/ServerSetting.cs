@@ -9,11 +9,13 @@ using LabFusion.Network;
 using LabFusion.Utilities;
 using MelonLoader;
 
-namespace AvatarInfection
+namespace AvatarInfection.Settings
 {
-    public class ServerSetting<T>
+    public class ServerSetting<T> : IServerSetting
     {
         private readonly Gamemode gamemode;
+
+        public string Name { get; private set; }
 
         public bool AutoSync { get; set; }
 
@@ -34,6 +36,9 @@ namespace AvatarInfection
 
         private MelonPreferences_Entry<T> Entry { get; set; }
 
+        public bool IsSynced
+            => EqualityComparer<T>.Default.Equals(ClientValue, ServerValue.GetValue());
+
         /// <summary>
         /// This gets only triggered when the client value is set to the new server value
         /// </summary>
@@ -50,6 +55,7 @@ namespace AvatarInfection
 
         private void InitEvent(string name)
         {
+            Name = name;
             Entry = Core.Category.CreateEntry(name, ClientValue);
             GamemodeManager.OnGamemodeStarted += () =>
             {
@@ -74,28 +80,30 @@ namespace AvatarInfection
 
         public ServerSetting(Gamemode gamemode, string name, bool autoSync = true)
         {
-            this.AutoSync = autoSync;
+            AutoSync = autoSync;
             this.gamemode = gamemode;
-            this.ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
-            this.ClientValue = default;
+            ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
+            ClientValue = default;
             InitEvent(name);
         }
 
         public ServerSetting(Gamemode gamemode, string name, T value, bool autoSync = true)
         {
-            this.AutoSync = autoSync;
+            AutoSync = autoSync;
             this.gamemode = gamemode;
-            this.ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
-            this.ClientValue = value;
+            ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
+            ClientValue = value;
             InitEvent(name);
         }
     }
 
-    public class ToggleServerSetting<T>
+    public class ToggleServerSetting<T> : IServerSetting
     {
         private readonly Gamemode gamemode;
 
         public bool AutoSync { get; set; }
+
+        public string Name { get; private set; }
 
         private T _clientValue;
 
@@ -122,6 +130,10 @@ namespace AvatarInfection
                     Sync();
             }
         }
+
+        public bool IsSynced
+            => EqualityComparer<T>.Default.Equals(ClientValue, ServerValue.GetValue())
+                && ClientEnabled == ServerValue.IsEnabled;
 
         private MelonPreferences_Entry<T> Entry { get; set; }
         private MelonPreferences_Entry<bool> EnabledEntry { get; set; }
@@ -153,6 +165,7 @@ namespace AvatarInfection
 
         private void InitEvent(string name)
         {
+            Name = name;
             Entry = Core.Category.CreateEntry(name, ClientValue);
             EnabledEntry = Core.Category.CreateEntry($"{name}_Enabled", ClientEnabled);
             GamemodeManager.OnGamemodeStarted += () =>
@@ -190,31 +203,31 @@ namespace AvatarInfection
 
         public ToggleServerSetting(Gamemode gamemode, string name, bool autoSync = true)
         {
-            this.AutoSync = autoSync;
+            AutoSync = autoSync;
             this.gamemode = gamemode;
-            this.ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
-            this.ClientValue = default;
-            this.ClientEnabled = default;
+            ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
+            ClientValue = default;
+            ClientEnabled = default;
             InitEvent(name);
         }
 
         public ToggleServerSetting(Gamemode gamemode, string name, T value, bool autoSync = true)
         {
-            this.AutoSync = autoSync;
+            AutoSync = autoSync;
             this.gamemode = gamemode;
-            this.ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
-            this.ClientValue = value;
-            this.ClientEnabled = default;
+            ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
+            ClientValue = value;
+            ClientEnabled = default;
             InitEvent(name);
         }
 
         public ToggleServerSetting(Gamemode gamemode, string name, T value, bool enabled, bool autoSync = true)
         {
-            this.AutoSync = autoSync;
+            AutoSync = autoSync;
             this.gamemode = gamemode;
-            this.ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
-            this.ClientValue = value;
-            this.ClientEnabled = enabled;
+            ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
+            ClientValue = value;
+            ClientEnabled = enabled;
             InitEvent(name);
         }
     }

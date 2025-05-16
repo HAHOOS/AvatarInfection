@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 
+using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
 
 using Il2CppSLZ.Bonelab;
@@ -11,6 +13,8 @@ using LabFusion.Utilities;
 using MelonLoader;
 
 using UnityEngine;
+
+using static UnityEngine.GraphicsBuffer;
 
 namespace AvatarInfection.Managers
 {
@@ -59,6 +63,8 @@ namespace AvatarInfection.Managers
                             if (TeamManager.GetLocalTeam() == Infected)
                                 VisionEffect(true);
 
+                            var target = Infection.Instance.CountdownValue.GetValue();
+
                             const float fadeLength = 1f;
 
                             float elapsed = 0f;
@@ -67,8 +73,6 @@ namespace AvatarInfection.Managers
                             int seconds = 0;
 
                             bool secondPassed = true;
-
-                            var target = Infection.Instance.CountdownValue.GetValue();
 
                             while (seconds < target)
                             {

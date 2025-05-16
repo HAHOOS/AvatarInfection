@@ -36,6 +36,7 @@ using LabFusion.Preferences.Client;
 using LabFusion.Downloading;
 using LabFusion.Data;
 using AvatarInfection.Managers;
+using AvatarInfection.Settings;
 
 namespace AvatarInfection
 {
@@ -87,7 +88,7 @@ namespace AvatarInfection
 
             public const int SurvivorsBitReward = 75;
 
-            public const bool UntilAllFound = false;
+            public const bool NoTimeLimit = false;
 
             public const bool DontShowAnyNametags = false;
 
@@ -156,7 +157,7 @@ namespace AvatarInfection
 
             public const int InfectedCount = 1;
 
-            public const bool ShouldTeleportToHost = true;
+            public const bool TeleportOnStart = true;
 
             public const int CountdownLength = 30;
 
@@ -226,7 +227,7 @@ namespace AvatarInfection
             }
             else if (team == Instance.InfectedChildren)
             {
-                if (Instance.Config.SyncWithInfected)
+                if (Instance.Config.SyncWithInfected.Value)
                     return Instance.InfectedMetadata;
                 else
                     return Instance.InfectedChildrenMetadata;
@@ -543,14 +544,14 @@ namespace AvatarInfection
             else if (!IsBodyLogEnabled)
                 SetBodyLog(true);
 
-            if (!Config.NoTimeLimit)
+            if (!Config.NoTimeLimit.Value)
             {
-                if (!_oneMinuteLeft && Config.TimeLimit - ElapsedMinutes == 1)
+                if (!_oneMinuteLeft && Config.TimeLimit.Value - ElapsedMinutes == 1)
                 {
                     if (NetworkInfo.IsServer) EventManager.TryInvokeEvent(EventType.OneMinuteLeft);
                     _oneMinuteLeft = true;
                 }
-                if (NetworkInfo.IsServer && ElapsedMinutes >= Config.TimeLimit)
+                if (NetworkInfo.IsServer && ElapsedMinutes >= Config.TimeLimit.Value)
                 {
                     EventManager.TryInvokeEvent(EventType.SurvivorsVictory);
                     GamemodeManager.StopGamemode();
@@ -620,7 +621,7 @@ namespace AvatarInfection
 
         private void ApplyGamemodeSettings()
         {
-            if (Config.SelectMode == AvatarSelectMode.RANDOM)
+            if (Config.SelectMode.Value == AvatarSelectMode.RANDOM)
             {
                 var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
                 avatars.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
@@ -635,8 +636,8 @@ namespace AvatarInfection
 
             var now = DateTimeOffset.Now;
             StartUnix.SetValue(now.ToUnixTimeMilliseconds());
-            if (!Config.NoTimeLimit)
-                EndUnix.SetValue(now.AddMinutes(Config.TimeLimit).ToUnixTimeMilliseconds());
+            if (!Config.NoTimeLimit.Value)
+                EndUnix.SetValue(now.AddMinutes(Config.TimeLimit.Value).ToUnixTimeMilliseconds());
             else
                 EndUnix.SetValue(-1);
 
@@ -663,7 +664,7 @@ namespace AvatarInfection
                 AssignTeams();
                 MelonCoroutines.Start(InfectedLookingWait());
 
-                if (Config.TeleportOnStart)
+                if (Config.TeleportOnStart.Value)
                     EventManager.TryInvokeEvent(EventType.TeleportToHost);
             }
 
@@ -678,7 +679,7 @@ namespace AvatarInfection
                 Config.SelectedPlayerOverride();
 
                 if (Config.UseDeathmatchSpawns.ClientValue)
-                    UseDeathmatchSpawns_Init(!Config.TeleportOnStart);
+                    UseDeathmatchSpawns_Init(!Config.TeleportOnStart.Value);
                 else
                     ClearDeathmatchSpawns();
             });
@@ -831,13 +832,13 @@ namespace AvatarInfection
             string selected = null;
 
             var rand = new System.Random();
-            for (int i = 0; i < Config.InfectedCount; i++)
+            for (int i = 0; i < Config.InfectedCount.Value; i++)
             {
                 var player = players[rand.Next(0, players.Count)];
                 TeamManager.TryAssignTeam(player, Infected);
                 EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.LongId, Config.SelectedAvatar.ClientValue));
 
-                if (Config.SelectMode == AvatarSelectMode.FIRSTINFECTED && string.IsNullOrWhiteSpace(selected)
+                if (Config.SelectMode.Value == AvatarSelectMode.FIRSTINFECTED && string.IsNullOrWhiteSpace(selected)
                     && NetworkPlayerManager.TryGetPlayer(player.SmallId, out NetworkPlayer plr) && plr.HasRig)
                 {
                     var avatar = plr.RigRefs?.RigManager?.AvatarCrate?.Barcode?.ID;
@@ -862,7 +863,7 @@ namespace AvatarInfection
 
             if (type == PlayerActionType.DYING_BY_OTHER_PLAYER)
             {
-                if (!NetworkInfo.IsServer || otherPlayer == null || Config.InfectType != InfectType.DEATH)
+                if (!NetworkInfo.IsServer || otherPlayer == null || Config.InfectType.Value != InfectType.DEATH)
                     return;
 
                 var playerTeam = TeamManager.GetPlayerTeam(player);
@@ -876,7 +877,7 @@ namespace AvatarInfection
             }
             else if (type == PlayerActionType.DYING)
             {
-                if (!NetworkInfo.IsServer || !Config.SuicideInfects || otherPlayer != null)
+                if (!NetworkInfo.IsServer || !Config.SuicideInfects.Value || otherPlayer != null)
                     return;
 
                 if (LastPlayerActions.ContainsKey(player) && LastPlayerActions[player] == PlayerActionType.DYING_BY_OTHER_PLAYER)

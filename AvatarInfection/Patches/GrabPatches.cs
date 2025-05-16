@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using AvatarInfection.Managers;
+using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
 
 using BoneLib;
@@ -45,7 +46,7 @@ namespace AvatarInfection.Patches
                 return;
 
             if (!Infection.Instance.IsStarted ||
-                Infection.Instance.Config.InfectType != Infection.InfectType.TOUCH ||
+                Infection.Instance.Config.InfectType.Value != Infection.InfectType.TOUCH ||
                 !Infection.Instance.InfectedLooking.GetValue())
             {
                 return;
@@ -72,7 +73,7 @@ namespace AvatarInfection.Patches
             {
                 var longId = otherPlayer.PlayerId.LongId;
 
-                if (Infection.Instance.Config.HoldTime == 0)
+                if (Infection.Instance.Config.HoldTime.Value == 0)
                     EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, longId);
                 else
                     HoldTime.Add(grip, 0);
@@ -170,14 +171,14 @@ namespace AvatarInfection.Patches
             if (gameObject == null || hand?.IsPartOfSelf() != true)
                 return true;
 
-            AvatarInfection.TeamMetadata config;
+            TeamMetadata config;
             if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected)
             {
                 config = Infection.Instance.InfectedMetadata;
             }
             else if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren)
             {
-                if (Infection.Instance.Config.SyncWithInfected)
+                if (Infection.Instance.Config.SyncWithInfected.Value)
                     config = Infection.Instance.InfectedMetadata;
                 else
                     config = Infection.Instance.InfectedChildrenMetadata;
@@ -214,7 +215,7 @@ namespace AvatarInfection.Patches
             {
                 var grip = hold.Key;
                 HoldTime[grip] = hold.Value + TimeUtilities.DeltaTime;
-                if (HoldTime[grip] >= Infection.Instance.Config.HoldTime)
+                if (HoldTime[grip] >= Infection.Instance.Config.HoldTime.Value)
                 {
                     if (!grip._marrowEntity)
                         continue;
