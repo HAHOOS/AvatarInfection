@@ -25,6 +25,7 @@ namespace AvatarInfection.Managers
 
             MultiplayerHooking.OnDisconnect += PopulatePage;
             MultiplayerHooking.OnJoinServer += PopulatePage;
+            MultiplayerHooking.OnStartServer += PopulatePage;
             MultiplayerHooking.OnPlayerJoin += Hook;
             MultiplayerHooking.OnPlayerLeave += Hook;
         }
@@ -36,6 +37,7 @@ namespace AvatarInfection.Managers
 
             MultiplayerHooking.OnDisconnect -= PopulatePage;
             MultiplayerHooking.OnJoinServer -= PopulatePage;
+            MultiplayerHooking.OnStartServer += PopulatePage;
             MultiplayerHooking.OnPlayerJoin -= Hook;
             MultiplayerHooking.OnPlayerLeave -= Hook;
         }

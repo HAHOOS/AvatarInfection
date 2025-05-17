@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 
 using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
@@ -13,8 +12,6 @@ using LabFusion.Utilities;
 using MelonLoader;
 
 using UnityEngine;
-
-using static UnityEngine.GraphicsBuffer;
 
 namespace AvatarInfection.Managers
 {
@@ -43,7 +40,6 @@ namespace AvatarInfection.Managers
         internal static void HideVisionAndReveal(float delaySeconds = 0)
             => MelonCoroutines.Start(Internal_HideVisionAndReveal(delaySeconds));
 
-        // TODO: Improve performance wise
         private static IEnumerator Internal_HideVisionAndReveal(float delaySeconds = 0)
         {
             if (Infection.Instance.IsStarted)
@@ -140,24 +136,14 @@ namespace AvatarInfection.Managers
             var target = Infection.Instance.CountdownValue.GetValue();
             var icon = Texture2D.whiteTexture;
             var sprite = Sprite.Create(icon, new Rect(0, 0, 0, 0), new Vector2(0.5f, 0.5f), 100f);
-
-            // Make sure tutorial rig and head titles are enabled
-
             var tutorialRig = TutorialRig.Instance;
             var headTitles = tutorialRig.headTitles;
 
             tutorialRig.gameObject.SetActive(true);
             headTitles.gameObject.SetActive(true);
 
-            float timeToScale = Mathf.Lerp(0.05f, 0.4f, Mathf.Clamp01(target - 1f));
-
-            tutorialRig.headTitles.timeToScale = timeToScale;
-
-            tutorialRig.headTitles.CUSTOMDISPLAY(
-                "Countdown, get ready...",
-                num.ToString(),
-                sprite,
-                target);
+            tutorialRig.headTitles.timeToScale = Mathf.Lerp(0.05f, 0.4f, Mathf.Clamp01(target - 1f));
+            tutorialRig.headTitles.CUSTOMDISPLAY("Countdown, get ready...", num.ToString(), sprite, target);
             tutorialRig.headTitles.sr_element.sprite = sprite;
         }
 

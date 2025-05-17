@@ -6,11 +6,33 @@ namespace AvatarInfection.Settings
 {
     internal class InfectionSettings : SettingsCollection
     {
+        #region Server
+
         internal ServerSetting<bool> DisableSpawnGun { get; set; }
 
         internal ServerSetting<bool> DisableDevTools { get; set; }
 
         internal ServerSetting<string> SelectedAvatar { get; set; }
+
+        internal ServerSetting<bool> AllowKeepInventory { get; set; }
+
+        internal ServerSetting<int> CountdownLength { get; set; }
+
+        internal ServerSetting<bool> DontShowAnyNametags { get; set; }
+
+        internal ServerSetting<bool> TeleportOnEnd { get; set; }
+
+        internal ServerSetting<bool> UseDeathmatchSpawns { get; set; }
+
+        internal ServerSetting<bool> ShowCountdownToAll { get; set; }
+
+        #endregion Server
+
+        #region Local
+
+        internal LocalSetting<AvatarSelectMode> SelectMode { get; set; }
+
+        internal LocalSetting<bool> SyncWithInfected { get; set; }
 
         internal LocalSetting<int> TimeLimit { get; set; }
 
@@ -22,25 +44,11 @@ namespace AvatarInfection.Settings
 
         internal LocalSetting<InfectType> InfectType { get; set; }
 
-        internal ServerSetting<bool> AllowKeepInventory { get; set; }
-
-        internal ServerSetting<int> CountdownLength { get; set; }
-
-        internal ServerSetting<bool> DontShowAnyNametags { get; set; }
-
         internal LocalSetting<bool> SuicideInfects { get; set; }
 
         internal LocalSetting<int> HoldTime { get; set; }
 
-        internal ServerSetting<bool> TeleportOnEnd { get; set; }
-
-        internal ServerSetting<bool> UseDeathmatchSpawns { get; set; }
-
-        internal LocalSetting<bool> SyncWithInfected { get; set; }
-
-        internal LocalSetting<AvatarSelectMode> SelectMode { get; set; }
-
-        internal ServerSetting<bool> ShowCountdownToAll { get; set; }
+        #endregion Local
 
         internal InfectionSettings()
         {
