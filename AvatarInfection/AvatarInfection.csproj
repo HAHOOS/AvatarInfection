@@ -38,9 +38,6 @@
 		<Reference Include="LabFusion">
 			<HintPath>$(BONELAB_DIR)\Mods\LabFusion.dll</HintPath>
 		</Reference>
-		<Reference Include="LabPresence">
-			<HintPath>$(BONELAB_DIR)\Mods\LabPresence.dll</HintPath>
-		</Reference>
 		<Reference Include="MelonLoader">
 			<HintPath>$(BONELAB_DIR)\MelonLoader\net6\MelonLoader.dll</HintPath>
 		</Reference>
@@ -68,6 +65,10 @@
 		<Reference Include="Unity.TextMeshPro">
 			<HintPath>$(BONELAB_DIR)\MelonLoader\Il2CppAssemblies\Unity.TextMeshPro.dll</HintPath>
 		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="LabPresence" Version="1.1.0" />
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
