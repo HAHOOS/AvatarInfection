@@ -36,9 +36,7 @@ namespace AvatarInfection.Utilities
         }
 
         public void SetValue(string value)
-        {
-            Metadata.TrySetMetadata(Key, value);
-        }
+            => Metadata.TrySetMetadata(Key, value);
 
         public void Toggle()
         {
@@ -51,19 +49,13 @@ namespace AvatarInfection.Utilities
         }
 
         public void SetEnabled(bool enabled)
-        {
-            Metadata.TrySetMetadata(ToggledKey, enabled.ToString());
-        }
+            => Metadata.TrySetMetadata(ToggledKey, enabled.ToString());
 
         public void SetValue<TValue>(TValue value)
-        {
-            SetValue(JsonSerializer.Serialize(value, SerializerOptions));
-        }
+            => SetValue(JsonSerializer.Serialize(value, SerializerOptions));
 
         public string GetValue()
-        {
-            return Metadata.GetMetadata(Key);
-        }
+            => Metadata.GetMetadata(Key);
 
         public TValue GetValue<TValue>()
         {
@@ -79,13 +71,9 @@ namespace AvatarInfection.Utilities
     public class ToggleMetadataVariableT<TValue>(string key, NetworkMetadata metadata) : ToggleMetadataVariable(key, metadata)
     {
         public void SetValue(TValue value)
-        {
-            base.SetValue<TValue>(value);
-        }
+            => base.SetValue<TValue>(value);
 
         public new TValue GetValue()
-        {
-            return base.GetValue<TValue>();
-        }
+            => base.GetValue<TValue>();
     }
 }
