@@ -110,7 +110,6 @@ namespace AvatarInfection.Managers
 
             generalGroup.AddElement("Suicide Infects", Infection.Instance.Config.SuicideInfects.Value, (val) => Infection.Instance.Config.SuicideInfects.Value = val);
             generalGroup.AddElement("Hold Time (Touch Infect Type)", Infection.Instance.Config.HoldTime.Value, (val) => Infection.Instance.Config.HoldTime.Value = val, max: 60);
-            generalGroup.AddElement("Dont Show Any Nametags", Infection.Instance.Config.DontShowAnyNametags.ClientValue, (val) => Infection.Instance.Config.DontShowAnyNametags.ClientValue = val);
             generalGroup.AddElement("Save Settings", Infection.Instance.Config.Save);
             generalGroup.AddElement("Load Settings", () =>
             {

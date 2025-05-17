@@ -819,9 +819,6 @@ namespace AvatarInfection
             var playerTeam = TeamManager.GetPlayerTeam(id);
             var localTeam = TeamManager.GetLocalTeam();
 
-            if (Config.DontShowAnyNametags.ClientValue)
-                return false;
-
             return playerTeam == localTeam ||
                 (playerTeam == Infected && localTeam == InfectedChildren) ||
                 (playerTeam == InfectedChildren && localTeam == Infected);

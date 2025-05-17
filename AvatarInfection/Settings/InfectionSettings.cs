@@ -18,8 +18,6 @@ namespace AvatarInfection.Settings
 
         internal ServerSetting<int> CountdownLength { get; set; }
 
-        internal ServerSetting<bool> DontShowAnyNametags { get; set; }
-
         internal ServerSetting<bool> TeleportOnEnd { get; set; }
 
         internal ServerSetting<bool> UseDeathmatchSpawns { get; set; }
@@ -74,8 +72,6 @@ namespace AvatarInfection.Settings
             };
 
             ShowCountdownToAll = CreateServerSetting(nameof(ShowCountdownToAll), Defaults.ShowCountdownToAll);
-            DontShowAnyNametags = CreateServerSetting(nameof(DontShowAnyNametags), Defaults.DontShowAnyNametags);
-            DontShowAnyNametags.OnValueChanged += FusionOverrides.ForceUpdateOverrides;
 
             HoldTime = CreateLocalSetting(nameof(HoldTime), Defaults.HoldTime);
             InfectedCount = CreateLocalSetting(nameof(InfectedCount), Defaults.InfectedCount);
