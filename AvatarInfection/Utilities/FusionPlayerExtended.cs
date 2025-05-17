@@ -106,10 +106,11 @@ namespace AvatarInfection.Utilities
         {
             bool wasEmpty = string.IsNullOrWhiteSpace(AvatarOverride);
             AvatarOverride = barcode;
+            FusionPlayer.SetAvatarOverride(barcode);
             if (Player.RigManager != null && AssetWarehouse.ready && AvatarOverride != null)
             {
-                if (wasEmpty) LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? BONELABAvatarReferences.PolyBlankBarcode;
-                FusionPlayer.SetAvatarOverride(barcode);
+                if (wasEmpty)
+                    LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? BONELABAvatarReferences.PolyBlankBarcode;
             }
         }
 
@@ -122,7 +123,7 @@ namespace AvatarInfection.Utilities
                 var rm = Player.RigManager;
                 rm.SwapAvatarCrate(new Barcode(LastAvatar), true);
                 DataManager.ActiveSave.PlayerSettings.CurrentAvatar = LastAvatar;
-                DataManager.TrySaveActiveSave(Il2CppSLZ.Marrow.SaveData.SaveFlags.DefaultAndPlayerSettingsAndUnlocks);
+                LastAvatar = null;
             }
         }
     }

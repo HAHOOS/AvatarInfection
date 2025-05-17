@@ -275,6 +275,8 @@ namespace AvatarInfection
             MultiplayerHooking.OnPlayerJoin += OnPlayerJoin;
             MultiplayerHooking.OnPlayerLeave += OnPlayerLeave;
 
+            MultiplayerHooking.OnDisconnect += Cleanup;
+
             TeamManager.Register(this);
             TeamManager.AddTeam(Infected);
             TeamManager.AddTeam(Survivors);
@@ -350,6 +352,8 @@ namespace AvatarInfection
             MultiplayerHooking.OnPlayerJoin -= OnPlayerJoin;
             MultiplayerHooking.OnPlayerLeave -= OnPlayerLeave;
 
+            MultiplayerHooking.OnDisconnect -= Cleanup;
+
             TeamManager.Unregister();
 
             Metadata.OnMetadataChanged -= OnMetadataChanged;
@@ -367,6 +371,8 @@ namespace AvatarInfection
 
             if (!IsStarted)
                 return;
+
+            TeamManager.TryUnassignTeam(id);
 
             if (Infected.PlayerCount == 0 && InfectedChildren.PlayerCount == 0)
             {
@@ -445,7 +451,7 @@ namespace AvatarInfection
 
                 ShowNotification(
                     "Infected",
-                    $"{(string.IsNullOrWhiteSpace(displayName) ? "N/A" : displayName)} is now infected, {(Survivors.PlayerCount > 1 ? "look out for them..." : "the last survivor has fallen...")}",
+                    $"{(string.IsNullOrWhiteSpace(displayName) ? "N/A" : displayName)} is now infected, {(Survivors.PlayerCount > 1 ? "look out for them..." : "the last survivor has fallen...")} ({Survivors.PlayerCount} survivors left)",
                     4f);
             }
 
@@ -753,16 +759,7 @@ namespace AvatarInfection
         public override void OnGamemodeStopped()
         {
             base.OnGamemodeStopped();
-            BoneMenuManager.PopulatePage();
-            VisionManager.HideVision = false;
-
-            HasBeenInfected = false;
-            InitialTeam = true;
-            _elapsedTime = 0f;
-            _surivorsLastCheckedMinutes = 0;
-            OneMinuteLeft = false;
-
-            PlayList.StopPlaylist();
+            Cleanup();
 
             if (NetworkInfo.IsServer)
             {
@@ -773,6 +770,20 @@ namespace AvatarInfection
                 if (Config.TeleportOnEnd.ClientValue)
                     TeleportToHost();
             }
+        }
+
+        private void Cleanup()
+        {
+            BoneMenuManager.PopulatePage();
+            VisionManager.HideVision = false;
+
+            HasBeenInfected = false;
+            InitialTeam = true;
+            _elapsedTime = 0f;
+            _surivorsLastCheckedMinutes = 0;
+            OneMinuteLeft = false;
+
+            PlayList.StopPlaylist();
 
             SetBodyLog(true);
 
