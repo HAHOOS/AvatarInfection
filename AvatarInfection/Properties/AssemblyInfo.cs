@@ -9,7 +9,7 @@ using AvatarInfection;
 
 [assembly: MelonInfo(typeof(Core), "AvatarInfection", Core.Version, "HAHOOS", "https://thunderstore.io/c/bonelab/p/HAHOOS/AvatarInfection")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
-[assembly: MelonColor(0, 255, 0, 255)]
+[assembly: MelonColor(0, 0, 255, 0)]
 [assembly: MelonAuthorColor(0, 255, 165, 0)]
 
 #endregion MelonLoader

@@ -16,7 +16,7 @@ namespace AvatarInfection
         public override string Author => "HAHOOS";
 
         /// <inheritdoc cref="Module.Color"/>
-        public override ConsoleColor Color => ConsoleColor.Magenta;
+        public override ConsoleColor Color => ConsoleColor.Green;
 
         /// <inheritdoc cref="Module.Version"/>
         public override Version Version => Version.Parse(Core.Version);
