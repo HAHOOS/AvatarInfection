@@ -629,7 +629,7 @@ namespace AvatarInfection
             {
                 var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
                 avatars.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
-                Config.SelectedAvatar.ClientValue = avatars[UnityEngine.Random.RandomRangeInt(0, avatars.Count)].Barcode.ID;
+                Config.SelectedAvatar.ClientValue = avatars.Random().Barcode.ID;
             }
 
             CountdownValue.SetValue(Config.CountdownLength.ClientValue);
@@ -832,22 +832,21 @@ namespace AvatarInfection
             var players = new List<PlayerId>(PlayerIdManager.PlayerIds);
             players.Shuffle();
 
-            string selected = null;
-
-            var rand = new System.Random();
+            bool selected = false;
             for (int i = 0; i < Config.InfectedCount.Value; i++)
             {
-                var player = players[rand.Next(0, players.Count)];
+                var player = players.Random();
                 TeamManager.TryAssignTeam(player, Infected);
-                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.LongId, Config.SelectedAvatar.ClientValue));
+                EventManager.TryInvokeEvent(EventType.SwapAvatar,
+                    new SwapAvatarData(player.LongId, Config.SelectedAvatar.ClientValue));
 
-                if (Config.SelectMode.Value == AvatarSelectMode.FIRSTINFECTED && string.IsNullOrWhiteSpace(selected)
+                if (Config.SelectMode.Value == AvatarSelectMode.FIRSTINFECTED && !selected
                     && NetworkPlayerManager.TryGetPlayer(player.SmallId, out NetworkPlayer plr) && plr.HasRig)
                 {
                     var avatar = plr.RigRefs?.RigManager?.AvatarCrate?.Barcode?.ID;
                     if (!string.IsNullOrWhiteSpace(avatar))
                     {
-                        selected = avatar;
+                        selected = true;
                         Config.SelectedAvatar.ClientValue = avatar;
                     }
                 }
