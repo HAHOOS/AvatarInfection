@@ -196,14 +196,14 @@ namespace AvatarInfection
 
         internal bool InitialTeam { get; private set; } = true;
 
-        internal bool HasBeenInfected { get; private set; } = false;
+        public bool HasBeenInfected { get; private set; } = false;
 
         private static ModuleLogger Logger => FusionModule.Logger;
 
         private float _elapsedTime = 0f;
 
-        internal float ElapsedSeconds => _elapsedTime;
-        internal int ElapsedMinutes => Mathf.FloorToInt(ElapsedSeconds / 60f);
+        public float ElapsedSeconds => _elapsedTime;
+        public int ElapsedMinutes => Mathf.FloorToInt(ElapsedSeconds / 60f);
 
         internal MetadataInt CountdownValue { get; private set; }
 
@@ -213,7 +213,33 @@ namespace AvatarInfection
 
         internal InfectionSettings Config { get; set; }
 
+        public bool OneMinuteLeft { get; private set; } = false;
+
+        public static bool IsBodyLogEnabled
+        {
+            get
+            {
+                var rig = Player.RigManager;
+                if (rig != null)
+                {
+                    bool disabled = false;
+                    var PCDs = rig?.gameObject?.GetComponentsInChildren<PullCordDevice>();
+                    PCDs?.ForEach(x =>
+                    {
+                        if (!x._bodyLogEnabled)
+                            disabled = true;
+                    });
+                    return !disabled;
+                }
+                return true;
+            }
+        }
+
         private readonly Dictionary<PlayerId, PlayerActionType> LastPlayerActions = [];
+
+        private int _surivorsLastCheckedMinutes = 0;
+
+        private static bool appliedDeathmatchSpawns = false;
 
         public static TeamMetadata GetTeamMetadata(Team team)
         {
@@ -275,7 +301,7 @@ namespace AvatarInfection
 
             EventManager.RegisterEvent(EventType.TeleportToHost, TeleportToHost, true);
 
-            EventManager.RegisterEvent(EventType.OneMinuteLeft, OneMinuteLeft, true);
+            EventManager.RegisterEvent(EventType.OneMinuteLeft, OneMinuteLeftEvent, true);
             EventManager.RegisterGlobalNotification(EventType.InfectedVictory, "Infected Won", "Everyone has been infected!", 4f, true);
             EventManager.RegisterGlobalNotification(EventType.SurvivorsVictory, "Survivors Won", "There were people not infected in time!", 4f, true);
 
@@ -283,10 +309,10 @@ namespace AvatarInfection
             VisionManager.Setup();
         }
 
-        private void OneMinuteLeft()
+        private void OneMinuteLeftEvent()
         {
             ShowNotification("Avatar Infection", "One minute left!", 3.5f);
-            _oneMinuteLeft = true;
+            OneMinuteLeft = true;
         }
 
         private static void SwapAvatarEvent(SwapAvatarData data)
@@ -536,8 +562,6 @@ namespace AvatarInfection
             });
         }
 
-        internal bool _oneMinuteLeft = false;
-
         protected override void OnUpdate()
         {
             _elapsedTime += TimeUtilities.DeltaTime;
@@ -552,7 +576,7 @@ namespace AvatarInfection
 
             if (!Config.NoTimeLimit.Value && NetworkInfo.IsServer)
             {
-                if (!_oneMinuteLeft && Config.TimeLimit.Value - ElapsedMinutes == 1)
+                if (!OneMinuteLeft && Config.TimeLimit.Value - ElapsedMinutes == 1)
                     EventManager.TryInvokeEvent(EventType.OneMinuteLeft);
 
                 if (ElapsedMinutes >= Config.TimeLimit.Value)
@@ -563,13 +587,11 @@ namespace AvatarInfection
             }
         }
 
-        private int _lastCheckedMinutes = 0;
-
         private void SurvivorsUpdate()
         {
-            if (_lastCheckedMinutes != ElapsedMinutes)
+            if (_surivorsLastCheckedMinutes != ElapsedMinutes)
             {
-                _lastCheckedMinutes = ElapsedMinutes;
+                _surivorsLastCheckedMinutes = ElapsedMinutes;
 
                 PointItemManager.RewardBits(Defaults.SurvivorsBitReward);
             }
@@ -657,8 +679,8 @@ namespace AvatarInfection
 
             HasBeenInfected = false;
             _elapsedTime = 0f;
-            _lastCheckedMinutes = 0;
-            _oneMinuteLeft = false;
+            _surivorsLastCheckedMinutes = 0;
+            OneMinuteLeft = false;
             VisionManager.HideVision = false;
             InitialTeam = true;
 
@@ -688,8 +710,6 @@ namespace AvatarInfection
                     ClearDeathmatchSpawns();
             });
         }
-
-        static bool appliedDeathmatchSpawns = false;
 
         internal static void UseDeathmatchSpawns_Init(bool teleport = true)
         {
@@ -739,8 +759,8 @@ namespace AvatarInfection
             HasBeenInfected = false;
             InitialTeam = true;
             _elapsedTime = 0f;
-            _lastCheckedMinutes = 0;
-            _oneMinuteLeft = false;
+            _surivorsLastCheckedMinutes = 0;
+            OneMinuteLeft = false;
 
             PlayList.StopPlaylist();
 
@@ -763,7 +783,7 @@ namespace AvatarInfection
             FusionOverrides.ForceUpdateOverrides();
         }
 
-        private static void SetBodyLog(bool enabled)
+        public static void SetBodyLog(bool enabled)
         {
             if (IsBodyLogEnabled == enabled)
                 return;
@@ -772,26 +792,6 @@ namespace AvatarInfection
             {
                 var PCDs = rig?.gameObject?.GetComponentsInChildren<PullCordDevice>();
                 PCDs?.ForEach(x => x._bodyLogEnabled = enabled);
-            }
-        }
-
-        private static bool IsBodyLogEnabled
-        {
-            get
-            {
-                var rig = Player.RigManager;
-                if (rig != null)
-                {
-                    bool disabled = false;
-                    var PCDs = rig?.gameObject?.GetComponentsInChildren<PullCordDevice>();
-                    PCDs?.ForEach(x =>
-                    {
-                        if (!x._bodyLogEnabled)
-                            disabled = true;
-                    });
-                    return !disabled;
-                }
-                return true;
             }
         }
 
