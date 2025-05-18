@@ -1,6 +1,4 @@
-﻿using LabFusion.Utilities;
-
-using static AvatarInfection.Infection;
+﻿using static AvatarInfection.Infection;
 
 namespace AvatarInfection.Settings
 {
