@@ -241,6 +241,8 @@ namespace AvatarInfection
 
         private static bool appliedDeathmatchSpawns = false;
 
+        private static bool WasStarted = false;
+
         public static TeamMetadata GetTeamMetadata(Team team)
         {
             if (team == Instance.Infected)
@@ -266,6 +268,7 @@ namespace AvatarInfection
 
         public override void OnGamemodeRegistered()
         {
+            WasStarted = false;
             Instance = this;
             Config = new InfectionSettings();
             InfectedChildren.DisplayName = "Infected Children";
@@ -689,6 +692,7 @@ namespace AvatarInfection
             OneMinuteLeft = false;
             VisionManager.HideVision = false;
             InitialTeam = true;
+            WasStarted = true;
 
             if (NetworkInfo.IsServer)
             {
@@ -774,24 +778,28 @@ namespace AvatarInfection
 
         private void Cleanup()
         {
-            BoneMenuManager.PopulatePage();
-            VisionManager.HideVision = false;
+            if (WasStarted)
+            {
+                WasStarted = false;
+                BoneMenuManager.PopulatePage();
+                VisionManager.HideVision = false;
 
-            HasBeenInfected = false;
-            InitialTeam = true;
-            _elapsedTime = 0f;
-            _surivorsLastCheckedMinutes = 0;
-            OneMinuteLeft = false;
+                HasBeenInfected = false;
+                InitialTeam = true;
+                _elapsedTime = 0f;
+                _surivorsLastCheckedMinutes = 0;
+                OneMinuteLeft = false;
 
-            PlayList.StopPlaylist();
+                PlayList.StopPlaylist();
 
-            SetBodyLog(true);
+                SetBodyLog(true);
 
-            ClearDeathmatchSpawns();
+                ClearDeathmatchSpawns();
 
-            ClearOverrides();
+                ClearOverrides();
 
-            FusionOverrides.ForceUpdateOverrides();
+                FusionOverrides.ForceUpdateOverrides();
+            }
         }
 
         public static void SetBodyLog(bool enabled)
