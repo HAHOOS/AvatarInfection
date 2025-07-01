@@ -4,6 +4,7 @@ using Il2CppSLZ.Bonelab.SaveData;
 using Il2CppSLZ.Marrow.Warehouse;
 
 using LabFusion.Marrow;
+using LabFusion.Player;
 using LabFusion.Utilities;
 
 namespace AvatarInfection.Utilities
@@ -104,20 +105,20 @@ namespace AvatarInfection.Utilities
 
         public static void SetAvatarOverride(string barcode)
         {
-            bool wasEmpty = string.IsNullOrWhiteSpace(AvatarOverride);
+            bool wasEmpty = string.IsNullOrEmpty(AvatarOverride);
             AvatarOverride = barcode;
-            FusionPlayer.SetAvatarOverride(barcode);
+            LocalAvatar.AvatarOverride = barcode;
             if (Player.RigManager != null && AssetWarehouse.ready && AvatarOverride != null)
             {
                 if (wasEmpty)
-                    LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? BONELABAvatarReferences.PolyBlankBarcode;
+                    LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? CommonBarcodes.Avatars.PolyBlank;
             }
         }
 
         public static void ClearAvatarOverride()
         {
             AvatarOverride = null;
-            FusionPlayer.ClearAvatarOverride();
+            LocalAvatar.AvatarOverride = null;
             if (Player.RigManager != null && LastAvatar != null && AssetWarehouse.ready)
             {
                 var rm = Player.RigManager;

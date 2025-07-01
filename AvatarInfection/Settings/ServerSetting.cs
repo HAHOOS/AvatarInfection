@@ -59,10 +59,10 @@ namespace AvatarInfection.Settings
             Entry = Core.Category.CreateEntry(name, ClientValue);
             GamemodeManager.OnGamemodeStarted += () =>
             {
-                if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsServer)
+                if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsHost)
                     Sync();
             };
-            MultiplayerHooking.OnJoinServer += () => _clientValue = ServerValue.GetValue();
+            MultiplayerHooking.OnJoinedServer += () => _clientValue = ServerValue.GetValue();
             gamemode.Metadata.OnMetadataChanged += (key, _) =>
             {
                 if (key == ServerValue.Key)
@@ -170,10 +170,10 @@ namespace AvatarInfection.Settings
             EnabledEntry = Core.Category.CreateEntry($"{name}_Enabled", ClientEnabled);
             GamemodeManager.OnGamemodeStarted += () =>
             {
-                if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsServer)
+                if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsHost)
                     Sync();
             };
-            MultiplayerHooking.OnJoinServer += () =>
+            MultiplayerHooking.OnJoinedServer += () =>
             {
                 _clientValue = ServerValue.GetValue();
                 _clientEnabled = ServerValue.IsEnabled;

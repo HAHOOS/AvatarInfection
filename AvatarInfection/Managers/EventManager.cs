@@ -5,6 +5,7 @@ using System.Text.Json;
 
 using LabFusion.Extensions;
 using LabFusion.SDK.Triggers;
+using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 
 namespace AvatarInfection.Managers
@@ -54,14 +55,14 @@ namespace AvatarInfection.Managers
             _events.Add(new TriggerEvent(name, Infection.Instance.Relay, serverOnly), typeof(T));
         }
 
-        public static void RegisterGlobalNotification(string name, FusionNotification notification, bool serverOnly = true)
+        public static void RegisterGlobalNotification(string name, Notification notification, bool serverOnly = true)
         {
             RegisterEvent(name, () =>
             {
                 if (!Infection.Instance.IsStarted)
                     return;
 
-                FusionNotifier.Send(notification);
+                Notifier.Send(notification);
             }, serverOnly);
         }
 
@@ -130,7 +131,7 @@ namespace AvatarInfection.Managers
         public static void RegisterEvent<T>(Enum @enum, Action<T> callback, bool serverOnly = false)
             => RegisterEvent(@enum.ToString(), callback, serverOnly);
 
-        public static void RegisterGlobalNotification(Enum @enum, FusionNotification notification, bool serverOnly = true)
+        public static void RegisterGlobalNotification(Enum @enum, Notification notification, bool serverOnly = true)
             => RegisterGlobalNotification(@enum.ToString(), notification, serverOnly);
 
         public static void RegisterGlobalNotification(

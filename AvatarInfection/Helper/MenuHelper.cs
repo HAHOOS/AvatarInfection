@@ -34,36 +34,6 @@ namespace AvatarInfection.Helper
             return el;
         }
 
-        public static FunctionElementData CreateEnumElement(this Gamemode gamemode, Enum @enum, string groupName, string title, Action<Enum> callback)
-        {
-            const string TitleFormat = "{0}: {1}";
-            Enum val = @enum;
-
-            return new FunctionElementData()
-            {
-                Title = string.Format(TitleFormat, title, EnumName.GetName(val)),
-                OnPressed = () =>
-                {
-                    var previous = val;
-                    var values = Enum.GetValues(@enum.GetType());
-                    int index = Array.IndexOf(
-                        values,
-                        values.OfType<Enum>()
-                            .First(x => x.Equals(val))
-                        );
-
-                    // Politely borrowed from BoneLib
-                    // Oh sorry my bad, from LabFusion, because the BoneLib one didn't do anything
-                    index++;
-                    index %= values.Length;
-                    val = (Enum)values.GetValue(index);
-
-                    ChangeElement<FunctionElement>(gamemode, groupName, string.Format(TitleFormat, title, EnumName.GetName(previous)), (el) => el.Title = string.Format(TitleFormat, title, EnumName.GetName(val)), false);
-                    callback.Invoke(val);
-                }
-            };
-        }
-
         public static StringElementData AddElement(this GroupElementData group, string title, string value, Action<string> callback)
         {
             var data = new StringElementData()
@@ -129,9 +99,15 @@ namespace AvatarInfection.Helper
             return data;
         }
 
-        public static FunctionElementData AddElement(this GroupElementData group, string title, Enum @enum, Gamemode gamemode, Action<Enum> callback)
+        public static EnumElementData AddElement(this GroupElementData group, string title, Enum @enum, Action<Enum> callback)
         {
-            var data = CreateEnumElement(gamemode, @enum, group.Title, title, callback);
+            var data = new EnumElementData()
+            {
+                Title = title,
+                EnumType = @enum.GetType(),
+                Value = @enum,
+                OnValueChanged = callback
+            };
             group.AddElement(data);
             return data;
         }
@@ -141,20 +117,6 @@ namespace AvatarInfection.Helper
             var groupData = new GroupElementData(title);
             group.AddElement(groupData);
             return groupData;
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
-    public class EnumName(string name) : Attribute
-    {
-        public string Name { get; } = name;
-
-        public static string GetName(Enum @enum)
-        {
-            var attr = @enum.GetType().GetCustomAttributes(typeof(EnumName), false);
-            if (attr.Length > 0)
-                return attr.Cast<EnumName>().ToArray().FirstOrDefault()?.ToString() ?? @enum.ToString();
-            return @enum.ToString();
         }
     }
 }

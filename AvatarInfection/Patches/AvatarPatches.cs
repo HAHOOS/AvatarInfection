@@ -1,10 +1,11 @@
 ﻿using AvatarInfection.Utilities;
 
+using BoneLib;
+
 using HarmonyLib;
 
+using Il2CppSLZ.Marrow;
 using Il2CppSLZ.VRMK;
-
-using LabFusion.Extensions;
 
 namespace AvatarInfection.Patches
 {
@@ -17,7 +18,7 @@ namespace AvatarInfection.Patches
             if (__instance == null || __instance.name == "[RealHeptaRig (Marrow1)]")
                 return;
 
-            if (!__instance.IsPartOfPlayer() || !__instance.IsPartOfSelf())
+            if (__instance.GetComponentInParent<RigManager>() != Player.RigManager)
                 return;
 
             if (FusionPlayerExtended.SpeedOverride != null)

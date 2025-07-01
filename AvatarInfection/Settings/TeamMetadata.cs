@@ -64,7 +64,7 @@ namespace AvatarInfection.Settings
 
         public void ApplyConfig()
         {
-            if (!NetworkInfo.IsServer)
+            if (!NetworkInfo.IsHost)
                 return;
 
             _settingsList.ForEach(setting =>

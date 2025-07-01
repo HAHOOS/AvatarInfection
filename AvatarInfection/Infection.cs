@@ -37,6 +37,8 @@ using LabFusion.Downloading;
 using LabFusion.Data;
 using AvatarInfection.Managers;
 using AvatarInfection.Settings;
+using LabFusion.UI.Popups;
+using LabFusion.Bonelab;
 
 namespace AvatarInfection
 {
@@ -47,6 +49,8 @@ namespace AvatarInfection
         public override string Author => "HAHOOS";
 
         public override string Barcode => Defaults.Barcode;
+
+        public override string Description => "";
 
         public override Texture Logo => Core.Icon;
 
@@ -180,13 +184,13 @@ namespace AvatarInfection
             // Have no idea for mono discs
             public static readonly MonoDiscReference[] Tracks =
         [
-            BONELABMonoDiscReferences.TheRecurringDreamReference,
-            BONELABMonoDiscReferences.HeavyStepsReference,
-            BONELABMonoDiscReferences.StankFaceReference,
-            BONELABMonoDiscReferences.AlexInWonderlandReference,
-            BONELABMonoDiscReferences.ItDoBeGroovinReference,
+            BonelabMonoDiscReferences.TheRecurringDreamReference,
+            BonelabMonoDiscReferences.HeavyStepsReference,
+            BonelabMonoDiscReferences.StankFaceReference,
+            BonelabMonoDiscReferences.AlexInWonderlandReference,
+            BonelabMonoDiscReferences.ItDoBeGroovinReference,
 
-            BONELABMonoDiscReferences.ConcreteCryptReference, // concrete crypt
+            BonelabMonoDiscReferences.ConcreteCryptReference, // concrete crypt
         ];
         }
 
@@ -235,7 +239,7 @@ namespace AvatarInfection
             }
         }
 
-        private readonly Dictionary<PlayerId, PlayerActionType> LastPlayerActions = [];
+        private readonly Dictionary<PlayerID, PlayerActionType> LastPlayerActions = [];
 
         private int _surivorsLastCheckedMinutes = 0;
 
@@ -275,10 +279,10 @@ namespace AvatarInfection
             FusionOverrides.OnValidateNametag += OnValidateNameTag;
 
             MultiplayerHooking.OnPlayerAction += OnPlayerAction;
-            MultiplayerHooking.OnPlayerJoin += OnPlayerJoin;
-            MultiplayerHooking.OnPlayerLeave += OnPlayerLeave;
+            MultiplayerHooking.OnPlayerJoined += OnPlayerJoin;
+            MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
 
-            MultiplayerHooking.OnDisconnect += Cleanup;
+            MultiplayerHooking.OnDisconnected += Cleanup;
 
             TeamManager.Register(this);
             TeamManager.AddTeam(Infected);
@@ -322,7 +326,7 @@ namespace AvatarInfection
 
         private static void SwapAvatarEvent(SwapAvatarData data)
         {
-            if (data.Target != PlayerIdManager.LocalLongId)
+            if (data.Target != PlayerIDManager.LocalPlatformID)
                 return;
 
             SwapAvatar(data.Barcode);
@@ -352,10 +356,10 @@ namespace AvatarInfection
             FusionOverrides.OnValidateNametag -= OnValidateNameTag;
 
             MultiplayerHooking.OnPlayerAction -= OnPlayerAction;
-            MultiplayerHooking.OnPlayerJoin -= OnPlayerJoin;
-            MultiplayerHooking.OnPlayerLeave -= OnPlayerLeave;
+            MultiplayerHooking.OnPlayerJoined -= OnPlayerJoin;
+            MultiplayerHooking.OnPlayerLeft -= OnPlayerLeave;
 
-            MultiplayerHooking.OnDisconnect -= Cleanup;
+            MultiplayerHooking.OnDisconnected -= Cleanup;
 
             TeamManager.Unregister();
 
@@ -367,9 +371,9 @@ namespace AvatarInfection
             VisionManager.Destroy();
         }
 
-        private void OnPlayerLeave(PlayerId id)
+        private void OnPlayerLeave(PlayerID id)
         {
-            if (!NetworkInfo.IsServer)
+            if (!NetworkInfo.IsHost)
                 return;
 
             if (!IsStarted)
@@ -389,9 +393,9 @@ namespace AvatarInfection
             }
         }
 
-        private void OnPlayerJoin(PlayerId playerId)
+        private void OnPlayerJoin(PlayerID playerId)
         {
-            if (!NetworkInfo.IsServer)
+            if (!NetworkInfo.IsHost)
                 return;
 
             if (!IsStarted)
@@ -423,12 +427,12 @@ namespace AvatarInfection
             if (!IsStarted)
                 return;
 
-            var playerId = PlayerIdManager.GetPlayerId(userId);
+            var playerId = PlayerIDManager.GetPlayerID(userId);
 
             if (playerId == null)
                 return;
 
-            if (NetworkInfo.IsServer && Survivors.HasPlayer(playerId))
+            if (NetworkInfo.IsHost && Survivors.HasPlayer(playerId))
             {
                 if (Survivors.PlayerCount <= 1)
                 {
@@ -438,7 +442,7 @@ namespace AvatarInfection
                 else
                 {
                     TeamManager.TryAssignTeam(playerId, InfectedChildren);
-                    EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(playerId.LongId, Config.SelectedAvatar.ClientValue));
+                    EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(playerId.PlatformID, Config.SelectedAvatar.ClientValue));
                 }
             }
 
@@ -479,7 +483,6 @@ namespace AvatarInfection
                 var comp = obj.AddComponent<PullCordForceChange>();
                 comp.avatarCrate = new AvatarCrateReference(barcode);
                 comp.rigManager = Player.RigManager;
-                PullCordSender.SendBodyLogEffect();
                 comp.ForceChange(comp.rigManager.gameObject);
             }
             else
@@ -493,7 +496,7 @@ namespace AvatarInfection
                 NetworkModRequester.RequestAndInstallMod(new NetworkModRequester.ModInstallInfo()
                 {
                     barcode = barcode,
-                    target = PlayerIdManager.LocalSmallId,
+                    target = PlayerIDManager.LocalSmallID,
                     finishDownloadCallback = (ev) => SwapAvatar(barcode, ev.result),
                     maxBytes = DataConversions.ConvertMegabytesToBytes(ClientSettings.Downloading.MaxFileSize.Value),
                     highPriority = true
@@ -517,7 +520,7 @@ namespace AvatarInfection
             InfectedLooking.SetValue(true);
         }
 
-        private void OnAssignedToTeam(PlayerId player, Team team)
+        private void OnAssignedToTeam(PlayerID player, Team team)
         {
             FusionOverrides.ForceUpdateOverrides();
             BoneMenuManager.PopulatePage();
@@ -558,7 +561,7 @@ namespace AvatarInfection
              Action onAccepted = null,
              Action onDeclined = null)
         {
-            FusionNotifier.Send(new FusionNotification
+            Notifier.Send(new Notification
             {
                 Message = message,
                 Title = title,
@@ -583,7 +586,7 @@ namespace AvatarInfection
             else if (!IsBodyLogEnabled)
                 SetBodyLog(true);
 
-            if (!Config.NoTimeLimit.Value && NetworkInfo.IsServer)
+            if (!Config.NoTimeLimit.Value && NetworkInfo.IsHost)
             {
                 if (!OneMinuteLeft && Config.TimeLimit.Value - ElapsedMinutes == 1)
                     EventManager.TryInvokeEvent(EventType.OneMinuteLeft);
@@ -638,9 +641,9 @@ namespace AvatarInfection
             FusionPlayerExtended.SetOverrides(jumpPower, speed, agility, strengthUpper);
 
             // Force mortality
-            FusionPlayer.SetMortality(metadata.Mortality.ClientValue);
+            LocalHealth.MortalityOverride = metadata.Mortality.ClientValue;
 
-            if (metadata.Vitality.ClientEnabled) FusionPlayer.SetPlayerVitality(metadata.Vitality.ClientValue);
+            if (metadata.Vitality.ClientEnabled) LocalHealth.VitalityOverride = metadata.Vitality.ClientValue;
         }
 
         internal void SetStats()
@@ -694,7 +697,7 @@ namespace AvatarInfection
             InitialTeam = true;
             WasStarted = true;
 
-            if (NetworkInfo.IsServer)
+            if (NetworkInfo.IsHost)
             {
                 ApplyGamemodeSettings();
                 AssignTeams();
@@ -739,7 +742,7 @@ namespace AvatarInfection
 
             // Teleport to a random spawn point
             if (FusionPlayer.TryGetSpawnPoint(out var spawn) && teleport)
-                FusionPlayer.Teleport(spawn.position, spawn.forward);
+                LocalPlayer.TeleportToPosition(spawn.position, spawn.forward);
         }
 
         internal static void ClearDeathmatchSpawns()
@@ -751,9 +754,9 @@ namespace AvatarInfection
         private static void ClearOverrides()
         {
             // Reset mortality
-            FusionPlayer.ResetMortality();
+            LocalHealth.MortalityOverride = null;
 
-            FusionPlayer.ClearPlayerVitality();
+            LocalHealth.VitalityOverride = null;
 
             FusionPlayerExtended.ClearAllOverrides();
 
@@ -765,7 +768,7 @@ namespace AvatarInfection
             base.OnGamemodeStopped();
             Cleanup();
 
-            if (NetworkInfo.IsServer)
+            if (NetworkInfo.IsHost)
             {
                 TeamManager.UnassignAllPlayers();
             }
@@ -816,21 +819,21 @@ namespace AvatarInfection
 
         private static void TeleportToHost()
         {
-            if (NetworkInfo.IsServer)
+            if (NetworkInfo.IsHost)
                 return;
 
-            if (!NetworkPlayerManager.TryGetPlayer(PlayerIdManager.GetHostId(), out var player))
+            if (!NetworkPlayerManager.TryGetPlayer(PlayerIDManager.GetHostID(), out var player))
                 return;
 
             if (player.HasRig)
             {
                 var feetPosition = player.RigRefs.RigManager.physicsRig.feet.transform.position;
 
-                FusionPlayer.Teleport(feetPosition, Vector3.forward, true);
+                LocalPlayer.TeleportToPosition(feetPosition, Vector3.forward);
             }
         }
 
-        protected bool OnValidateNameTag(PlayerId id)
+        protected bool OnValidateNameTag(PlayerID id)
         {
             if (!IsStarted)
                 return true;
@@ -845,7 +848,7 @@ namespace AvatarInfection
 
         private void AssignTeams()
         {
-            var players = new List<PlayerId>(PlayerIdManager.PlayerIds);
+            var players = new List<PlayerID>(PlayerIDManager.PlayerIDs);
             players.Shuffle();
 
             bool selected = false;
@@ -854,10 +857,10 @@ namespace AvatarInfection
                 var player = players.Random();
                 TeamManager.TryAssignTeam(player, Infected);
                 EventManager.TryInvokeEvent(EventType.SwapAvatar,
-                    new SwapAvatarData(player.LongId, Config.SelectedAvatar.ClientValue));
+                    new SwapAvatarData(player.PlatformID, Config.SelectedAvatar.ClientValue));
 
-                if (Config.SelectMode.Value == AvatarSelectMode.FIRSTINFECTED && !selected
-                    && NetworkPlayerManager.TryGetPlayer(player.SmallId, out NetworkPlayer plr) && plr.HasRig)
+                if (Config.SelectMode.Value == AvatarSelectMode.FIRST_INFECTED && !selected
+                    && NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig)
                 {
                     var avatar = plr.RigRefs?.RigManager?.AvatarCrate?.Barcode?.ID;
                     if (!string.IsNullOrWhiteSpace(avatar))
@@ -874,14 +877,14 @@ namespace AvatarInfection
                 TeamManager.TryAssignTeam(plr, Survivors);
         }
 
-        protected void OnPlayerAction(PlayerId player, PlayerActionType type, PlayerId otherPlayer = null)
+        protected void OnPlayerAction(PlayerID player, PlayerActionType type, PlayerID otherPlayer = null)
         {
             if (!IsStarted)
                 return;
 
             if (type == PlayerActionType.DYING_BY_OTHER_PLAYER)
             {
-                if (!NetworkInfo.IsServer || otherPlayer == null || Config.InfectType.Value != InfectType.DEATH)
+                if (!NetworkInfo.IsHost || otherPlayer == null || Config.InfectType.Value != InfectType.DEATH)
                     return;
 
                 var playerTeam = TeamManager.GetPlayerTeam(player);
@@ -890,19 +893,19 @@ namespace AvatarInfection
                 if (playerTeam == Survivors &&
                     (otherPlayerTeam == Infected || otherPlayerTeam == InfectedChildren))
                 {
-                    EventManager.TryInvokeEvent(EventType.PlayerInfected, player.LongId);
+                    EventManager.TryInvokeEvent(EventType.PlayerInfected, player.PlatformID);
                 }
             }
             else if (type == PlayerActionType.DYING)
             {
-                if (!NetworkInfo.IsServer || !Config.SuicideInfects.Value || otherPlayer != null)
+                if (!NetworkInfo.IsHost || !Config.SuicideInfects.Value || otherPlayer != null)
                     return;
 
                 if (LastPlayerActions.ContainsKey(player) && LastPlayerActions[player] == PlayerActionType.DYING_BY_OTHER_PLAYER)
                     return;
 
                 if (TeamManager.GetPlayerTeam(player) == Survivors)
-                    EventManager.TryInvokeEvent(EventType.PlayerInfected, player.LongId);
+                    EventManager.TryInvokeEvent(EventType.PlayerInfected, player.PlatformID);
             }
             LastPlayerActions[player] = type;
         }
@@ -917,8 +920,7 @@ namespace AvatarInfection
         {
             CONFIG,
 
-            [EnumName("FIRST INFECTED")]
-            FIRSTINFECTED,
+            FIRST_INFECTED,
 
             RANDOM
         }

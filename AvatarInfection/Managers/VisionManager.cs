@@ -149,17 +149,14 @@ namespace AvatarInfection.Managers
 
         private static void VisionEffect(bool active)
         {
-            if (active)
-                LocalControls.LockMovement();
-            else
-                LocalControls.UnlockMovement();
+            LocalControls.LockedMovement = active;
 
             if (active)
                 HideVision = true;
 
             LocalVision.BlindColor = Color.black;
             LocalVision.Blind = active;
-            FusionPlayer.SetMortality(!active && Infection.Instance.InfectedMetadata.Mortality.ClientValue);
+            LocalHealth.MortalityOverride = !active && Infection.Instance.InfectedMetadata.Mortality.ClientValue;
         }
     }
 }

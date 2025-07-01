@@ -15,6 +15,8 @@ using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Network;
+using LabFusion.Player;
+using LabFusion.Utilities;
 
 using UnityEngine;
 
@@ -39,7 +41,7 @@ namespace AvatarInfection.Patches
 
         private static void Grabbed(Grip grip, Hand hand)
         {
-            if (!NetworkInfo.IsServer)
+            if (!NetworkInfo.IsHost)
                 return;
 
             if (Infection.Instance == null)
@@ -60,7 +62,7 @@ namespace AvatarInfection.Patches
             if (!NetworkPlayerManager.TryGetPlayer(plrEntity, out var player))
                 return;
 
-            if (Infection.Instance.TeamManager.GetPlayerTeam(player.PlayerId) == Infection.Instance.Survivors)
+            if (Infection.Instance.TeamManager.GetPlayerTeam(player.PlayerID) == Infection.Instance.Survivors)
                 return;
 
             if (!grip._marrowEntity)
@@ -69,9 +71,9 @@ namespace AvatarInfection.Patches
             if (!NetworkPlayerManager.TryGetPlayer(grip._marrowEntity, out var otherPlayer))
                 return;
 
-            if (Infection.Instance.TeamManager.GetPlayerTeam(otherPlayer.PlayerId) == Infection.Instance.Survivors)
+            if (Infection.Instance.TeamManager.GetPlayerTeam(otherPlayer.PlayerID) == Infection.Instance.Survivors)
             {
-                var longId = otherPlayer.PlayerId.LongId;
+                var longId = otherPlayer.PlayerID.PlatformID;
 
                 if (Infection.Instance.Config.HoldTime.Value == 0)
                     EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, longId);
@@ -168,7 +170,7 @@ namespace AvatarInfection.Patches
             if (Infection.Instance?.IsStarted != true)
                 return true;
 
-            if (gameObject == null || hand?.IsPartOfSelf() != true)
+            if (gameObject == null || Player.RigManager != hand?.GetComponentInParent<RigManager>())
                 return true;
 
             TeamMetadata config;
@@ -203,7 +205,7 @@ namespace AvatarInfection.Patches
         internal static void Update()
         {
             if (!NetworkInfo.HasServer
-                || !NetworkInfo.IsServer
+                || !NetworkInfo.IsHost
                 || Infection.Instance?.IsStarted != true
                 || Player.RigManager == null)
             {
@@ -223,11 +225,11 @@ namespace AvatarInfection.Patches
                     if (!NetworkPlayerManager.TryGetPlayer(grip._marrowEntity, out var player))
                         continue;
 
-                    if (Infection.Instance.TeamManager.GetPlayerTeam(player.PlayerId) == Infection.Instance.Infected)
+                    if (Infection.Instance.TeamManager.GetPlayerTeam(player.PlayerID) == Infection.Instance.Infected)
                         continue;
 
                     HoldTime.Remove(grip);
-                    EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, player.PlayerId.LongId);
+                    EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, player.PlayerID.PlatformID);
                 }
             }
         }

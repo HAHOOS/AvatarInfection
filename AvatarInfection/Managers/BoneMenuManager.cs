@@ -23,11 +23,11 @@ namespace AvatarInfection.Managers
             ModPage = AuthorPage.CreatePage("AvatarInfection", Color.magenta);
             PopulatePage();
 
-            MultiplayerHooking.OnDisconnect += PopulatePage;
-            MultiplayerHooking.OnJoinServer += PopulatePage;
-            MultiplayerHooking.OnStartServer += PopulatePage;
-            MultiplayerHooking.OnPlayerJoin += Hook;
-            MultiplayerHooking.OnPlayerLeave += Hook;
+            MultiplayerHooking.OnDisconnected += PopulatePage;
+            MultiplayerHooking.OnJoinedServer += PopulatePage;
+            MultiplayerHooking.OnStartedServer += PopulatePage;
+            MultiplayerHooking.OnPlayerJoined += Hook;
+            MultiplayerHooking.OnPlayerLeft += Hook;
         }
 
         public static void Destroy()
@@ -35,14 +35,14 @@ namespace AvatarInfection.Managers
             Menu.DestroyPage(ModPage);
             ModPage = null;
 
-            MultiplayerHooking.OnDisconnect -= PopulatePage;
-            MultiplayerHooking.OnJoinServer -= PopulatePage;
-            MultiplayerHooking.OnStartServer += PopulatePage;
-            MultiplayerHooking.OnPlayerJoin -= Hook;
-            MultiplayerHooking.OnPlayerLeave -= Hook;
+            MultiplayerHooking.OnDisconnected -= PopulatePage;
+            MultiplayerHooking.OnJoinedServer -= PopulatePage;
+            MultiplayerHooking.OnStartedServer -= PopulatePage;
+            MultiplayerHooking.OnPlayerJoined -= Hook;
+            MultiplayerHooking.OnPlayerLeft -= Hook;
         }
 
-        private static void Hook(PlayerId _) => PopulatePage();
+        private static void Hook(PlayerID _) => PopulatePage();
 
         public static void PopulatePage()
         {
@@ -71,9 +71,9 @@ namespace AvatarInfection.Managers
                 return;
             }
 
-            Dictionary<PlayerId, Team> Teams = [];
+            Dictionary<PlayerID, Team> Teams = [];
 
-            foreach (var player in PlayerIdManager.PlayerIds)
+            foreach (var player in PlayerIDManager.PlayerIDs)
             {
                 var team = Infection.Instance.TeamManager.GetPlayerTeam(player);
                 Teams.Add(player, team);

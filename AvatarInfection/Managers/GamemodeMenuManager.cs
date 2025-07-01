@@ -66,7 +66,7 @@ namespace AvatarInfection.Managers
                 }
             });
 
-            avatarGroup.AddElement("Select Mode", Infection.Instance.Config.SelectMode.Value, Instance, (val) => Infection.Instance.Config.SelectMode.Value = (AvatarSelectMode)val);
+            avatarGroup.AddElement("Select Mode", Infection.Instance.Config.SelectMode.Value, (val) => Infection.Instance.Config.SelectMode.Value = (AvatarSelectMode)val);
 
             group.AddElement(CreateElementsForTeam(Infection.Instance.Infected));
 
@@ -106,7 +106,7 @@ namespace AvatarInfection.Managers
             generalGroup.AddElement("Countdown Length", Infection.Instance.Config.CountdownLength.ClientValue, (val) => Infection.Instance.Config.CountdownLength.ClientValue = val, 5, 0, 3600);
             generalGroup.AddElement("Show Countdown to All Players", Infection.Instance.Config.ShowCountdownToAll.ClientValue, (val) => Infection.Instance.Config.ShowCountdownToAll.ClientValue = val);
 
-            generalGroup.AddElement("Infect Type", Infection.Instance.Config.InfectType.Value, Instance, (val) => Infection.Instance.Config.InfectType.Value = (InfectType)val);
+            generalGroup.AddElement("Infect Type", Infection.Instance.Config.InfectType.Value, (val) => Infection.Instance.Config.InfectType.Value = (InfectType)val);
 
             generalGroup.AddElement("Suicide Infects", Infection.Instance.Config.SuicideInfects.Value, (val) => Infection.Instance.Config.SuicideInfects.Value = val);
             generalGroup.AddElement("Hold Time (Touch Infect Type)", Infection.Instance.Config.HoldTime.Value, (val) => Infection.Instance.Config.HoldTime.Value = val, max: 60);
