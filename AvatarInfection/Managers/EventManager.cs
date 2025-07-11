@@ -6,7 +6,6 @@ using System.Text.Json;
 using LabFusion.Extensions;
 using LabFusion.SDK.Triggers;
 using LabFusion.UI.Popups;
-using LabFusion.Utilities;
 
 namespace AvatarInfection.Managers
 {

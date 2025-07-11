@@ -495,11 +495,11 @@ namespace AvatarInfection
 
                 NetworkModRequester.RequestAndInstallMod(new NetworkModRequester.ModInstallInfo()
                 {
-                    barcode = barcode,
-                    target = PlayerIDManager.LocalSmallID,
-                    finishDownloadCallback = (ev) => SwapAvatar(barcode, ev.result),
-                    maxBytes = DataConversions.ConvertMegabytesToBytes(ClientSettings.Downloading.MaxFileSize.Value),
-                    highPriority = true
+                    Barcode = barcode,
+                    Target = PlayerIDManager.LocalSmallID,
+                    FinishDownloadCallback = (ev) => SwapAvatar(barcode, ev.result),
+                    MaxBytes = DataConversions.ConvertMegabytesToBytes(ClientSettings.Downloading.MaxFileSize.Value),
+                    HighPriority = true
                 });
             }
         }
