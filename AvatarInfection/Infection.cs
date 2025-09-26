@@ -50,7 +50,7 @@ namespace AvatarInfection
 
         public override string Barcode => Defaults.Barcode;
 
-        public override string Description => "";
+        public override string Description => "An infection is spreading, turning people into a selected avatar by the host.";
 
         public override Texture Logo => Core.Icon;
 
