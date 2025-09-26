@@ -94,10 +94,17 @@ namespace AvatarInfection.Managers
                 if (!team.Key.TryGetDisplayName(out var displayName))
                     continue;
 
-                var page = team.Value == Infection.Instance.Infected
-                    ? infected : team.Value == Infection.Instance.InfectedChildren
-                    ? children : team.Value == Infection.Instance.Survivors
-                    ? survivors : unidentified;
+                BoneLib.BoneMenu.Page page;
+
+                if (team.Value == Infection.Instance.Infected)
+                    page = infected;
+                else if (team.Value == Infection.Instance.InfectedChildren)
+                    page = children;
+                else if (team.Value == Infection.Instance.Survivors)
+                    page = survivors;
+                else
+                    page = unidentified;
+
                 if (page == null)
                     continue;
 

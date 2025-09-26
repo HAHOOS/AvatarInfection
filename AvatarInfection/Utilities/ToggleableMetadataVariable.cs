@@ -38,6 +38,9 @@ namespace AvatarInfection.Utilities
         public void SetValue(string value)
             => Metadata.TrySetMetadata(Key, value);
 
+        public void SetValue<TValue>(TValue value)
+            => SetValue(JsonSerializer.Serialize(value, SerializerOptions));
+
         public void Toggle()
         {
             var toggled = Metadata.GetMetadata(ToggledKey);
@@ -50,9 +53,6 @@ namespace AvatarInfection.Utilities
 
         public void SetEnabled(bool enabled)
             => Metadata.TrySetMetadata(ToggledKey, enabled.ToString());
-
-        public void SetValue<TValue>(TValue value)
-            => SetValue(JsonSerializer.Serialize(value, SerializerOptions));
 
         public string GetValue()
             => Metadata.GetMetadata(Key);

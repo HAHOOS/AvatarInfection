@@ -2,29 +2,29 @@
 {
     public struct TeamSettings
     {
-        public bool Mortality;
+        public bool Mortality { get; set; }
 
-        public bool CanUseGuns;
+        public bool CanUseGuns { get; set; }
 
-        public bool Vitality_Enabled;
+        public bool Vitality_Enabled { get; set; }
 
-        public float Vitality;
+        public float Vitality { get; set; }
 
-        public bool Speed_Enabled;
+        public bool Speed_Enabled { get; set; }
 
-        public float Speed;
+        public float Speed { get; set; }
 
-        public bool JumpPower_Enabled;
+        public bool JumpPower_Enabled { get; set; }
 
-        public float JumpPower;
+        public float JumpPower { get; set; }
 
-        public bool StrengthUpper_Enabled;
+        public bool StrengthUpper_Enabled { get; set; }
 
-        public float StrengthUpper;
+        public float StrengthUpper { get; set; }
 
-        public bool Agility_Enabled;
+        public bool Agility_Enabled { get; set; }
 
-        public float Agility;
+        public float Agility { get; set; }
 
         public TeamSettings()
         {

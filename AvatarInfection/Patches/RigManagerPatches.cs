@@ -18,7 +18,7 @@ namespace AvatarInfection.Patches
     [HarmonyPatch(typeof(RigManager))]
     public static class RigManagerPatches
     {
-        internal static bool Ignore = false;
+        internal static bool Ignore { get; set; } = false;
 
         [HarmonyPrefix]
         [HarmonyPriority(int.MaxValue)]

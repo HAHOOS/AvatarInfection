@@ -54,6 +54,12 @@ namespace AvatarInfection.Managers
             _events.Add(new TriggerEvent(name, Infection.Instance.Relay, serverOnly), typeof(T));
         }
 
+        public static void RegisterEvent(Enum @enum, Action callback, bool serverOnly = false)
+            => RegisterEvent(@enum.ToString(), callback, serverOnly);
+
+        public static void RegisterEvent<T>(Enum @enum, Action<T> callback, bool serverOnly = false)
+            => RegisterEvent(@enum.ToString(), callback, serverOnly);
+
         public static void RegisterGlobalNotification(string name, Notification notification, bool serverOnly = true)
         {
             RegisterEvent(name, () =>
@@ -64,6 +70,18 @@ namespace AvatarInfection.Managers
                 Notifier.Send(notification);
             }, serverOnly);
         }
+
+        public static void RegisterGlobalNotification(Enum @enum, Notification notification, bool serverOnly = true)
+            => RegisterGlobalNotification(@enum.ToString(), notification, serverOnly);
+
+        public static void RegisterGlobalNotification(
+            Enum @enum, string title, string message, float popupDuration, bool serverOnly = true,
+            bool showPopup = true,
+             NotificationType type = NotificationType.INFORMATION,
+             bool saveToMenu = false,
+             Action onAccepted = null,
+             Action onDeclined = null)
+            => RegisterGlobalNotification(@enum.ToString(), title, message, popupDuration, serverOnly, showPopup, type, saveToMenu, onAccepted, onDeclined);
 
         public static void RegisterGlobalNotification(
             string name, string title, string message, float popupDuration, bool serverOnly = true,
@@ -91,6 +109,15 @@ namespace AvatarInfection.Managers
                 _events.Remove(ev);
             }
         }
+
+        public static void UnregisterEvent(Enum @enum)
+            => UnregisterEvent(@enum.ToString());
+
+        public static bool TryInvokeEvent(Enum @enum)
+            => TryInvokeEvent(@enum.ToString());
+
+        public static bool TryInvokeEvent<T>(Enum @enum, T value)
+            => TryInvokeEvent(@enum.ToString(), value);
 
         public static bool TryInvokeEvent(string name)
         {
@@ -123,32 +150,5 @@ namespace AvatarInfection.Managers
                 return false;
             }
         }
-
-        public static void RegisterEvent(Enum @enum, Action callback, bool serverOnly = false)
-            => RegisterEvent(@enum.ToString(), callback, serverOnly);
-
-        public static void RegisterEvent<T>(Enum @enum, Action<T> callback, bool serverOnly = false)
-            => RegisterEvent(@enum.ToString(), callback, serverOnly);
-
-        public static void RegisterGlobalNotification(Enum @enum, Notification notification, bool serverOnly = true)
-            => RegisterGlobalNotification(@enum.ToString(), notification, serverOnly);
-
-        public static void RegisterGlobalNotification(
-            Enum @enum, string title, string message, float popupDuration, bool serverOnly = true,
-            bool showPopup = true,
-             NotificationType type = NotificationType.INFORMATION,
-             bool saveToMenu = false,
-             Action onAccepted = null,
-             Action onDeclined = null)
-            => RegisterGlobalNotification(@enum.ToString(), title, message, popupDuration, serverOnly, showPopup, type, saveToMenu, onAccepted, onDeclined);
-
-        public static void UnregisterEvent(Enum @enum)
-            => UnregisterEvent(@enum.ToString());
-
-        public static bool TryInvokeEvent(Enum @enum)
-            => TryInvokeEvent(@enum.ToString());
-
-        public static bool TryInvokeEvent<T>(Enum @enum, T value)
-            => TryInvokeEvent(@enum.ToString(), value);
     }
 }

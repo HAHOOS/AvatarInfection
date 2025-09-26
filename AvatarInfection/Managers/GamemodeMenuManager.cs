@@ -114,10 +114,12 @@ namespace AvatarInfection.Managers
             generalGroup.AddElement("Load Settings", () =>
             {
                 Infection.Instance.Config.Load();
+#pragma warning disable S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
                 typeof(LabFusion.Menu.Gamemodes.MenuGamemode)
                     .GetMethod("OverrideSettingsPage",
-                                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                                bindingAttr: System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
                     .Invoke(null, [(Gamemode)Infection.Instance]);
+#pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
             });
 
             return group;

@@ -47,6 +47,6 @@ namespace AvatarInfection.Settings
     public static class SettingsHelper
     {
         public static bool IsServerSetting(this ISetting setting)
-             => typeof(IServerSetting).IsAssignableFrom(setting.GetType());
+            => setting.GetType() is IServerSetting;
     }
 }

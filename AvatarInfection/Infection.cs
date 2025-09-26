@@ -245,7 +245,7 @@ namespace AvatarInfection
 
         private static bool appliedDeathmatchSpawns = false;
 
-        private static bool WasStarted = false;
+        private bool WasStarted = false;
 
         public static TeamMetadata GetTeamMetadata(Team team)
         {

@@ -9,6 +9,12 @@ namespace AvatarInfection.Helper
 {
     public static class ImageConversion
     {
+        private readonly static TextureAndFlagDelegate EncodeToEXRDelegateField;
+        private readonly static TextureOnlyDelegate EncodeToTGADelegateField;
+        private readonly static TextureOnlyDelegate EncodeToPNGDelegateField;
+        private readonly static TextureAndQualityDelegate EncodeToJPGDelegateField;
+        private readonly static LoadImageDelegate LoadImageDelegateField;
+
         static ImageConversion()
         {
             EncodeToTGADelegateField = IL2CPP.ResolveICall<TextureOnlyDelegate>("UnityEngine.ImageConversion::EncodeToTGA");
@@ -102,11 +108,5 @@ namespace AvatarInfection.Helper
         private delegate IntPtr TextureAndFlagDelegate(IntPtr tex, Texture2D.EXRFlags flags);
 
         private delegate bool LoadImageDelegate(IntPtr tex, IntPtr data, bool markNonReadable);
-
-        private readonly static TextureAndFlagDelegate EncodeToEXRDelegateField;
-        private readonly static TextureOnlyDelegate EncodeToTGADelegateField;
-        private readonly static TextureOnlyDelegate EncodeToPNGDelegateField;
-        private readonly static TextureAndQualityDelegate EncodeToJPGDelegateField;
-        private readonly static LoadImageDelegate LoadImageDelegateField;
     }
 }

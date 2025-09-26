@@ -37,38 +37,26 @@ namespace AvatarInfection.Utilities
                 if (avatar != null)
                 {
                     bool changed = false;
-                    if (AgilityOverride.HasValue)
+                    if (AgilityOverride.HasValue && !avatar._agility.Equals(AgilityOverride.Value))
                     {
-                        if (avatar._agility != AgilityOverride.Value)
-                        {
-                            changed = true;
-                            avatar._agility = AgilityOverride.Value;
-                        }
+                        changed = true;
+                        avatar._agility = AgilityOverride.Value;
                     }
-                    if (JumpPowerOverride.HasValue)
+                    if (JumpPowerOverride.HasValue && !avatar._strengthLower.Equals(JumpPowerOverride.Value))
                     {
-                        if (avatar._strengthLower != JumpPowerOverride.Value)
-                        {
-                            changed = true;
-                            avatar._strengthLower = JumpPowerOverride.Value;
-                        }
+                        changed = true;
+                        avatar._strengthLower = JumpPowerOverride.Value;
                     }
-                    if (SpeedOverride.HasValue)
+                    if (SpeedOverride.HasValue && !avatar._speed.Equals(SpeedOverride.Value))
                     {
-                        if (avatar._speed != SpeedOverride.Value)
-                        {
-                            changed = true;
-                            avatar._speed = SpeedOverride.Value;
-                        }
+                        changed = true;
+                        avatar._speed = SpeedOverride.Value;
                     }
-                    if (StrengthUpperOverride.HasValue)
+                    if (StrengthUpperOverride.HasValue && !avatar._strengthUpper.Equals(StrengthUpperOverride.Value))
                     {
-                        if (avatar._strengthUpper != StrengthUpperOverride.Value)
-                        {
-                            changed = true;
-                            avatar._strengthUpper = StrengthUpperOverride.Value;
-                            avatar._strengthGrip = StrengthUpperOverride.Value;
-                        }
+                        changed = true;
+                        avatar._strengthUpper = StrengthUpperOverride.Value;
+                        avatar._strengthGrip = StrengthUpperOverride.Value;
                     }
                     if (changed)
                         rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
@@ -108,10 +96,9 @@ namespace AvatarInfection.Utilities
             bool wasEmpty = string.IsNullOrEmpty(AvatarOverride);
             AvatarOverride = barcode;
             LocalAvatar.AvatarOverride = barcode;
-            if (Player.RigManager != null && AssetWarehouse.ready && AvatarOverride != null)
+            if (Player.RigManager != null && AssetWarehouse.ready && AvatarOverride != null && wasEmpty)
             {
-                if (wasEmpty)
-                    LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? CommonBarcodes.Avatars.PolyBlank;
+                LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? CommonBarcodes.Avatars.PolyBlank;
             }
         }
 

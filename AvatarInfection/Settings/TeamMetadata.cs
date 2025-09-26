@@ -16,19 +16,19 @@ namespace AvatarInfection.Settings
 
         private readonly Gamemode Gamemode;
 
-        public ServerSetting<bool> Mortality;
+        public ServerSetting<bool> Mortality { get; set; }
 
-        public ServerSetting<bool> CanUseGuns;
+        public ServerSetting<bool> CanUseGuns { get; set; }
 
-        public ToggleServerSetting<float> Vitality;
+        public ToggleServerSetting<float> Vitality { get; set; }
 
-        public ToggleServerSetting<float> Speed;
+        public ToggleServerSetting<float> Speed { get; set; }
 
-        public ToggleServerSetting<float> JumpPower;
+        public ToggleServerSetting<float> JumpPower { get; set; }
 
-        public ToggleServerSetting<float> Agility;
+        public ToggleServerSetting<float> Agility { get; set; }
 
-        public ToggleServerSetting<float> StrengthUpper;
+        public ToggleServerSetting<float> StrengthUpper { get; set; }
 
         public TeamMetadata(Team team, Gamemode gamemode, TeamSettings? config = null)
         {
@@ -81,20 +81,7 @@ namespace AvatarInfection.Settings
                 if (!Gamemode.IsStarted)
                     return true;
 
-                bool synced = true;
-                foreach (var setting in _settingsList)
-                {
-                    if (setting.IsServerSetting())
-                    {
-                        if (!((IServerSetting)setting).IsSynced)
-                        {
-                            synced = false;
-                            break;
-                        }
-                    }
-                }
-
-                return synced;
+                return _settingsList.TrueForAll(x => !x.IsServerSetting() || ((IServerSetting)x).IsSynced);
             }
         }
 
