@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AvatarInfection.Settings
 {
@@ -22,7 +23,7 @@ namespace AvatarInfection.Settings
                     ((IServerSetting)x).Sync();
             });
 
-        internal ServerSetting<T> CreateServerSetting<T>(string name, T value, bool autoSync = true)
+        internal ServerSetting<T> CreateServerSetting<T>(string name, T value, bool autoSync = true) where T : IEquatable<T>
         {
             var setting = new ServerSetting<T>(Infection.Instance, name, value, autoSync);
             _settingsList.Add(setting);
@@ -36,7 +37,7 @@ namespace AvatarInfection.Settings
             return setting;
         }
 
-        internal ToggleServerSetting<T> CreateToggleServerSetting<T>(string name, T value, bool enabled, bool autoSync = true)
+        internal ToggleServerSetting<T> CreateToggleServerSetting<T>(string name, T value, bool enabled, bool autoSync = true) where T : IEquatable<T>
         {
             var setting = new ToggleServerSetting<T>(Infection.Instance, name, value, enabled, autoSync);
             _settingsList.Add(setting);

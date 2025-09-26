@@ -11,7 +11,7 @@ using MelonLoader;
 
 namespace AvatarInfection.Settings
 {
-    public class ServerSetting<T> : IServerSetting
+    public class ServerSetting<T> : IServerSetting where T : IEquatable<T>
     {
         private readonly Gamemode gamemode;
 
@@ -37,7 +37,7 @@ namespace AvatarInfection.Settings
         private MelonPreferences_Entry<T> Entry { get; set; }
 
         public bool IsSynced
-            => EqualityComparer<T>.Default.Equals(ClientValue, ServerValue.GetValue());
+            => ClientValue.Equals(ServerValue.GetValue());
 
         /// <summary>
         /// This gets only triggered when the client value is set to the new server value
@@ -63,17 +63,16 @@ namespace AvatarInfection.Settings
                     Sync();
             };
             MultiplayerHooking.OnJoinedServer += () => _clientValue = ServerValue.GetValue();
+            MultiplayerHooking.OnTargetLevelLoaded += () => _clientValue = ServerValue.GetValue();
             gamemode.Metadata.OnMetadataChanged += (key, _) =>
             {
                 if (key == ServerValue.Key)
                 {
-                    var value = ServerValue.GetValue();
-                    if (EqualityComparer<T>.Default.Equals(ClientValue, value))
-                        return;
-
+                    var old = _clientValue;
                     _clientValue = ServerValue.GetValue();
 
-                    OnValueChanged?.Invoke();
+                    if (!old.Equals(_clientValue))
+                        OnValueChanged?.Invoke();
                 }
             };
         }
@@ -97,7 +96,7 @@ namespace AvatarInfection.Settings
         }
     }
 
-    public class ToggleServerSetting<T> : IServerSetting
+    public class ToggleServerSetting<T> : IServerSetting where T : IEquatable<T>
     {
         private readonly Gamemode gamemode;
 
@@ -132,7 +131,7 @@ namespace AvatarInfection.Settings
         }
 
         public bool IsSynced
-            => EqualityComparer<T>.Default.Equals(ClientValue, ServerValue.GetValue())
+            => ClientValue.Equals(ServerValue.GetValue())
                 && ClientEnabled == ServerValue.IsEnabled;
 
         private MelonPreferences_Entry<T> Entry { get; set; }
@@ -178,16 +177,20 @@ namespace AvatarInfection.Settings
                 _clientValue = ServerValue.GetValue();
                 _clientEnabled = ServerValue.IsEnabled;
             };
+            MultiplayerHooking.OnTargetLevelLoaded += () =>
+            {
+                _clientValue = ServerValue.GetValue();
+                _clientEnabled = ServerValue.IsEnabled;
+            };
             gamemode.Metadata.OnMetadataChanged += (key, _) =>
             {
                 if (key == ServerValue.Key)
                 {
-                    if (EqualityComparer<T>.Default.Equals(ClientValue, ServerValue.GetValue()))
-                        return;
-
+                    var old = _clientValue;
                     _clientValue = ServerValue.GetValue();
 
-                    OnValueChanged?.Invoke();
+                    if (!old.Equals(_clientValue))
+                        OnValueChanged?.Invoke();
                 }
                 else if (key == ServerValue.ToggledKey)
                 {

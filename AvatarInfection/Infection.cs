@@ -21,6 +21,12 @@ using LabFusion.Scene;
 using LabFusion.Senders;
 using LabFusion.Marrow.Integration;
 using LabFusion.SDK.Metadata;
+using LabFusion.RPC;
+using LabFusion.Preferences.Client;
+using LabFusion.Downloading;
+using LabFusion.Data;
+using LabFusion.UI.Popups;
+using LabFusion.Bonelab;
 
 using UnityEngine;
 
@@ -30,15 +36,8 @@ using BoneLib;
 
 using AvatarInfection.Utilities;
 using AvatarInfection.Helper;
-
-using LabFusion.RPC;
-using LabFusion.Preferences.Client;
-using LabFusion.Downloading;
-using LabFusion.Data;
 using AvatarInfection.Managers;
 using AvatarInfection.Settings;
-using LabFusion.UI.Popups;
-using LabFusion.Bonelab;
 
 namespace AvatarInfection
 {
