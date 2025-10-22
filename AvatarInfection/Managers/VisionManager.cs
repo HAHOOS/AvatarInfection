@@ -42,91 +42,89 @@ namespace AvatarInfection.Managers
 
         private static IEnumerator Internal_HideVisionAndReveal(float delaySeconds = 0)
         {
-            if (Infection.Instance.IsStarted)
-            {
-                if ((Infection.Instance.Config.ShowCountdownToAll.ClientValue && TeamManager.GetLocalTeam() != Infected)
+            if ((Infection.Instance.IsStarted &&
+                (Infection.Instance.Config.ShowCountdownToAll.ClientValue && TeamManager.GetLocalTeam() != Infected))
                     || TeamManager.GetLocalTeam() == Infected)
+            {
+                try
                 {
-                    try
+                    if (Config.CountdownLength.ClientValue != 0
+                        && Infection.Instance.CountdownValue.GetValue() != 0
+                        && !Infection.Instance.InfectedLooking.GetValue())
                     {
-                        if (Config.CountdownLength.ClientValue != 0
-                            && Infection.Instance.CountdownValue.GetValue() != 0
-                            && !Infection.Instance.InfectedLooking.GetValue())
+                        if (delaySeconds > 0)
+                            yield return new WaitForSeconds(delaySeconds);
+
+                        if (TeamManager.GetLocalTeam() == Infected)
+                            VisionEffect(true);
+
+                        var target = Infection.Instance.CountdownValue.GetValue();
+
+                        const float fadeLength = 1f;
+
+                        float elapsed = 0f;
+                        float totalElapsed = 0f;
+
+                        int seconds = 0;
+
+                        bool secondPassed = true;
+
+                        while (seconds < target)
                         {
-                            if (delaySeconds > 0)
-                                yield return new WaitForSeconds(delaySeconds);
+                            if (!Infection.Instance.IsStarted)
+                                break;
+
+                            if (Infection.Instance.InfectedLooking.GetValue() && target > 5)
+                                break;
 
                             if (TeamManager.GetLocalTeam() == Infected)
-                                VisionEffect(true);
-
-                            var target = Infection.Instance.CountdownValue.GetValue();
-
-                            const float fadeLength = 1f;
-
-                            float elapsed = 0f;
-                            float totalElapsed = 0f;
-
-                            int seconds = 0;
-
-                            bool secondPassed = true;
-
-                            while (seconds < target)
                             {
-                                if (!Infection.Instance.IsStarted)
-                                    break;
+                                // Calculate fade-in
+                                float fadeStart = Mathf.Max(target - fadeLength, 0f);
+                                float fadeProgress = Mathf.Max(totalElapsed - fadeStart, 0f) / fadeLength;
 
-                                if (Infection.Instance.InfectedLooking.GetValue() && target > 5)
-                                    break;
+                                Color color = Color.Lerp(Color.black, Color.clear, fadeProgress);
 
-                                if (TeamManager.GetLocalTeam() == Infected)
-                                {
-                                    // Calculate fade-in
-                                    float fadeStart = Mathf.Max(target - fadeLength, 0f);
-                                    float fadeProgress = Mathf.Max(totalElapsed - fadeStart, 0f) / fadeLength;
-
-                                    Color color = Color.Lerp(Color.black, Color.clear, fadeProgress);
-
-                                    LocalVision.BlindColor = color;
-                                }
-
-                                // Check for second counter
-                                if (secondPassed)
-                                {
-                                    int remainingSeconds = target - seconds;
-
-                                    DisplayCountdown(remainingSeconds);
-
-                                    secondPassed = false;
-                                }
-
-                                // Tick timer
-                                elapsed += TimeUtilities.DeltaTime;
-                                totalElapsed += TimeUtilities.DeltaTime;
-
-                                // If a second passed, send the notification next frame
-                                if (elapsed >= 1f)
-                                {
-                                    elapsed--;
-                                    seconds++;
-
-                                    secondPassed = true;
-                                }
-
-                                yield return null;
+                                LocalVision.BlindColor = color;
                             }
 
-                            if (TeamManager.GetLocalTeam() == Infected)
-                                VisionEffect(false);
+                            // Check for second counter
+                            if (secondPassed)
+                            {
+                                int remainingSeconds = target - seconds;
 
-                            TutorialRig.Instance.headTitles.CLOSEDISPLAY();
+                                DisplayCountdown(remainingSeconds);
+
+                                secondPassed = false;
+                            }
+
+                            // Tick timer
+                            elapsed += TimeUtilities.DeltaTime;
+                            totalElapsed += TimeUtilities.DeltaTime;
+
+                            // If a second passed, send the notification next frame
+                            if (elapsed >= 1f)
+                            {
+                                elapsed--;
+                                seconds++;
+
+                                secondPassed = true;
+                            }
+
+                            yield return null;
                         }
+
                         if (TeamManager.GetLocalTeam() == Infected)
-                            Infection.ShowNotification("Countdown Over", "GO AND INFECT THEM ALL!", 3.5f);
+                            VisionEffect(false);
+
+                        TutorialRig.Instance.headTitles.CLOSEDISPLAY();
                     }
-                    finally
-                    {
-                        HideVision = false;
-                    }
+                    if (TeamManager.GetLocalTeam() == Infected)
+                        Infection.ShowNotification("Countdown Over", "GO AND INFECT THEM ALL!", 3.5f);
+                }
+                finally
+                {
+                    HideVision = false;
                 }
             }
         }
