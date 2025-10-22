@@ -93,7 +93,7 @@ namespace AvatarInfection
 
             public const bool NoTimeLimit = false;
 
-            public const bool DontShowAnyNametags = false;
+            public const bool DontShowAnyNameTags = false;
 
             public readonly static TeamSettings InfectedStats = new()
             {
@@ -468,7 +468,7 @@ namespace AvatarInfection
         {
             if (string.IsNullOrWhiteSpace(barcode) || barcode == Il2CppSLZ.Marrow.Warehouse.Barcode.EMPTY)
             {
-                Logger.Error("ALERT! ALERT! This is not supposed to fucking happen, what the fuck did you do that the SelectedAvatar is empty. Now relax, calm down and fix this issue");
+                Logger.Error("ALERT! ALERT! This is not supposed to fucking happen, what the fuck did you do that the SelectedAvatar is empty. Now relax, calm down and fix this issue\nfuck you rottencheese, this shit will never work.");
                 return;
             }
 
@@ -544,7 +544,7 @@ namespace AvatarInfection
             InitialTeam = false;
 
             if (team != Infected)
-                ShowNotification("Survivor", "Woah! You got lucky. Make sure you don't get infected!", 3);
+                ShowNotification("Survivor", "You got lucky! Make sure you don't get infected!", 3);
 
             if (!InfectedLooking.GetValue())
                 VisionManager.HideVisionAndReveal(team != Infected ? 3 : 0);
