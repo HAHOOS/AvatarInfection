@@ -490,6 +490,9 @@ namespace AvatarInfection
 
         private static void Internal_SetStats(TeamMetadata metadata)
         {
+            if (metadata == null)
+                return;
+
             // Push nametag updates
             FusionOverrides.ForceUpdateOverrides();
 
@@ -508,7 +511,7 @@ namespace AvatarInfection
 
         // Tried to remove an unnecessary method and ended up still adding an unnecessary method
         // TODO: remove this
-        public InfectionTeam GetInfectedTeam(Team team)
+        public InfectionTeam? GetInfectedTeam(Team team)
         {
             if (team == null)
                 return null;
@@ -530,7 +533,7 @@ namespace AvatarInfection
             if (TeamManager.GetLocalTeam() == null)
                 ClearOverrides();
             else
-                Internal_SetStats(GetInfectedTeam(TeamManager.GetLocalTeam()).Metadata);
+                Internal_SetStats(GetInfectedTeam(TeamManager.GetLocalTeam())?.Metadata);
         }
 
         private void ApplyGamemodeSettings()

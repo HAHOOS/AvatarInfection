@@ -2,7 +2,7 @@
 
 namespace AvatarInfection.Settings
 {
-    public class InfectionTeam
+    public struct InfectionTeam
     {
         public Team Team { get; set; }
 
@@ -23,5 +23,7 @@ namespace AvatarInfection.Settings
             Team = team;
             Metadata = new(team, gamemode, config);
         }
+
+        public static implicit operator Team(InfectionTeam team) => team.Team;
     }
 }
