@@ -79,12 +79,12 @@ namespace AvatarInfection.Managers
                 Teams.Add(player, team);
             }
 
-            var infected = Teams.Any(x => x.Value == Infection.Instance.Infected) ?
-                ModPage.CreatePage($"Infected ({Teams.Count(x => x.Value == Infection.Instance.Infected)})", Color.green) : null;
-            var children = Teams.Any(x => x.Value == Infection.Instance.InfectedChildren) ?
-                ModPage.CreatePage($"Infected Children ({Teams.Count(x => x.Value == Infection.Instance.InfectedChildren)})", new Color(0, 1, 0)) : null;
-            var survivors = Teams.Any(x => x.Value == Infection.Instance.Survivors) ?
-                ModPage.CreatePage($"Survivors ({Teams.Count(x => x.Value == Infection.Instance.Survivors)})", Color.cyan) : null;
+            var infected = Teams.Any(x => x.Value == Infection.Instance.Infected.Team) ?
+                ModPage.CreatePage($"Infected ({Teams.Count(x => x.Value == Infection.Instance.Infected.Team)})", Color.green) : null;
+            var children = Teams.Any(x => x.Value == Infection.Instance.InfectedChildren.Team) ?
+                ModPage.CreatePage($"Infected Children ({Teams.Count(x => x.Value == Infection.Instance.InfectedChildren.Team)})", new Color(0, 1, 0)) : null;
+            var survivors = Teams.Any(x => x.Value == Infection.Instance.Survivors.Team) ?
+                ModPage.CreatePage($"Survivors ({Teams.Count(x => x.Value == Infection.Instance.Survivors.Team)})", Color.cyan) : null;
 
             var unidentified = Teams.Any(x => x.Value == null) ?
                 ModPage.CreatePage($"Unidentified ({Teams.Count(x => x.Value == null)})", Color.gray) : null;
@@ -96,11 +96,11 @@ namespace AvatarInfection.Managers
 
                 BoneLib.BoneMenu.Page page;
 
-                if (team.Value == Infection.Instance.Infected)
+                if (team.Value == Infection.Instance.Infected.Team)
                     page = infected;
-                else if (team.Value == Infection.Instance.InfectedChildren)
+                else if (team.Value == Infection.Instance.InfectedChildren.Team)
                     page = children;
-                else if (team.Value == Infection.Instance.Survivors)
+                else if (team.Value == Infection.Instance.Survivors.Team)
                     page = survivors;
                 else
                     page = unidentified;

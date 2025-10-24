@@ -23,7 +23,7 @@ namespace AvatarInfection.Managers
 
         private static InfectionSettings Config => Infection.Instance.Config;
 
-        private static Team Infected => Infection.Instance.Infected;
+        private static Team Infected => Infection.Instance.Infected.Team;
 
         internal static void Setup()
             => MultiplayerHooking.OnUpdate += OnUpdate;
@@ -154,7 +154,7 @@ namespace AvatarInfection.Managers
 
             LocalVision.BlindColor = Color.black;
             LocalVision.Blind = active;
-            LocalHealth.MortalityOverride = !active && Infection.Instance.InfectedMetadata.Mortality.ClientValue;
+            LocalHealth.MortalityOverride = !active && Infection.Instance.Infected.Metadata.Mortality.ClientValue;
         }
     }
 }

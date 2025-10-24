@@ -87,8 +87,8 @@ namespace AvatarInfection.Settings
             if (!Instance.IsStarted)
                 return;
 
-            if (Instance.TeamManager.GetLocalTeam() != Instance.Infected
-                && Instance.TeamManager.GetLocalTeam() != Instance.InfectedChildren)
+            if (Instance.TeamManager.GetLocalTeam() != Instance.Infected.Team
+                && Instance.TeamManager.GetLocalTeam() != Instance.InfectedChildren.Team)
             {
                 return;
             }

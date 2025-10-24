@@ -19,7 +19,7 @@ namespace AvatarInfection.Utilities
         internal static void Internal_Init()
         {
             LabPresence.Gamemodes.RegisterGamemode(Constants.Defaults.Barcode,
-                () => $"{Infection.Instance.Survivors.PlayerCount} survivors left!", () =>
+                () => $"{Infection.Instance.Survivors.Team.PlayerCount} survivors left!", () =>
             {
                 if ((Infection.Instance.EndUnix as MetadataVariable).GetValue() != null
                     && (Infection.Instance.StartUnix as MetadataVariable).GetValue() != null)

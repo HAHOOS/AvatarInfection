@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using AvatarInfection.Helper;
+using AvatarInfection.Settings;
 
 using BoneLib;
 
@@ -125,29 +126,28 @@ namespace AvatarInfection.Managers
             return group;
         }
 
-        internal static GroupElementData CreateElementsForTeam(Team team)
+        internal static GroupElementData CreateElementsForTeam(InfectionTeam team)
         {
-            var metadata = GetTeamMetadata(team);
             var group = new GroupElementData()
             {
-                Title = $"{team.DisplayName} Stats"
+                Title = $"{team.Team.DisplayName} Stats"
             };
 
             void applyButtonUpdate()
             {
                 const string name = "Apply new settings";
                 Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
-                    string.Format(TeamConfigName, Infection.Instance.Infected.DisplayName),
-                    "Apply new settings", (el) => el.Title = metadata.IsApplied ? $"<color=#FF0000>{name}</color>" : name, true);
+                    string.Format(TeamConfigName, Instance.Infected.Team.DisplayName),
+                    "Apply new settings", (el) => el.Title = team.Metadata.IsApplied ? $"<color=#FF0000>{name}</color>" : name, true);
             }
 
             group.AddElement("Apply new settings (use when the gamemode is already started)", () =>
             {
-                if (Infection.Instance.IsStarted)
+                if (Instance.IsStarted)
                 {
-                    var _metadata = metadata;
-                    if (team == Infection.Instance.InfectedChildren && Infection.Instance.Config.SyncWithInfected.Value)
-                        _metadata = Infection.Instance.InfectedMetadata;
+                    var _metadata = team.Metadata;
+                    if (team.Team == Instance.InfectedChildren.Team && Instance.Config.SyncWithInfected.Value)
+                        _metadata = Instance.Infected.Metadata;
 
                     if (_metadata.IsApplied)
                         return;
@@ -155,19 +155,19 @@ namespace AvatarInfection.Managers
                     EventManager.TryInvokeEvent(EventType.RefreshStats, team);
                 }
             });
-            group.AddElement("Mortality", metadata.Mortality.ClientValue, (val) => { metadata.Mortality.ClientValue = val; applyButtonUpdate(); });
-            group.AddElement("Can Use Guns", metadata.CanUseGuns.ClientValue, (val) => { metadata.CanUseGuns.ClientValue = val; applyButtonUpdate(); });
-            group.AddElement("Override Vitality", metadata.Vitality.ClientEnabled, (val) => { metadata.Vitality.ClientEnabled = val; applyButtonUpdate(); });
-            group.AddElement("Vitality", metadata.Vitality.ClientValue, (val) => { metadata.Vitality.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
-            group.AddElement("Override Speed", metadata.Speed.ClientEnabled, (val) => { metadata.Speed.ClientEnabled = val; applyButtonUpdate(); });
-            group.AddElement("Speed", metadata.Speed.ClientValue, (val) => { metadata.Speed.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
-            group.AddElement("Override Agility", metadata.Agility.ClientEnabled, (val) => { metadata.Agility.ClientEnabled = val; applyButtonUpdate(); });
-            group.AddElement("Agility", metadata.Agility.ClientValue, (val) => { metadata.Agility.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
-            group.AddElement("Override Strength Upper", metadata.StrengthUpper.ClientEnabled, (val) => { metadata.StrengthUpper.ClientEnabled = val; applyButtonUpdate(); });
-            group.AddElement("Strength Upper", metadata.StrengthUpper.ClientValue, (val) => { metadata.StrengthUpper.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
+            group.AddElement("Mortality", team.Metadata.Mortality.ClientValue, (val) => { team.Metadata.Mortality.ClientValue = val; applyButtonUpdate(); });
+            group.AddElement("Can Use Guns", team.Metadata.CanUseGuns.ClientValue, (val) => { team.Metadata.CanUseGuns.ClientValue = val; applyButtonUpdate(); });
+            group.AddElement("Override Vitality", team.Metadata.Vitality.ClientEnabled, (val) => { team.Metadata.Vitality.ClientEnabled = val; applyButtonUpdate(); });
+            group.AddElement("Vitality", team.Metadata.Vitality.ClientValue, (val) => { team.Metadata.Vitality.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
+            group.AddElement("Override Speed", team.Metadata.Speed.ClientEnabled, (val) => { team.Metadata.Speed.ClientEnabled = val; applyButtonUpdate(); });
+            group.AddElement("Speed", team.Metadata.Speed.ClientValue, (val) => { team.Metadata.Speed.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
+            group.AddElement("Override Agility", team.Metadata.Agility.ClientEnabled, (val) => { team.Metadata.Agility.ClientEnabled = val; applyButtonUpdate(); });
+            group.AddElement("Agility", team.Metadata.Agility.ClientValue, (val) => { team.Metadata.Agility.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
+            group.AddElement("Override Strength Upper", team.Metadata.StrengthUpper.ClientEnabled, (val) => { team.Metadata.StrengthUpper.ClientEnabled = val; applyButtonUpdate(); });
+            group.AddElement("Strength Upper", team.Metadata.StrengthUpper.ClientValue, (val) => { team.Metadata.StrengthUpper.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
             group.AddElement($"Increment: {Increment}", () =>
             {
-                var group = string.Format(TeamConfigName, metadata.Team.DisplayName);
+                var group = string.Format(TeamConfigName, team.Metadata.Team.DisplayName);
 
                 IncrementIndex++;
                 IncrementIndex %= IncrementValues.Count;
@@ -183,8 +183,8 @@ namespace AvatarInfection.Managers
                 Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Vitality", (el) => el.Increment = Increment);
             });
 
-            if (team == Infection.Instance.InfectedChildren)
-                group.AddElement("Sync with Infected", Infection.Instance.Config.SyncWithInfected.Value, (val) => Infection.Instance.Config.SyncWithInfected.Value = val);
+            if (team.Team == Instance.InfectedChildren.Team)
+                group.AddElement("Sync with Infected", Instance.Config.SyncWithInfected.Value, (val) => Instance.Config.SyncWithInfected.Value = val);
 
             return group;
         }
