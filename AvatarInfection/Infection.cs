@@ -47,7 +47,7 @@ namespace AvatarInfection
 
         public override string Author => "HAHOOS";
 
-        public override string Barcode => Defaults.Barcode;
+        public override string Barcode => Constants.Defaults.Barcode;
 
         public override string Description => "An infection is spreading, turning people into a selected avatar by the host.";
 
@@ -80,118 +80,6 @@ namespace AvatarInfection
         internal TeamMetadata InfectedChildrenMetadata;
 
         internal TeamManager TeamManager { get; } = new();
-
-        internal static class Defaults
-        {
-            public const string Barcode = "HAHOOS.AvatarInfection";
-
-            public const int TimeLimit = 10;
-
-            public const int InfectedBitReward = 50;
-
-            public const int SurvivorsBitReward = 75;
-
-            public const bool NoTimeLimit = false;
-
-            public const bool DontShowAnyNameTags = false;
-
-            public readonly static TeamSettings InfectedStats = new()
-            {
-                Vitality = 0.75f,
-                JumpPower = 1.5f,
-                Speed = 2.8f,
-                Agility = 2f,
-                StrengthUpper = 0.5f,
-
-                JumpPower_Enabled = true,
-                Speed_Enabled = true,
-                Vitality_Enabled = true,
-                Agility_Enabled = true,
-                StrengthUpper_Enabled = true,
-
-                Mortality = true,
-
-                CanUseGuns = false,
-            };
-
-            public readonly static TeamSettings InfectedChildrenStats = new()
-            {
-                Vitality = 0.5f,
-                JumpPower = 1.25f,
-                Speed = 1.8f,
-                Agility = 1.5f,
-                StrengthUpper = 0.35f,
-
-                JumpPower_Enabled = true,
-                Speed_Enabled = true,
-                Vitality_Enabled = true,
-                Agility_Enabled = true,
-                StrengthUpper_Enabled = true,
-
-                Mortality = true,
-
-                CanUseGuns = false,
-            };
-
-            public readonly static TeamSettings SurvivorsStats = new()
-            {
-                Vitality = 1f,
-                JumpPower = 1f,
-                Speed = 1.2f,
-                Agility = 1f,
-                StrengthUpper = 1.5f,
-
-                JumpPower_Enabled = true,
-                Speed_Enabled = true,
-                Vitality_Enabled = true,
-                Agility_Enabled = true,
-                StrengthUpper_Enabled = true,
-
-                Mortality = true,
-
-                CanUseGuns = true,
-            };
-
-            public const bool DisableSpawnGun = true;
-
-            public const bool DisableDevTools = true;
-
-            public const bool AllowKeepInventory = false;
-
-            public const int InfectedCount = 1;
-
-            public const bool TeleportOnStart = true;
-
-            public const int CountdownLength = 30;
-
-            public const InfectType _InfectType = InfectType.TOUCH;
-
-            public const bool SuicideInfects = true;
-
-            public const int HoldTime = 0;
-
-            public const bool TeleportOnEnd = false;
-
-            public const bool UseDeathMatchSpawns = true;
-
-            public const bool SyncWithInfected = false;
-
-            public const bool ShowCountdownToAll = false;
-
-            public const AvatarSelectMode SelectMode = AvatarSelectMode.CONFIG;
-
-            // Have no idea for mono discs
-            public static readonly MonoDiscReference[] Tracks =
-        [
-            BonelabMonoDiscReferences.TheRecurringDreamReference,
-            BonelabMonoDiscReferences.HeavyStepsReference,
-            BonelabMonoDiscReferences.StankFaceReference,
-            BonelabMonoDiscReferences.AlexInWonderlandReference,
-            BonelabMonoDiscReferences.ItDoBeGroovinReference,
-
-            BonelabMonoDiscReferences.ConcreteCryptReference, // concrete crypt
-        ];
-        }
 
         public MusicPlaylist PlayList { get; } = new();
 
@@ -289,9 +177,9 @@ namespace AvatarInfection
             TeamManager.AddTeam(InfectedChildren);
             TeamManager.OnAssignedToTeam += OnAssignedToTeam;
 
-            InfectedMetadata = new TeamMetadata(Infected, Instance, new TeamSettings(Defaults.InfectedStats));
-            SurvivorsMetadata = new TeamMetadata(Survivors, Instance, new TeamSettings(Defaults.SurvivorsStats));
-            InfectedChildrenMetadata = new TeamMetadata(InfectedChildren, Instance, new TeamSettings(Defaults.InfectedChildrenStats));
+            InfectedMetadata = new TeamMetadata(Infected, Instance, new TeamSettings(Constants.Defaults.InfectedStats));
+            SurvivorsMetadata = new TeamMetadata(Survivors, Instance, new TeamSettings(Constants.Defaults.SurvivorsStats));
+            InfectedChildrenMetadata = new TeamMetadata(InfectedChildren, Instance, new TeamSettings(Constants.Defaults.InfectedChildrenStats));
 
             InfectedLooking = new MetadataBool(nameof(InfectedLooking), Metadata);
 
@@ -303,13 +191,13 @@ namespace AvatarInfection
 
             Metadata.OnMetadataChanged += OnMetadataChanged;
 
-            EventManager.RegisterEvent<ulong>(EventType.PlayerInfected, PlayerInfected, true);
             EventManager.RegisterEvent<string>(EventType.RefreshStats, RefreshStats, true);
+            EventManager.RegisterEvent<ulong>(EventType.PlayerInfected, PlayerInfected, true);
             EventManager.RegisterEvent<SwapAvatarData>(EventType.SwapAvatar, SwapAvatarEvent, true);
 
             EventManager.RegisterEvent(EventType.TeleportToHost, TeleportToHost, true);
-
             EventManager.RegisterEvent(EventType.OneMinuteLeft, OneMinuteLeftEvent, true);
+
             EventManager.RegisterGlobalNotification(EventType.InfectedVictory, "Infected Won", "Everyone has been infected!", 4f, true);
             EventManager.RegisterGlobalNotification(EventType.SurvivorsVictory, "Survivors Won", "There were people not infected in time!", 4f, true);
 
@@ -604,7 +492,7 @@ namespace AvatarInfection
             {
                 _surivorsLastCheckedMinutes = ElapsedMinutes;
 
-                PointItemManager.RewardBits(Defaults.SurvivorsBitReward);
+                PointItemManager.RewardBits(Constants.Defaults.SurvivorsBitReward);
             }
         }
 
@@ -685,7 +573,7 @@ namespace AvatarInfection
         {
             base.OnGamemodeStarted();
 
-            PlayList.SetPlaylist(AudioReference.CreateReferences(Defaults.Tracks));
+            PlayList.SetPlaylist(AudioReference.CreateReferences(Constants.Defaults.Tracks));
             PlayList.Shuffle();
 
             HasBeenInfected = false;
@@ -808,12 +696,9 @@ namespace AvatarInfection
         {
             if (IsBodyLogEnabled == enabled)
                 return;
-            var rig = Player.RigManager;
-            if (rig != null)
-            {
-                var PCDs = rig?.gameObject?.GetComponentsInChildren<PullCordDevice>();
-                PCDs?.ForEach(x => x._bodyLogEnabled = enabled);
-            }
+
+            var devices = Player.RigManager?.gameObject?.GetComponentsInChildren<PullCordDevice>();
+            devices?.ForEach(x => x._bodyLogEnabled = enabled);
         }
 
         private static void TeleportToHost()

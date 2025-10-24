@@ -42,24 +42,24 @@ namespace AvatarInfection.Settings
                 (config?.CanUseGuns) ?? default, false);
             Vitality = CreateToggleServerSetting(
                 $"{team.TeamName}_{nameof(Vitality)}",
-                (config?.Vitality) ?? default,
-                (config?.Vitality_Enabled) ?? default, false);
+                (config?.Vitality.Value) ?? default,
+                (config?.Vitality.Enabled) ?? default, false);
             Speed = CreateToggleServerSetting(
                 $"{team.TeamName}_{nameof(Speed)}",
-                 (config?.Speed) ?? default,
-                 (config?.Speed_Enabled) ?? default, false);
+                 (config?.Speed.Value) ?? default,
+                 (config?.Speed.Enabled) ?? default, false);
             JumpPower = CreateToggleServerSetting(
                 $"{team.TeamName}_{nameof(JumpPower)}",
-                (config?.JumpPower) ?? default,
-                (config?.JumpPower_Enabled) ?? default, false);
+                (config?.JumpPower.Value) ?? default,
+                (config?.JumpPower.Enabled) ?? default, false);
             Agility = CreateToggleServerSetting(
                 $"{team.TeamName}_{nameof(Agility)}",
-                (config?.Agility) ?? default,
-                (config?.Agility_Enabled) ?? default, false);
+                (config?.Agility.Value) ?? default,
+                (config?.Agility.Enabled) ?? default, false);
             StrengthUpper = CreateToggleServerSetting(
                 $"{team.TeamName}_{nameof(StrengthUpper)}",
-                (config?.StrengthUpper) ?? default,
-                (config?.StrengthUpper_Enabled) ?? default, false);
+                (config?.StrengthUpper.Value) ?? default,
+                (config?.StrengthUpper.Enabled) ?? default, false);
         }
 
         public void ApplyConfig()

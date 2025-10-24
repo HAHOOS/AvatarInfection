@@ -7,7 +7,7 @@ using AvatarInfection;
 
 #region MelonLoader
 
-[assembly: MelonInfo(typeof(Core), "AvatarInfection", Core.Version, "HAHOOS", "https://thunderstore.io/c/bonelab/p/HAHOOS/AvatarInfection")]
+[assembly: MelonInfo(typeof(Core), "AvatarInfection", Constants.Version, "HAHOOS", "https://thunderstore.io/c/bonelab/p/HAHOOS/AvatarInfection")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
 [assembly: MelonColor(0, 0, 255, 0)]
 [assembly: MelonAuthorColor(0, 255, 165, 0)]
@@ -25,9 +25,9 @@ using AvatarInfection;
 
 #region Version
 
-[assembly: AssemblyVersion(Core.Version)]
-[assembly: AssemblyFileVersion(Core.Version)]
-[assembly: AssemblyInformationalVersion(Core.Version)]
+[assembly: AssemblyVersion(Constants.Version)]
+[assembly: AssemblyFileVersion(Constants.Version)]
+[assembly: AssemblyInformationalVersion(Constants.Version)]
 
 #endregion Version
 

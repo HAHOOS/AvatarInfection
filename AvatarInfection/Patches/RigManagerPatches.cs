@@ -40,7 +40,7 @@ namespace AvatarInfection.Patches
                     return true;
 
                 if (GamemodeManager.ActiveGamemode == null
-                    || GamemodeManager.ActiveGamemode.Barcode != Infection.Defaults.Barcode)
+                    || GamemodeManager.ActiveGamemode.Barcode != Constants.Defaults.Barcode)
                 {
                     return true;
                 }

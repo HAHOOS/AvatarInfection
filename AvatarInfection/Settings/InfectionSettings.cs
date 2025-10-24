@@ -48,19 +48,19 @@ namespace AvatarInfection.Settings
 
         internal InfectionSettings()
         {
-            DisableDevTools = CreateServerSetting(nameof(DisableDevTools), Defaults.DisableDevTools);
-            DisableSpawnGun = CreateServerSetting(nameof(DisableSpawnGun), Defaults.DisableSpawnGun);
+            DisableDevTools = CreateServerSetting(nameof(DisableDevTools), Constants.Defaults.DisableDevTools);
+            DisableSpawnGun = CreateServerSetting(nameof(DisableSpawnGun), Constants.Defaults.DisableSpawnGun);
 
             SelectedAvatar = CreateServerSetting(nameof(SelectedAvatar), string.Empty);
             SelectedAvatar.OnValueChanged += SelectedPlayerOverride;
 
-            CountdownLength = CreateServerSetting(nameof(CountdownLength), Defaults.CountdownLength);
+            CountdownLength = CreateServerSetting(nameof(CountdownLength), Constants.Defaults.CountdownLength);
 
-            AllowKeepInventory = CreateServerSetting(nameof(AllowKeepInventory), value: Defaults.AllowKeepInventory);
+            AllowKeepInventory = CreateServerSetting(nameof(AllowKeepInventory), value: Constants.Defaults.AllowKeepInventory);
 
-            TeleportOnEnd = CreateServerSetting(nameof(TeleportOnEnd), Defaults.TeleportOnEnd);
+            TeleportOnEnd = CreateServerSetting(nameof(TeleportOnEnd), Constants.Defaults.TeleportOnEnd);
 
-            UseDeathmatchSpawns = CreateServerSetting(nameof(UseDeathmatchSpawns), Defaults.UseDeathMatchSpawns);
+            UseDeathmatchSpawns = CreateServerSetting(nameof(UseDeathmatchSpawns), Constants.Defaults.UseDeathMatchSpawns);
             UseDeathmatchSpawns.OnValueChanged += () =>
             {
                 if (UseDeathmatchSpawns.ClientValue)
@@ -69,17 +69,17 @@ namespace AvatarInfection.Settings
                     ClearDeathmatchSpawns();
             };
 
-            ShowCountdownToAll = CreateServerSetting(nameof(ShowCountdownToAll), Defaults.ShowCountdownToAll);
+            ShowCountdownToAll = CreateServerSetting(nameof(ShowCountdownToAll), Constants.Defaults.ShowCountdownToAll);
 
-            HoldTime = CreateLocalSetting(nameof(HoldTime), Defaults.HoldTime);
-            InfectedCount = CreateLocalSetting(nameof(InfectedCount), Defaults.InfectedCount);
-            InfectType = CreateLocalSetting(nameof(InfectType), Defaults._InfectType);
-            NoTimeLimit = CreateLocalSetting(nameof(NoTimeLimit), Defaults.NoTimeLimit);
-            SelectMode = CreateLocalSetting(nameof(SelectMode), Defaults.SelectMode);
-            SuicideInfects = CreateLocalSetting(nameof(SuicideInfects), Defaults.SuicideInfects);
-            SyncWithInfected = CreateLocalSetting(nameof(SyncWithInfected), Defaults.SyncWithInfected);
-            TeleportOnStart = CreateLocalSetting(nameof(TeleportOnStart), Defaults.TeleportOnStart);
-            TimeLimit = CreateLocalSetting(nameof(TimeLimit), Defaults.TimeLimit);
+            HoldTime = CreateLocalSetting(nameof(HoldTime), Constants.Defaults.HoldTime);
+            InfectedCount = CreateLocalSetting(nameof(InfectedCount), Constants.Defaults.InfectedCount);
+            InfectType = CreateLocalSetting(nameof(InfectType), Constants.Defaults._InfectType);
+            NoTimeLimit = CreateLocalSetting(nameof(NoTimeLimit), Constants.Defaults.NoTimeLimit);
+            SelectMode = CreateLocalSetting(nameof(SelectMode), Constants.Defaults.SelectMode);
+            SuicideInfects = CreateLocalSetting(nameof(SuicideInfects), Constants.Defaults.SuicideInfects);
+            SyncWithInfected = CreateLocalSetting(nameof(SyncWithInfected), Constants.Defaults.SyncWithInfected);
+            TeleportOnStart = CreateLocalSetting(nameof(TeleportOnStart), Constants.Defaults.TeleportOnStart);
+            TimeLimit = CreateLocalSetting(nameof(TimeLimit), Constants.Defaults.TimeLimit);
         }
 
         internal void SelectedPlayerOverride()

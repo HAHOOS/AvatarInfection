@@ -19,7 +19,7 @@ namespace AvatarInfection
         public override ConsoleColor Color => ConsoleColor.Green;
 
         /// <inheritdoc cref="Module.Version"/>
-        public override Version Version => Version.Parse(Core.Version);
+        public override Version Version => Version.Parse(Constants.Version);
 
         internal static ModuleLogger Logger { get; private set; }
 
