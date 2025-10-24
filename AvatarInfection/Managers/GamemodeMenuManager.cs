@@ -7,7 +7,6 @@ using AvatarInfection.Settings;
 using BoneLib;
 
 using LabFusion.Menu.Data;
-using LabFusion.SDK.Gamemodes;
 
 using static AvatarInfection.Infection;
 
@@ -30,9 +29,10 @@ namespace AvatarInfection.Managers
 
         internal static GroupElementData CreateSettingsGroup()
         {
+            // HACK: for some reason if i wouldn't have done this the settings wouldn't work
             var group = new GroupElementData()
             {
-                Title = Infection.Instance.Title,
+                Title = Instance.Title,
             };
 
             if (group == null)
@@ -45,7 +45,7 @@ namespace AvatarInfection.Managers
 
             avatarGroup.AddElement("Selected Avatar: N/A", () =>
             {
-                if (Infection.Instance.IsStarted)
+                if (Instance.IsStarted)
                     return;
 
                 var rigManager = Player.RigManager;
@@ -55,11 +55,11 @@ namespace AvatarInfection.Managers
 
                     if (string.IsNullOrWhiteSpace(avatar))
                         return;
-                    Infection.Instance.Config.SelectedAvatar.ClientValue = avatar;
+                    Instance.Config.SelectedAvatar.ClientValue = avatar;
 
                     string title = !string.IsNullOrWhiteSpace(rigManager.AvatarCrate?.Scannable?.Title) ? rigManager.AvatarCrate.Scannable.Title : "N/A";
 
-                    Infection.Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
+                    Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
                         avatarGroup.Title,
                         "Selected Avatar:",
                         (element) => element.Title = $"Selected Avatar: {title}",
@@ -67,60 +67,55 @@ namespace AvatarInfection.Managers
                 }
             });
 
-            avatarGroup.AddElement("Select Mode", Infection.Instance.Config.SelectMode.Value, (val) => Infection.Instance.Config.SelectMode.Value = (AvatarSelectMode)val);
+            avatarGroup.AddElement("Select Mode", Instance.Config.SelectMode.Value, (val) => Instance.Config.SelectMode.Value = (AvatarSelectMode)val);
 
-            group.AddElement(CreateElementsForTeam(Infection.Instance.Infected));
+            group.AddElement(CreateElementsForTeam(Instance.Infected));
 
-            group.AddElement(CreateElementsForTeam(Infection.Instance.InfectedChildren));
+            group.AddElement(CreateElementsForTeam(Instance.InfectedChildren));
 
-            group.AddElement(CreateElementsForTeam(Infection.Instance.Survivors));
+            group.AddElement(CreateElementsForTeam(Instance.Survivors));
             GroupElementData generalGroup = group.AddGroup("General");
 
-            generalGroup.AddElement("Infected Start Number", Infection.Instance.Config.InfectedCount.Value, (val) => Infection.Instance.Config.InfectedCount.Value = val, min: 1, max: 5);
+            generalGroup.AddElement("Infected Start Number", Instance.Config.InfectedCount.Value, (val) => Instance.Config.InfectedCount.Value = val, min: 1, max: 5);
 
-            generalGroup.AddElement("Time Limit", Infection.Instance.Config.TimeLimit.Value, (val) =>
+            generalGroup.AddElement("Time Limit", Instance.Config.TimeLimit.Value, (val) =>
             {
-                Infection.Instance.Config.TimeLimit.Value = val;
-                if (Infection.Instance.IsStarted)
-                    Infection.Instance.EndUnix.SetValue(DateTimeOffset.FromUnixTimeMilliseconds((long)Infection.Instance.StartUnix.GetValue()).AddMinutes(val).ToUnixTimeMilliseconds());
+                Instance.Config.TimeLimit.Value = val;
+                if (Instance.IsStarted)
+                    Instance.EndUnix.SetValue(DateTimeOffset.FromUnixTimeMilliseconds((long)Instance.StartUnix.GetValue()).AddMinutes(val).ToUnixTimeMilliseconds());
             }, min: 1);
 
-            generalGroup.AddElement("Disable Spawn Gun", Infection.Instance.DisableSpawnGun, (val) => Infection.Instance.Config.DisableSpawnGun.ClientValue = val);
+            generalGroup.AddElement("Disable Spawn Gun", Instance.DisableSpawnGun, (val) => Instance.Config.DisableSpawnGun.ClientValue = val);
 
-            generalGroup.AddElement("Disable Dev Tools", Infection.Instance.DisableDevTools, (val) => Infection.Instance.Config.DisableDevTools.ClientValue = val);
+            generalGroup.AddElement("Disable Developer Tools", Instance.DisableDevTools, (val) => Instance.Config.DisableDevTools.ClientValue = val);
 
-            generalGroup.AddElement("Allow Keep Inventory", Infection.Instance.Config.AllowKeepInventory.ClientValue, (val) => Infection.Instance.Config.AllowKeepInventory.ClientValue = val);
+            generalGroup.AddElement("Allow Keep Inventory", Instance.Config.AllowKeepInventory.ClientValue, (val) => Instance.Config.AllowKeepInventory.ClientValue = val);
 
-            generalGroup.AddElement("No Time Limit", Infection.Instance.Config.NoTimeLimit.Value, (val) =>
+            generalGroup.AddElement("No Time Limit", Instance.Config.NoTimeLimit.Value, (val) =>
             {
-                Infection.Instance.Config.NoTimeLimit.Value = val;
-                if (Infection.Instance.IsStarted)
-                    Infection.Instance.EndUnix.SetValue(-1);
+                Instance.Config.NoTimeLimit.Value = val;
+                if (Instance.IsStarted)
+                    Instance.EndUnix.SetValue(-1);
             });
 
-            generalGroup.AddElement("Use Deathmatch Spawns", Infection.Instance.Config.UseDeathmatchSpawns.ClientValue, (val) => Infection.Instance.Config.UseDeathmatchSpawns.ClientValue = val);
+            generalGroup.AddElement("Use DeathMatch Spawns", Instance.Config.UseDeathmatchSpawns.ClientValue, (val) => Instance.Config.UseDeathmatchSpawns.ClientValue = val);
 
-            generalGroup.AddElement("Teleport To Host On Start", Infection.Instance.Config.TeleportOnStart.Value, (val) => Infection.Instance.Config.TeleportOnStart.Value = val);
+            generalGroup.AddElement("Teleport To Host On Start", Instance.Config.TeleportOnStart.Value, (val) => Instance.Config.TeleportOnStart.Value = val);
 
-            generalGroup.AddElement("Teleport To Host On End", Infection.Instance.Config.TeleportOnEnd.ClientValue, (val) => Infection.Instance.Config.TeleportOnEnd.ClientValue = val);
+            generalGroup.AddElement("Teleport To Host On End", Instance.Config.TeleportOnEnd.ClientValue, (val) => Instance.Config.TeleportOnEnd.ClientValue = val);
 
-            generalGroup.AddElement("Countdown Length", Infection.Instance.Config.CountdownLength.ClientValue, (val) => Infection.Instance.Config.CountdownLength.ClientValue = val, 5, 0, 3600);
-            generalGroup.AddElement("Show Countdown to All Players", Infection.Instance.Config.ShowCountdownToAll.ClientValue, (val) => Infection.Instance.Config.ShowCountdownToAll.ClientValue = val);
+            generalGroup.AddElement("Countdown Length", Instance.Config.CountdownLength.ClientValue, (val) => Instance.Config.CountdownLength.ClientValue = val, 5, 0, 3600);
+            generalGroup.AddElement("Show Countdown to All Players", Instance.Config.ShowCountdownToAll.ClientValue, (val) => Instance.Config.ShowCountdownToAll.ClientValue = val);
 
-            generalGroup.AddElement("Infect Type", Infection.Instance.Config.InfectType.Value, (val) => Infection.Instance.Config.InfectType.Value = (InfectType)val);
+            generalGroup.AddElement("Infect Type", Instance.Config.InfectType.Value, (val) => Instance.Config.InfectType.Value = (InfectType)val);
 
-            generalGroup.AddElement("Suicide Infects", Infection.Instance.Config.SuicideInfects.Value, (val) => Infection.Instance.Config.SuicideInfects.Value = val);
-            generalGroup.AddElement("Hold Time (Touch Infect Type)", Infection.Instance.Config.HoldTime.Value, (val) => Infection.Instance.Config.HoldTime.Value = val, max: 60);
-            generalGroup.AddElement("Save Settings", Infection.Instance.Config.Save);
+            generalGroup.AddElement("Suicide Infects", Instance.Config.SuicideInfects.Value, (val) => Instance.Config.SuicideInfects.Value = val);
+            generalGroup.AddElement("Hold Time (Touch Infect Type)", Instance.Config.HoldTime.Value, (val) => Instance.Config.HoldTime.Value = val, max: 60);
+            generalGroup.AddElement("Save Settings", Instance.Config.Save);
             generalGroup.AddElement("Load Settings", () =>
             {
-                Infection.Instance.Config.Load();
-#pragma warning disable S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
-                typeof(LabFusion.Menu.Gamemodes.MenuGamemode)
-                    .GetMethod("OverrideSettingsPage",
-                                bindingAttr: System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
-                    .Invoke(null, [(Gamemode)Infection.Instance]);
-#pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
+                Instance.Config.Load();
+                RefreshSettingsPage();
             });
 
             return group;
@@ -187,6 +182,14 @@ namespace AvatarInfection.Managers
                 group.AddElement("Sync with Infected", Instance.Config.SyncWithInfected.Value, (val) => Instance.Config.SyncWithInfected.Value = val);
 
             return group;
+        }
+
+        internal static void RefreshSettingsPage()
+        {
+            typeof(LabFusion.Menu.Gamemodes.MenuGamemode)
+                .GetMethod("OverrideSettingsPage",
+                            bindingAttr: System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                .Invoke(null, [Instance]);
         }
     }
 }

@@ -54,7 +54,9 @@ namespace AvatarInfection
 
         public override bool DisableSpawnGun => Config?.DisableSpawnGun?.ClientValue ?? true;
 
+#pragma warning disable VSSpell001 // Spell Check - i sometimes fucking hate this extension, shut up sometimes please
         public override bool DisableDevTools => Config?.DisableDevTools?.ClientValue ?? true;
+#pragma warning restore VSSpell001 // Spell Check
 
         public override bool AutoHolsterOnDeath => true;
 
@@ -642,11 +644,9 @@ namespace AvatarInfection
         {
             // Reset mortality
             LocalHealth.MortalityOverride = null;
-
             LocalHealth.VitalityOverride = null;
 
             FusionPlayerExtended.ClearAllOverrides();
-
             FusionPlayerExtended.ClearAvatarOverride();
         }
 
@@ -763,9 +763,7 @@ namespace AvatarInfection
                 var otherPlayerTeam = TeamManager.GetPlayerTeam(otherPlayer);
 
                 if (playerTeam == Survivors.Team && IsInfected(otherPlayerTeam))
-                {
                     EventManager.TryInvokeEvent(EventType.PlayerInfected, player.PlatformID);
-                }
             }
             else if (type == PlayerActionType.DYING)
             {

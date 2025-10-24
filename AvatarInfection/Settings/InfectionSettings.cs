@@ -48,7 +48,7 @@ namespace AvatarInfection.Settings
 
         internal InfectionSettings()
         {
-            DisableDevTools = CreateServerSetting(nameof(DisableDevTools), Constants.Defaults.DisableDevTools);
+            DisableDevTools = CreateServerSetting(nameof(DisableDevTools), Constants.Defaults.DisableDeveloperTools);
             DisableSpawnGun = CreateServerSetting(nameof(DisableSpawnGun), Constants.Defaults.DisableSpawnGun);
 
             SelectedAvatar = CreateServerSetting(nameof(SelectedAvatar), string.Empty);

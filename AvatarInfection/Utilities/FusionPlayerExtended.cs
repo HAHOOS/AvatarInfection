@@ -11,18 +11,18 @@ namespace AvatarInfection.Utilities
 {
     public static class FusionPlayerExtended
     {
-        public static float? SpeedOverride { get; private set; } = null;
+        public static float? SpeedOverride { get; private set; }
 
-        public static float? JumpPowerOverride { get; private set; } = null;
+        public static float? JumpPowerOverride { get; private set; }
 
-        public static float? AgilityOverride { get; private set; } = null;
+        public static float? AgilityOverride { get; private set; }
 
-        public static float? StrengthUpperOverride { get; private set; } = null;
+        public static float? StrengthUpperOverride { get; private set; }
 
-        // Avatar override calls everything in FusionPlayer but restores the old avatar
-        public static string AvatarOverride { get; private set; } = null;
+        // Avatar override calls everything in FusionPlayer, but restores the old avatar
+        public static string AvatarOverride { get; private set; }
 
-        public static string LastAvatar { get; private set; } = null;
+        public static string LastAvatar { get; private set; }
 
         internal static void SetOverrides(float? jumpPower, float? speed, float? agility, float? strengthUpper)
         {
@@ -94,12 +94,11 @@ namespace AvatarInfection.Utilities
         public static void SetAvatarOverride(string barcode)
         {
             bool wasEmpty = string.IsNullOrEmpty(AvatarOverride);
+            if (Player.RigManager != null && AssetWarehouse.ready && wasEmpty)
+                LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? CommonBarcodes.Avatars.PolyBlank;
+
             AvatarOverride = barcode;
             LocalAvatar.AvatarOverride = barcode;
-            if (Player.RigManager != null && AssetWarehouse.ready && AvatarOverride != null && wasEmpty)
-            {
-                LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? CommonBarcodes.Avatars.PolyBlank;
-            }
         }
 
         public static void ClearAvatarOverride()
@@ -109,9 +108,10 @@ namespace AvatarInfection.Utilities
             if (Player.RigManager != null && LastAvatar != null && AssetWarehouse.ready)
             {
                 var rm = Player.RigManager;
-                rm.SwapAvatarCrate(new Barcode(LastAvatar), true);
-                DataManager.ActiveSave.PlayerSettings.CurrentAvatar = LastAvatar;
+                var last = LastAvatar;
                 LastAvatar = null;
+                rm.SwapAvatarCrate(new Barcode(last), true);
+                DataManager.ActiveSave.PlayerSettings.CurrentAvatar = last;
             }
         }
     }

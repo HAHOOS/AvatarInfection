@@ -24,8 +24,6 @@ namespace AvatarInfection
 
             public const bool NoTimeLimit = false;
 
-            public const bool DontShowAnyNameTags = false;
-
             public readonly static TeamSettings InfectedStats = new()
             {
                 Vitality = new(0.75f),
@@ -67,7 +65,7 @@ namespace AvatarInfection
 
             public const bool DisableSpawnGun = true;
 
-            public const bool DisableDevTools = true;
+            public const bool DisableDeveloperTools = true;
 
             public const bool AllowKeepInventory = false;
 
