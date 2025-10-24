@@ -72,6 +72,8 @@ namespace AvatarInfection
 
         internal InfectionTeam InfectedChildren { get; private set; }
 
+        public bool IsInfected(Team team) => team != null && (team == Infected.Team || team == InfectedChildren.Team);
+
         internal TeamManager TeamManager { get; } = new();
 
         public MusicPlaylist PlayList { get; } = new();
@@ -279,7 +281,7 @@ namespace AvatarInfection
             if (!IsStarted)
                 return;
 
-            if (TeamManager.GetLocalTeam() != Infected.Team && TeamManager.GetLocalTeam() != InfectedChildren.Team)
+            if (!IsInfected(TeamManager.GetLocalTeam()))
                 ShowNotification("Run...", "The infected have awaken... you have to run... save yourselves.. please", 5f, type: NotificationType.WARNING);
         }
 
@@ -713,9 +715,7 @@ namespace AvatarInfection
             var playerTeam = TeamManager.GetPlayerTeam(id);
             var localTeam = TeamManager.GetLocalTeam();
 
-            return playerTeam == localTeam ||
-                (playerTeam == Infected.Team && localTeam == InfectedChildren.Team) ||
-                (playerTeam == InfectedChildren.Team && localTeam == Infected.Team);
+            return playerTeam == localTeam || (IsInfected(playerTeam) && IsInfected(localTeam));
         }
 
         private void AssignTeams()
@@ -762,8 +762,7 @@ namespace AvatarInfection
                 var playerTeam = TeamManager.GetPlayerTeam(player);
                 var otherPlayerTeam = TeamManager.GetPlayerTeam(otherPlayer);
 
-                if (playerTeam == Survivors.Team &&
-                    (otherPlayerTeam == Infected.Team || otherPlayerTeam == InfectedChildren.Team))
+                if (playerTeam == Survivors.Team && IsInfected(otherPlayerTeam))
                 {
                     EventManager.TryInvokeEvent(EventType.PlayerInfected, player.PlatformID);
                 }
