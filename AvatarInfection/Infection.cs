@@ -355,7 +355,10 @@ namespace AvatarInfection
                     return;
 
                 if (downloadResult == ModResult.FAILED)
+                {
+                    Logger.Error($"Download of avatar '{barcode}' has failed, not setting avatar");
                     return;
+                }
 
                 NetworkModRequester.RequestAndInstallMod(new NetworkModRequester.ModInstallInfo()
                 {
@@ -587,7 +590,6 @@ namespace AvatarInfection
 
             PlayList.StartPlaylist();
 
-            // Invoke player changes on level load
             FusionSceneManager.HookOnTargetLevelLoad(() =>
             {
                 BoneMenuManager.PopulatePage();
@@ -620,16 +622,11 @@ namespace AvatarInfection
 
             appliedDeathmatchSpawns = true;
 
-            var transforms = new List<Transform>();
-
-            foreach (var marker in GamemodeMarker.FilterMarkers(null))
-            {
-                transforms.Add(marker.transform);
-            }
+            List<Transform> transforms = [];
+            GamemodeMarker.FilterMarkers(null).ForEach(x => transforms.Add(x.transform));
 
             FusionPlayer.SetSpawnPoints([.. transforms]);
 
-            // Teleport to a random spawn point
             if (FusionPlayer.TryGetSpawnPoint(out var spawn) && teleport)
                 LocalPlayer.TeleportToPosition(spawn.position, spawn.forward);
         }
@@ -700,11 +697,7 @@ namespace AvatarInfection
                 return;
 
             if (player.HasRig)
-            {
-                var feetPosition = player.RigRefs.RigManager.physicsRig.feet.transform.position;
-
-                LocalPlayer.TeleportToPosition(feetPosition, Vector3.forward);
-            }
+                LocalPlayer.TeleportToPosition(player.RigRefs.RigManager.physicsRig.feet.transform.position, Vector3.forward);
         }
 
         protected bool OnValidateNameTag(PlayerID id)
@@ -759,10 +752,7 @@ namespace AvatarInfection
                 if (!NetworkInfo.IsHost || otherPlayer == null || Config.InfectType.Value != InfectType.DEATH)
                     return;
 
-                var playerTeam = TeamManager.GetPlayerTeam(player);
-                var otherPlayerTeam = TeamManager.GetPlayerTeam(otherPlayer);
-
-                if (playerTeam == Survivors.Team && IsInfected(otherPlayerTeam))
+                if (TeamManager.GetPlayerTeam(player) == Survivors.Team && IsInfected(TeamManager.GetPlayerTeam(otherPlayer)))
                     EventManager.TryInvokeEvent(EventType.PlayerInfected, player.PlatformID);
             }
             else if (type == PlayerActionType.DYING)
@@ -788,9 +778,7 @@ namespace AvatarInfection
         public enum AvatarSelectMode
         {
             CONFIG,
-
             FIRST_INFECTED,
-
             RANDOM
         }
 
@@ -800,7 +788,6 @@ namespace AvatarInfection
             SwapAvatar,
             RefreshStats,
             TeleportToHost,
-
             OneMinuteLeft,
             InfectedVictory,
             SurvivorsVictory

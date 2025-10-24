@@ -83,9 +83,7 @@ namespace AvatarInfection.Managers
                                 float fadeStart = Mathf.Max(target - fadeLength, 0f);
                                 float fadeProgress = Mathf.Max(totalElapsed - fadeStart, 0f) / fadeLength;
 
-                                Color color = Color.Lerp(Color.black, Color.clear, fadeProgress);
-
-                                LocalVision.BlindColor = color;
+                                LocalVision.BlindColor = Color.Lerp(Color.black, Color.clear, fadeProgress);
                             }
 
                             // Check for second counter
