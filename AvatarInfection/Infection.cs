@@ -337,8 +337,7 @@ namespace AvatarInfection
             if (Player.RigManager == null)
                 return;
 
-            bool hasCrate = CrateFilterer.HasCrate<AvatarCrate>(new(barcode));
-            if (hasCrate)
+            if (CrateFilterer.HasCrate<AvatarCrate>(new(barcode)))
             {
                 var obj = new GameObject("AI_PCFC");
                 var comp = obj.AddComponent<PullCordForceChange>();
@@ -392,8 +391,10 @@ namespace AvatarInfection
                 return;
 
             SetStats();
+
             var config = GetInfectedTeam(team);
             config?.Metadata.CanUseGunsChanged();
+
             if (team != Survivors.Team)
                 SetBodyLog(false);
             else
@@ -653,14 +654,9 @@ namespace AvatarInfection
             Cleanup();
 
             if (NetworkInfo.IsHost)
-            {
                 TeamManager.UnassignAllPlayers();
-            }
-            else
-            {
-                if (Config.TeleportOnEnd.ClientValue)
-                    TeleportToHost();
-            }
+            else if (Config.TeleportOnEnd.ClientValue)
+                TeleportToHost();
         }
 
         private void Cleanup()
@@ -732,11 +728,12 @@ namespace AvatarInfection
             {
                 var player = players.Random();
                 TeamManager.TryAssignTeam(player, Infected.Team);
-                EventManager.TryInvokeEvent(EventType.SwapAvatar,
-                    new SwapAvatarData(player.PlatformID, Config.SelectedAvatar.ClientValue));
 
-                if (Config.SelectMode.Value == AvatarSelectMode.FIRST_INFECTED && !selected
-                    && NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig)
+                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.PlatformID, Config.SelectedAvatar.ClientValue));
+
+                bool exists = NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig;
+
+                if (Config.SelectMode.Value == AvatarSelectMode.FIRST_INFECTED && !selected && exists)
                 {
                     var avatar = plr.RigRefs?.RigManager?.AvatarCrate?.Barcode?.ID;
                     if (!string.IsNullOrWhiteSpace(avatar))
@@ -749,8 +746,7 @@ namespace AvatarInfection
                 players.Remove(player);
             }
 
-            foreach (var plr in players)
-                TeamManager.TryAssignTeam(plr, Survivors.Team);
+            players.ForEach(x => TeamManager.TryAssignTeam(x, Survivors.Team));
         }
 
         protected void OnPlayerAction(PlayerID player, PlayerActionType type, PlayerID otherPlayer = null)
