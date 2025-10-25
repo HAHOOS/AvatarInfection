@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using BoneLib;
 
@@ -34,33 +35,28 @@ namespace AvatarInfection.Settings
         {
             Gamemode = gamemode;
             Team = team;
-            Mortality = CreateServerSetting(
-                $"{team.TeamName}_{nameof(Mortality)}",
-                (config?.Mortality) ?? default, false);
-            CanUseGuns = CreateServerSetting(
-                $"{team.TeamName}_{nameof(CanUseGuns)}",
-                (config?.CanUseGuns) ?? default, false);
-            Vitality = CreateToggleServerSetting(
-                $"{team.TeamName}_{nameof(Vitality)}",
-                (config?.Vitality.Value) ?? default,
-                (config?.Vitality.Enabled) ?? default, false);
-            Speed = CreateToggleServerSetting(
-                $"{team.TeamName}_{nameof(Speed)}",
-                 (config?.Speed.Value) ?? default,
-                 (config?.Speed.Enabled) ?? default, false);
-            JumpPower = CreateToggleServerSetting(
-                $"{team.TeamName}_{nameof(JumpPower)}",
-                (config?.JumpPower.Value) ?? default,
-                (config?.JumpPower.Enabled) ?? default, false);
-            Agility = CreateToggleServerSetting(
-                $"{team.TeamName}_{nameof(Agility)}",
-                (config?.Agility.Value) ?? default,
-                (config?.Agility.Enabled) ?? default, false);
-            StrengthUpper = CreateToggleServerSetting(
-                $"{team.TeamName}_{nameof(StrengthUpper)}",
-                (config?.StrengthUpper.Value) ?? default,
-                (config?.StrengthUpper.Enabled) ?? default, false);
+            Mortality = CreateSetting(nameof(Mortality), config?.Mortality ?? default);
+            CanUseGuns = CreateSetting(nameof(CanUseGuns), config?.CanUseGuns ?? default);
+            Vitality = CreateSetting(nameof(Vitality), config?.Vitality);
+            Speed = CreateSetting(nameof(Speed), config?.Speed);
+            JumpPower = CreateSetting(nameof(JumpPower), config?.JumpPower);
+            Agility = CreateSetting(nameof(Agility), config?.Agility);
+            StrengthUpper = CreateSetting(nameof(StrengthUpper), config?.StrengthUpper);
         }
+
+        private ToggleServerSetting<T> CreateSetting<T>(string name, ToggleSetting<T> config) where T : IEquatable<T>
+        {
+            T _value;
+            if (config == null)
+                _value = default;
+            else
+                _value = config.Value ?? default;
+
+            return CreateToggleServerSetting($"{Team.TeamName}_{name}", _value, config?.Enabled ?? default, false);
+        }
+
+        private ServerSetting<T> CreateSetting<T>(string name, T value) where T : IEquatable<T>
+            => CreateServerSetting($"{Team.TeamName}_{name}", value, false);
 
         public void ApplyConfig()
         {
