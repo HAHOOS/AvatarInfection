@@ -169,7 +169,7 @@ namespace AvatarInfection
 
             Metadata.OnMetadataChanged += OnMetadataChanged;
 
-            EventManager.RegisterEvent<string>(EventType.RefreshStats, RefreshStats, true);
+            EventManager.RegisterEvent<string>(EventType.RefreshStats, StatsManager.RefreshStats, true);
             EventManager.RegisterEvent<ulong>(EventType.PlayerInfected, PlayerInfected, true);
             EventManager.RegisterEvent<SwapAvatarData>(EventType.SwapAvatar, SwapAvatarEvent, true);
 
@@ -268,14 +268,6 @@ namespace AvatarInfection
 
             if (TeamManager.GetPlayerTeam(playerId) == null)
                 TeamManager.TryAssignTeam(playerId, Survivors.Team);
-        }
-
-        private void RefreshStats(string teamName)
-        {
-            Team team = TeamManager.GetTeamByName(teamName);
-
-            if (team != null && TeamManager.GetLocalTeam() == team)
-                SetStats();
         }
 
         private void InfectedLookingEvent()
@@ -402,7 +394,7 @@ namespace AvatarInfection
             if (!player.IsMe)
                 return;
 
-            SetStats();
+            StatsManager.ApplyStats();
 
             var config = GetInfectedTeam(team);
             config?.Metadata.CanUseGunsChanged();
@@ -501,39 +493,6 @@ namespace AvatarInfection
             return true;
         }
 
-        private static T? GetToggleValue<T>(ToggleServerSetting<T> serverSetting) where T : struct, IEquatable<T>
-        {
-            if (serverSetting == null)
-                return null;
-
-            if (serverSetting.ClientEnabled)
-                return serverSetting.ClientValue;
-            else
-                return null;
-        }
-
-        private static void Internal_SetStats(TeamMetadata metadata)
-        {
-            if (metadata == null)
-                return;
-
-            // Push nametag updates
-            FusionOverrides.ForceUpdateOverrides();
-
-            float? jumpPower = GetToggleValue(metadata.JumpPower);
-            float? speed = GetToggleValue(metadata.Speed);
-            float? agility = GetToggleValue(metadata.Agility);
-            float? strengthUpper = GetToggleValue(metadata.StrengthUpper);
-
-            FusionPlayerExtended.SetOverrides(jumpPower, speed, agility, strengthUpper);
-
-            // Force mortality
-            LocalHealth.MortalityOverride = metadata.Mortality.ClientValue;
-
-            if (metadata.Vitality.ClientEnabled)
-                LocalHealth.VitalityOverride = metadata.Vitality.ClientValue;
-        }
-
         // Tried to remove an unnecessary method and ended up still adding an unnecessary method
         // TODO: remove this
         public InfectionTeam? GetInfectedTeam(Team team)
@@ -548,17 +507,6 @@ namespace AvatarInfection
                 return InfectedChildren;
             else
                 return null;
-        }
-
-        internal void SetStats()
-        {
-            if (!IsStarted)
-                return;
-
-            if (TeamManager.GetLocalTeam() == null)
-                ClearOverrides();
-            else
-                Internal_SetStats(GetInfectedTeam(TeamManager.GetLocalTeam())?.Metadata);
         }
 
         private void ApplyGamemodeSettings()
@@ -610,7 +558,7 @@ namespace AvatarInfection
             FusionSceneManager.HookOnTargetLevelLoad(() =>
             {
                 BoneMenuManager.PopulatePage();
-                SetStats();
+                StatsManager.ApplyStats();
 
                 Config.SelectedPlayerOverride();
 
@@ -654,16 +602,6 @@ namespace AvatarInfection
             FusionPlayer.ResetSpawnPoints();
         }
 
-        private static void ClearOverrides()
-        {
-            // Reset mortality
-            LocalHealth.MortalityOverride = null;
-            LocalHealth.VitalityOverride = null;
-
-            FusionPlayerExtended.ClearAllOverrides();
-            FusionPlayerExtended.ClearAvatarOverride();
-        }
-
         public override void OnGamemodeStopped()
         {
             base.OnGamemodeStopped();
@@ -689,7 +627,7 @@ namespace AvatarInfection
 
                 ClearDeathmatchSpawns();
 
-                ClearOverrides();
+                StatsManager.ClearOverrides();
 
                 FusionOverrides.ForceUpdateOverrides();
             }
