@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 
+using AvatarInfection.Helper;
 using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
 
@@ -118,7 +119,7 @@ namespace AvatarInfection.Managers
                         TutorialRig.Instance.headTitles.CLOSEDISPLAY();
                     }
                     if (TeamManager.GetLocalTeam() == Infected)
-                        Infection.ShowNotification("Countdown Over", "GO AND INFECT THEM ALL!", 3.5f);
+                        MenuHelper.ShowNotification("Countdown Over", "GO AND INFECT THEM ALL!", 3.5f);
                 }
                 finally
                 {

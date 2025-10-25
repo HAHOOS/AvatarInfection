@@ -9,6 +9,7 @@ using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 using LabFusion.Menu.Gamemodes;
 using LabFusion.SDK.Gamemodes;
+using LabFusion.UI.Popups;
 
 namespace AvatarInfection.Helper
 {
@@ -117,6 +118,29 @@ namespace AvatarInfection.Helper
             var groupData = new GroupElementData(title);
             group.AddElement(groupData);
             return groupData;
+        }
+
+        public static void ShowNotification
+            (string title,
+             string message,
+             float popupLength,
+             bool showPopup = true,
+             NotificationType type = NotificationType.INFORMATION,
+             bool saveToMenu = false,
+             Action onAccepted = null,
+             Action onDeclined = null)
+        {
+            Notifier.Send(new Notification
+            {
+                Message = message,
+                Title = title,
+                PopupLength = popupLength,
+                ShowPopup = showPopup,
+                Type = type,
+                OnAccepted = onAccepted,
+                OnDeclined = onDeclined,
+                SaveToMenu = saveToMenu
+            });
         }
     }
 }

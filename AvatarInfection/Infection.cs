@@ -21,10 +21,6 @@ using LabFusion.Scene;
 using LabFusion.Senders;
 using LabFusion.Marrow.Integration;
 using LabFusion.SDK.Metadata;
-using LabFusion.RPC;
-using LabFusion.Preferences.Client;
-using LabFusion.Downloading;
-using LabFusion.Data;
 using LabFusion.UI.Popups;
 
 using UnityEngine;
@@ -185,7 +181,7 @@ namespace AvatarInfection
 
         private void OneMinuteLeftEvent()
         {
-            ShowNotification("Avatar Infection", "One minute left!", 3.5f);
+            MenuHelper.ShowNotification("Avatar Infection", "One minute left!", 3.5f);
             OneMinuteLeft = true;
         }
 
@@ -194,7 +190,7 @@ namespace AvatarInfection
             if (data.Target != PlayerIDManager.LocalPlatformID)
                 return;
 
-            SwapAvatar(data.Barcode);
+            FusionPlayerExtended.SwapAvatar(data.Barcode);
         }
 
         private new void OnMetadataChanged(string key, string value)
@@ -276,7 +272,7 @@ namespace AvatarInfection
                 return;
 
             if (!IsInfected(TeamManager.GetLocalTeam()))
-                ShowNotification("Run...", "The infected have awaken... you have to run... save yourselves.. please", 5f, type: NotificationType.WARNING);
+                MenuHelper.ShowNotification("Run...", "The infected have awaken... you have to run... save yourselves.. please", 5f, type: NotificationType.WARNING);
         }
 
         private void PlayerInfected(ulong userId)
@@ -305,7 +301,7 @@ namespace AvatarInfection
 
             if (playerId.IsMe && !HasBeenInfected)
             {
-                ShowNotification("Infected", "Oh no, you got infected! Now you have to infect others...", 4f);
+                MenuHelper.ShowNotification("Infected", "Oh no, you got infected! Now you have to infect others...", 4f);
 
                 HasBeenInfected = true;
             }
@@ -318,54 +314,13 @@ namespace AvatarInfection
                 if (Survivors.Team.PlayerCount > 1)
                     last = "the last survivor has fallen...";
 
-                ShowNotification(
+                MenuHelper.ShowNotification(
                     "Infected",
                     $"{_displayName} is now infected, {last} ({Survivors.Team.PlayerCount} survivors left)",
                     4f);
             }
 
             BoneMenuManager.PopulatePage();
-        }
-
-        internal static void SwapAvatar(string barcode, ModResult downloadResult = ModResult.SUCCEEDED)
-        {
-            if (string.IsNullOrWhiteSpace(barcode) || barcode == Il2CppSLZ.Marrow.Warehouse.Barcode.EMPTY)
-            {
-                Logger.Error("ALERT! ALERT! This is not supposed to fucking happen, what the fuck did you do that the SelectedAvatar is empty. Now relax, calm down and fix this issue\nfuck you rottencheese, this shit will never work.");
-                return;
-            }
-
-            if (Player.RigManager == null)
-                return;
-
-            if (CrateFilterer.HasCrate<AvatarCrate>(new(barcode)))
-            {
-                var obj = new GameObject("AI_PCFC");
-                var comp = obj.AddComponent<PullCordForceChange>();
-                comp.avatarCrate = new AvatarCrateReference(barcode);
-                comp.rigManager = Player.RigManager;
-                comp.ForceChange(comp.rigManager.gameObject);
-            }
-            else
-            {
-                if (!ClientSettings.Downloading.DownloadAvatars.Value)
-                    return;
-
-                if (downloadResult == ModResult.FAILED)
-                {
-                    Logger.Error($"Download of avatar '{barcode}' has failed, not setting avatar");
-                    return;
-                }
-
-                NetworkModRequester.RequestAndInstallMod(new NetworkModRequester.ModInstallInfo()
-                {
-                    Barcode = barcode,
-                    Target = PlayerIDManager.LocalSmallID,
-                    FinishDownloadCallback = (ev) => SwapAvatar(barcode, ev.result),
-                    MaxBytes = DataConversions.ConvertMegabytesToBytes(ClientSettings.Downloading.MaxFileSize.Value),
-                    HighPriority = true
-                });
-            }
         }
 
         private IEnumerator InfectedLookingWait()
@@ -410,33 +365,10 @@ namespace AvatarInfection
             InitialTeam = false;
 
             if (team != Infected.Team)
-                ShowNotification("Survivor", "You got lucky! Make sure you don't get infected!", 3);
+                MenuHelper.ShowNotification("Survivor", "You got lucky! Make sure you don't get infected!", 3);
 
             if (!InfectedLooking.GetValue())
                 VisionManager.HideVisionAndReveal(team != Infected.Team ? 3 : 0);
-        }
-
-        public static void ShowNotification
-            (string title,
-             string message,
-             float popupLength,
-             bool showPopup = true,
-             NotificationType type = NotificationType.INFORMATION,
-             bool saveToMenu = false,
-             Action onAccepted = null,
-             Action onDeclined = null)
-        {
-            Notifier.Send(new Notification
-            {
-                Message = message,
-                Title = title,
-                PopupLength = popupLength,
-                ShowPopup = showPopup,
-                Type = type,
-                OnAccepted = onAccepted,
-                OnDeclined = onDeclined,
-                SaveToMenu = saveToMenu
-            });
         }
 
         protected override void OnUpdate()

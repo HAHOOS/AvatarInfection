@@ -1,11 +1,18 @@
 ﻿using BoneLib;
 
+using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.Bonelab.SaveData;
 using Il2CppSLZ.Marrow.Warehouse;
 
+using LabFusion.Data;
+using LabFusion.Downloading;
 using LabFusion.Marrow;
 using LabFusion.Player;
+using LabFusion.Preferences.Client;
+using LabFusion.RPC;
 using LabFusion.Utilities;
+
+using UnityEngine;
 
 namespace AvatarInfection.Utilities
 {
@@ -112,6 +119,47 @@ namespace AvatarInfection.Utilities
                 LastAvatar = null;
                 rm.SwapAvatarCrate(new Barcode(last), true);
                 DataManager.ActiveSave.PlayerSettings.CurrentAvatar = last;
+            }
+        }
+
+        internal static void SwapAvatar(string barcode, ModResult downloadResult = ModResult.SUCCEEDED)
+        {
+            if (string.IsNullOrWhiteSpace(barcode) || barcode == Barcode.EMPTY)
+            {
+                FusionModule.Logger.Error("ALERT! ALERT! This is not supposed to fucking happen, what the fuck did you do that the SelectedAvatar is empty. Now relax, calm down and fix this issue\nfuck you rottencheese, this shit will never work.");
+                return;
+            }
+
+            if (Player.RigManager == null)
+                return;
+
+            if (CrateFilterer.HasCrate<AvatarCrate>(new(barcode)))
+            {
+                var obj = new GameObject("AI_PCFC");
+                var comp = obj.AddComponent<PullCordForceChange>();
+                comp.avatarCrate = new AvatarCrateReference(barcode);
+                comp.rigManager = Player.RigManager;
+                comp.ForceChange(comp.rigManager.gameObject);
+            }
+            else
+            {
+                if (!ClientSettings.Downloading.DownloadAvatars.Value)
+                    return;
+
+                if (downloadResult == ModResult.FAILED)
+                {
+                    FusionModule.Logger.Error($"Download of avatar '{barcode}' has failed, not setting avatar");
+                    return;
+                }
+
+                NetworkModRequester.RequestAndInstallMod(new NetworkModRequester.ModInstallInfo()
+                {
+                    Barcode = barcode,
+                    Target = PlayerIDManager.LocalSmallID,
+                    FinishDownloadCallback = (ev) => SwapAvatar(barcode, ev.result),
+                    MaxBytes = DataConversions.ConvertMegabytesToBytes(ClientSettings.Downloading.MaxFileSize.Value),
+                    HighPriority = true
+                });
             }
         }
     }

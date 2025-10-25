@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
+using AvatarInfection.Helper;
+
 using LabFusion.Extensions;
 using LabFusion.SDK.Triggers;
 using LabFusion.UI.Popups;
@@ -96,7 +98,7 @@ namespace AvatarInfection.Managers
                 if (!Infection.Instance.IsStarted)
                     return;
 
-                Infection.ShowNotification(title, message, popupDuration, showPopup, type, saveToMenu, onAccepted, onDeclined);
+                MenuHelper.ShowNotification(title, message, popupDuration, showPopup, type, saveToMenu, onAccepted, onDeclined);
             }, serverOnly);
         }
 

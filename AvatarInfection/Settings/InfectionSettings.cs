@@ -1,4 +1,6 @@
-﻿using static AvatarInfection.Infection;
+﻿using AvatarInfection.Utilities;
+
+using static AvatarInfection.Infection;
 
 namespace AvatarInfection.Settings
 {
@@ -93,7 +95,7 @@ namespace AvatarInfection.Settings
                 return;
             }
 
-            SwapAvatar(SelectedAvatar.ClientValue);
+            FusionPlayerExtended.SwapAvatar(SelectedAvatar.ClientValue);
         }
     }
 }
