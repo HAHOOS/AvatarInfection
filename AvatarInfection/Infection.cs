@@ -320,10 +320,15 @@ namespace AvatarInfection
             else if (!playerId.IsMe)
             {
                 playerId.TryGetDisplayName(out var displayName);
+                string _displayName = string.IsNullOrWhiteSpace(displayName) ? "N/A" : displayName;
+                string last = "look out for them...";
+
+                if (Survivors.Team.PlayerCount > 1)
+                    last = "the last survivor has fallen...";
 
                 ShowNotification(
                     "Infected",
-                    $"{(string.IsNullOrWhiteSpace(displayName) ? "N/A" : displayName)} is now infected, {(Survivors.Team.PlayerCount > 1 ? "look out for them..." : "the last survivor has fallen...")} ({Survivors.Team.PlayerCount} survivors left)",
+                    $"{_displayName} is now infected, {last} ({Survivors.Team.PlayerCount} survivors left)",
                     4f);
             }
 
@@ -496,6 +501,17 @@ namespace AvatarInfection
             return true;
         }
 
+        private static T? GetToggleValue<T>(ToggleServerSetting<T> serverSetting) where T : struct, IEquatable<T>
+        {
+            if (serverSetting == null)
+                return null;
+
+            if (serverSetting.ClientEnabled)
+                return serverSetting.ClientValue;
+            else
+                return null;
+        }
+
         private static void Internal_SetStats(TeamMetadata metadata)
         {
             if (metadata == null)
@@ -504,17 +520,18 @@ namespace AvatarInfection
             // Push nametag updates
             FusionOverrides.ForceUpdateOverrides();
 
-            float? jumpPower = metadata.JumpPower.ClientEnabled ? metadata.JumpPower.ClientValue : null;
-            float? speed = metadata.Speed.ClientEnabled ? metadata.Speed.ClientValue : null;
-            float? agility = metadata.Agility.ClientEnabled ? metadata.Agility.ClientValue : null;
-            float? strengthUpper = metadata.StrengthUpper.ClientEnabled ? metadata.StrengthUpper.ClientValue : null;
+            float? jumpPower = GetToggleValue(metadata.JumpPower);
+            float? speed = GetToggleValue(metadata.Speed);
+            float? agility = GetToggleValue(metadata.Agility);
+            float? strengthUpper = GetToggleValue(metadata.StrengthUpper);
 
             FusionPlayerExtended.SetOverrides(jumpPower, speed, agility, strengthUpper);
 
             // Force mortality
             LocalHealth.MortalityOverride = metadata.Mortality.ClientValue;
 
-            if (metadata.Vitality.ClientEnabled) LocalHealth.VitalityOverride = metadata.Vitality.ClientValue;
+            if (metadata.Vitality.ClientEnabled)
+                LocalHealth.VitalityOverride = metadata.Vitality.ClientValue;
         }
 
         // Tried to remove an unnecessary method and ended up still adding an unnecessary method
