@@ -62,7 +62,7 @@ namespace AvatarInfection.Patches
             if (!NetworkPlayerManager.TryGetPlayer(plrEntity, out var player))
                 return;
 
-            if (Infection.Instance.TeamManager.GetPlayerTeam(player.PlayerID) == Infection.Instance.Survivors.Team)
+            if (Infection.Instance.TeamManager.GetPlayerTeam(player.PlayerID) == Infection.Instance.Survivors)
                 return;
 
             if (!grip._marrowEntity)
@@ -71,7 +71,7 @@ namespace AvatarInfection.Patches
             if (!NetworkPlayerManager.TryGetPlayer(grip._marrowEntity, out var otherPlayer))
                 return;
 
-            if (Infection.Instance.TeamManager.GetPlayerTeam(otherPlayer.PlayerID) == Infection.Instance.Survivors.Team)
+            if (Infection.Instance.TeamManager.GetPlayerTeam(otherPlayer.PlayerID) == Infection.Instance.Survivors)
             {
                 var longId = otherPlayer.PlayerID.PlatformID;
 
@@ -174,11 +174,11 @@ namespace AvatarInfection.Patches
                 return true;
 
             TeamMetadata config;
-            if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected.Team)
+            if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected)
             {
                 config = Infection.Instance.Infected.Metadata;
             }
-            else if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren.Team)
+            else if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren)
             {
                 if (Infection.Instance.Config.SyncWithInfected.Value)
                     config = Infection.Instance.Infected.Metadata;
@@ -225,7 +225,7 @@ namespace AvatarInfection.Patches
                     if (!NetworkPlayerManager.TryGetPlayer(grip._marrowEntity, out var player))
                         continue;
 
-                    if (Infection.Instance.TeamManager.GetPlayerTeam(player.PlayerID) == Infection.Instance.Infected.Team)
+                    if (Infection.Instance.TeamManager.GetPlayerTeam(player.PlayerID) == Infection.Instance.Infected)
                         continue;
 
                     HoldTime.Remove(grip);

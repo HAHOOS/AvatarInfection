@@ -162,7 +162,7 @@ namespace AvatarInfection.Managers
             group.AddElement("Strength Upper", team.Metadata.StrengthUpper.ClientValue, (val) => { team.Metadata.StrengthUpper.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
             group.AddElement($"Increment: {Increment}", () =>
             {
-                var group = string.Format(TeamConfigName, team.Metadata.Team.DisplayName);
+                var group = string.Format(TeamConfigName, team.Team.DisplayName);
 
                 IncrementIndex++;
                 IncrementIndex %= IncrementValues.Count;

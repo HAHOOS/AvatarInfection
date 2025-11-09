@@ -66,8 +66,8 @@ namespace AvatarInfection.Patches
                     }
                     else
                     {
-                        if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected.Team
-                            || Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren.Team)
+                        if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected
+                            || Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren)
                         {
                             __result = new UniTask<bool>(true);
                             Ignore = true;
@@ -82,7 +82,7 @@ namespace AvatarInfection.Patches
                     }
                 }
 
-                bool returned = Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Survivors.Team;
+                bool returned = Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Survivors;
 
                 if (!returned) __result = new UniTask<bool>(true);
 

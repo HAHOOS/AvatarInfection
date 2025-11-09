@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
@@ -33,7 +29,7 @@ namespace AvatarInfection.Managers
             if (Infection.Instance.TeamManager.GetLocalTeam() == null)
                 ClearOverrides();
             else
-                Internal_SetStats(Infection.Instance.GetInfectedTeam(Infection.Instance.TeamManager.GetLocalTeam())?.Metadata);
+                Internal_SetStats(Infection.Instance.TeamManager.GetLocalTeam().Metadata);
         }
 
         private static T? GetToggleValue<T>(ToggleServerSetting<T> serverSetting) where T : struct, IEquatable<T>
@@ -71,7 +67,7 @@ namespace AvatarInfection.Managers
 
         internal static void RefreshStats(string teamName)
         {
-            Team team = Infection.Instance.TeamManager.GetTeamByName(teamName);
+            var team = Infection.Instance.TeamManager.GetTeamByName(teamName);
 
             if (team != null && Infection.Instance.TeamManager.GetLocalTeam() == team)
                 ApplyStats();

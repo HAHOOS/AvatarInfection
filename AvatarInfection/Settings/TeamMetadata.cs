@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using BoneLib;
 
@@ -90,7 +89,7 @@ namespace AvatarInfection.Settings
 
         internal void CanUseGunsChanged()
         {
-            if (Infection.Instance.TeamManager.GetLocalTeam() == Team && !CanUseGuns.ClientValue)
+            if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.TeamManager.GetInfectionTeamFromTeam(Team) && !CanUseGuns.ClientValue)
             {
                 CheckForGun(Player.LeftHand);
                 CheckForGun(Player.RightHand);
