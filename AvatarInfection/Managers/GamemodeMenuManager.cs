@@ -183,13 +183,16 @@ namespace AvatarInfection.Managers
 
             return group;
         }
-
-        internal static void RefreshSettingsPage()
-        {
-            typeof(LabFusion.Menu.Gamemodes.MenuGamemode)
+        // For some reason, visual studio deems the suppression unnecessary, but if I remove it, it gives me a fucking warning, very logical.
+        // Copilot stop trying to suggest me how to write commands. pretty please.
+#pragma warning disable IDE0079 // Remove unnecessary suppression
+#pragma warning disable S3011 // Make sure that this accessibility bypass is safe here
+        private static void RefreshSettingsPage() => typeof(LabFusion.Menu.Gamemodes.MenuGamemode)
                 .GetMethod("OverrideSettingsPage",
                             bindingAttr: System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
                 .Invoke(null, [Instance]);
-        }
+
+#pragma warning restore S3011 // Make sure that this accessibility bypass is safe here
+#pragma warning restore IDE0079 // Remove unnecessary suppression
     }
 }

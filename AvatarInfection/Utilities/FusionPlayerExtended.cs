@@ -1,8 +1,11 @@
-﻿using BoneLib;
+﻿using System.Threading.Channels;
+
+using BoneLib;
 
 using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.Bonelab.SaveData;
 using Il2CppSLZ.Marrow.Warehouse;
+using Il2CppSLZ.VRMK;
 
 using LabFusion.Data;
 using LabFusion.Downloading;
@@ -13,6 +16,8 @@ using LabFusion.RPC;
 using LabFusion.Utilities;
 
 using UnityEngine;
+
+using static BoneLib.CommonBarcodes;
 
 namespace AvatarInfection.Utilities
 {
@@ -37,39 +42,47 @@ namespace AvatarInfection.Utilities
             JumpPowerOverride = jumpPower;
             AgilityOverride = agility;
             StrengthUpperOverride = strengthUpper;
-            if (Player.RigManager != null)
+
+            var rm = Player.RigManager;
+            var avatar = rm?._avatar;
+
+            if (avatar != null)
             {
-                var rm = Player.RigManager;
-                var avatar = rm._avatar;
-                if (avatar != null)
+                bool changed = false;
+
+                if (SetOverrideValue(AgilityOverride, avatar._agility, ref changed, out float res))
+                    avatar._agility = res;
+
+                if (SetOverrideValue(JumpPowerOverride, avatar._strengthLower, ref changed, out float res2))
+                    avatar._strengthLower = res2;
+
+                if (SetOverrideValue(SpeedOverride, avatar._speed, ref changed, out float res3))
+                    avatar._speed = res3;
+
+                if (SetOverrideValue(StrengthUpperOverride, avatar._strengthUpper, ref changed, out float res4))
                 {
-                    bool changed = false;
-                    if (AgilityOverride.HasValue && !avatar._agility.Equals(AgilityOverride.Value))
-                    {
-                        changed = true;
-                        avatar._agility = AgilityOverride.Value;
-                    }
-                    if (JumpPowerOverride.HasValue && !avatar._strengthLower.Equals(JumpPowerOverride.Value))
-                    {
-                        changed = true;
-                        avatar._strengthLower = JumpPowerOverride.Value;
-                    }
-                    if (SpeedOverride.HasValue && !avatar._speed.Equals(SpeedOverride.Value))
-                    {
-                        changed = true;
-                        avatar._speed = SpeedOverride.Value;
-                    }
-                    if (StrengthUpperOverride.HasValue && !avatar._strengthUpper.Equals(StrengthUpperOverride.Value))
-                    {
-                        changed = true;
-                        avatar._strengthUpper = StrengthUpperOverride.Value;
-                        avatar._strengthGrip = StrengthUpperOverride.Value;
-                    }
-                    if (changed)
-                        rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
+                    avatar._strengthUpper = res4;
+                    avatar._strengthGrip = res4;
                 }
+
+                if (changed)
+                    rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
+
             }
         }
+
+        private static bool SetOverrideValue(float? _override, float? actual, ref bool changed, out float res)
+        {
+            if (_override.HasValue && !actual.Equals(AgilityOverride.Value))
+            {
+                changed = true;
+                res = _override.Value;
+                return true;
+            }
+            res = -1f;
+            return false;
+        }
+
 
         internal static void ClearAllOverrides()
         {

@@ -49,9 +49,9 @@ namespace AvatarInfection
 
         public override bool DisableSpawnGun => Config?.DisableSpawnGun?.ClientValue ?? true;
 
-#pragma warning disable VSSpell001 // Spell Check - i sometimes fucking hate this extension, shut up sometimes please
+
         public override bool DisableDevTools => Config?.DisableDevTools?.ClientValue ?? true;
-#pragma warning restore VSSpell001 // Spell Check
+
 
         public override bool AutoHolsterOnDeath => true;
 
@@ -545,7 +545,7 @@ namespace AvatarInfection
             }
         }
 
-        // TODO: Patch the PullCordDevice to not appear instead of disabling it completely, which sometimes does not revert to the initial state
+        // TODO: Patch the PullCordDevice to not appear instead of disabling it completely, which sometimes does not revert to the initial state (high priority)
         public static void SetBodyLog(bool enabled)
         {
             if (IsBodyLogEnabled == enabled)
@@ -611,29 +611,36 @@ namespace AvatarInfection
 
         protected void OnPlayerAction(PlayerID player, PlayerActionType type, PlayerID otherPlayer = null)
         {
-            if (!IsStarted)
+            if (!IsStarted || !NetworkInfo.IsHost)
                 return;
 
             if (type == PlayerActionType.DYING_BY_OTHER_PLAYER)
-            {
-                if (!NetworkInfo.IsHost || otherPlayer == null || Config.InfectType.Value != InfectType.DEATH)
-                    return;
-
-                if (TeamManager.GetPlayerTeam(player) == Survivors && IsInfected(TeamManager.GetPlayerTeam(otherPlayer)))
-                    EventManager.TryInvokeEvent(EventType.PlayerInfected, player.PlatformID);
-            }
+                KilledEvent(player, otherPlayer);
             else if (type == PlayerActionType.DYING)
-            {
-                if (!NetworkInfo.IsHost || !Config.SuicideInfects.Value || otherPlayer != null)
-                    return;
+                DyingEvent(player, otherPlayer);
 
-                if (LastPlayerActions.ContainsKey(player) && LastPlayerActions[player] == PlayerActionType.DYING_BY_OTHER_PLAYER)
-                    return;
-
-                if (TeamManager.GetPlayerTeam(player) == Survivors)
-                    EventManager.TryInvokeEvent(EventType.PlayerInfected, player.PlatformID);
-            }
             LastPlayerActions[player] = type;
+        }
+
+        private void DyingEvent(PlayerID player, PlayerID otherPlayer)
+        {
+            if (!Config.SuicideInfects.Value || otherPlayer != null)
+                return;
+
+            if (LastPlayerActions.ContainsKey(player) && LastPlayerActions[player] == PlayerActionType.DYING_BY_OTHER_PLAYER)
+                return;
+
+            if (TeamManager.GetPlayerTeam(player) == Survivors)
+                EventManager.TryInvokeEvent(EventType.PlayerInfected, player.PlatformID);
+        }
+
+        private void KilledEvent(PlayerID player, PlayerID killer)
+        {
+            if (killer == null || Config.InfectType.Value != InfectType.DEATH)
+                return;
+
+            if (TeamManager.GetPlayerTeam(player) == Survivors && IsInfected(TeamManager.GetPlayerTeam(killer)))
+                EventManager.TryInvokeEvent(EventType.PlayerInfected, player.PlatformID);
         }
 
         public enum InfectType

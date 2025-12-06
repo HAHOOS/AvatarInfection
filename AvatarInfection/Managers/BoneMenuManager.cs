@@ -7,7 +7,6 @@ using BoneLib.BoneMenu;
 
 using LabFusion.Network;
 using LabFusion.Player;
-using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
 
 using UnityEngine;
@@ -81,31 +80,25 @@ namespace AvatarInfection.Managers
                 Teams.Add(player, team);
             }
 
-            var infected = Teams.Any(x => x.Value == Infection.Instance.Infected) ?
-                ModPage.CreatePage($"Infected ({Teams.Count(x => x.Value == Infection.Instance.Infected)})", Color.green) : null;
-            var children = Teams.Any(x => x.Value == Infection.Instance.InfectedChildren) ?
-                ModPage.CreatePage($"Infected Children ({Teams.Count(x => x.Value == Infection.Instance.InfectedChildren)})", new Color(0, 1, 0)) : null;
-            var survivors = Teams.Any(x => x.Value == Infection.Instance.Survivors) ?
-                ModPage.CreatePage($"Survivors ({Teams.Count(x => x.Value == Infection.Instance.Survivors)})", Color.cyan) : null;
+            List<TeamPage> teamPages = [];
 
-            var unidentified = Teams.Any(x => x.Value == null) ?
-                ModPage.CreatePage($"Unidentified ({Teams.Count(x => x.Value == null)})", Color.gray) : null;
+            teamPages.Add(Teams.Any(x => x.Value == Infection.Instance.Infected) ?
+                new(ModPage.CreatePage($"Infected ({Teams.Count(x => x.Value == Infection.Instance.Infected)})", Color.green), Infection.Instance.Infected) : null);
+            teamPages.Add(Teams.Any(x => x.Value == Infection.Instance.InfectedChildren) ?
+                new(ModPage.CreatePage($"Infected Children ({Teams.Count(x => x.Value == Infection.Instance.InfectedChildren)})", new Color(0, 1, 0)), Infection.Instance.InfectedChildren) : null);
+
+            teamPages.Add(Teams.Any(x => x.Value == Infection.Instance.Survivors) ?
+                new(ModPage.CreatePage($"Survivors ({Teams.Count(x => x.Value == Infection.Instance.Survivors)})", Color.cyan), Infection.Instance.Survivors) : null);
+
+            teamPages.Add(Teams.Any(x => x.Value == null) ?
+                new(ModPage.CreatePage($"Unidentified ({Teams.Count(x => x.Value == null)})", Color.gray), null) : null);
 
             foreach (var team in Teams)
             {
                 if (!team.Key.TryGetDisplayName(out var displayName))
                     continue;
 
-                BoneLib.BoneMenu.Page page;
-
-                if (team.Value == Infection.Instance.Infected)
-                    page = infected;
-                else if (team.Value == Infection.Instance.InfectedChildren)
-                    page = children;
-                else if (team.Value == Infection.Instance.Survivors)
-                    page = survivors;
-                else
-                    page = unidentified;
+                BoneLib.BoneMenu.Page page = teamPages.FirstOrDefault(x => x.Team.Team.TeamName == team.Value.Team.TeamName)?.Page;
 
                 if (page == null)
                     continue;
@@ -113,5 +106,12 @@ namespace AvatarInfection.Managers
                 page.CreateFunction(displayName, Color.white, null);
             }
         }
+    }
+
+    internal class TeamPage(Page page, InfectionTeam team)
+    {
+        public Page Page { get; private set; } = page;
+
+        public InfectionTeam Team { get; private set; } = team;
     }
 }

@@ -4,7 +4,6 @@ using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
 
 using LabFusion.Player;
-using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
 
 namespace AvatarInfection.Managers
