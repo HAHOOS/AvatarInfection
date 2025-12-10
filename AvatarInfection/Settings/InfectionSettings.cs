@@ -30,7 +30,7 @@ namespace AvatarInfection.Settings
 
         internal LocalSetting<AvatarSelectMode> SelectMode { get; set; }
 
-        internal LocalSetting<bool> SyncWithInfected { get; set; }
+        internal LocalSetting<bool> AddInfectedChildrenTeam { get; set; }
 
         internal LocalSetting<int> TimeLimit { get; set; }
 
@@ -79,7 +79,7 @@ namespace AvatarInfection.Settings
             NoTimeLimit = CreateLocalSetting(nameof(NoTimeLimit), Constants.Defaults.NoTimeLimit);
             SelectMode = CreateLocalSetting(nameof(SelectMode), Constants.Defaults.SelectMode);
             SuicideInfects = CreateLocalSetting(nameof(SuicideInfects), Constants.Defaults.SuicideInfects);
-            SyncWithInfected = CreateLocalSetting(nameof(SyncWithInfected), Constants.Defaults.SyncWithInfected);
+            AddInfectedChildrenTeam = CreateLocalSetting(nameof(AddInfectedChildrenTeam), Constants.Defaults.AddInfectedChildrenTeam);
             TeleportOnStart = CreateLocalSetting(nameof(TeleportOnStart), Constants.Defaults.TeleportOnStart);
             TimeLimit = CreateLocalSetting(nameof(TimeLimit), Constants.Defaults.TimeLimit);
         }

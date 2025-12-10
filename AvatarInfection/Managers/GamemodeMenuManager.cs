@@ -71,7 +71,8 @@ namespace AvatarInfection.Managers
 
             group.AddElement(CreateElementsForTeam(Instance.Infected));
 
-            group.AddElement(CreateElementsForTeam(Instance.InfectedChildren));
+            if (Instance.Config.AddInfectedChildrenTeam.Value)
+                group.AddElement(CreateElementsForTeam(Instance.InfectedChildren));
 
             group.AddElement(CreateElementsForTeam(Instance.Survivors));
             GroupElementData generalGroup = group.AddGroup("General");
@@ -141,7 +142,7 @@ namespace AvatarInfection.Managers
                 if (Instance.IsStarted)
                 {
                     var _metadata = team.Metadata;
-                    if (team.Team == Instance.InfectedChildren.Team && Instance.Config.SyncWithInfected.Value)
+                    if (team.Team == Instance.InfectedChildren.Team && !Instance.Config.AddInfectedChildrenTeam.Value)
                         _metadata = Instance.Infected.Metadata;
 
                     if (_metadata.IsApplied)
@@ -178,8 +179,8 @@ namespace AvatarInfection.Managers
                 Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Vitality", (el) => el.Increment = Increment);
             });
 
-            if (team.Team == Instance.InfectedChildren.Team)
-                group.AddElement("Sync with Infected", Instance.Config.SyncWithInfected.Value, (val) => Instance.Config.SyncWithInfected.Value = val);
+            if (team.Team == Instance.Infected.Team)
+                group.AddElement("Add Infected Children Team", Instance.Config.AddInfectedChildrenTeam.Value, (val) => Instance.Config.AddInfectedChildrenTeam.Value = val);
 
             return group;
         }

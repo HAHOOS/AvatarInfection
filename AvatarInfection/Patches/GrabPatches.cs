@@ -180,7 +180,7 @@ namespace AvatarInfection.Patches
             }
             else if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren)
             {
-                if (Infection.Instance.Config.SyncWithInfected.Value)
+                if (!Infection.Instance.Config.AddInfectedChildrenTeam.Value)
                     config = Infection.Instance.Infected.Metadata;
                 else
                     config = Infection.Instance.InfectedChildren.Metadata;
