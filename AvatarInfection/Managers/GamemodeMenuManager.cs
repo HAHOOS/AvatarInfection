@@ -6,6 +6,8 @@ using AvatarInfection.Settings;
 
 using BoneLib;
 
+using Il2CppSLZ.Marrow;
+
 using LabFusion.Menu.Data;
 
 using static AvatarInfection.Infection;
@@ -43,29 +45,7 @@ namespace AvatarInfection.Managers
 
             GroupElementData avatarGroup = group.AddGroup("Avatar");
 
-            avatarGroup.AddElement("Selected Avatar: N/A", () =>
-            {
-                if (Instance.IsStarted)
-                    return;
-
-                var rigManager = Player.RigManager;
-                if (rigManager?.AvatarCrate?.Barcode != null)
-                {
-                    var avatar = rigManager.AvatarCrate.Barcode.ID;
-
-                    if (string.IsNullOrWhiteSpace(avatar))
-                        return;
-                    Instance.Config.SelectedAvatar.ClientValue = avatar;
-
-                    string title = !string.IsNullOrWhiteSpace(rigManager.AvatarCrate?.Scannable?.Title) ? rigManager.AvatarCrate.Scannable.Title : "N/A";
-
-                    Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
-                        avatarGroup.Title,
-                        "Selected Avatar:",
-                        (element) => element.Title = $"Selected Avatar: {title}",
-                    true);
-                }
-            });
+            avatarGroup.AddElement("Selected Avatar: N/A", SelectNewAvatar);
 
             avatarGroup.AddElement("Select Mode", Instance.Config.SelectMode.Value, (val) => Instance.Config.SelectMode.Value = (AvatarSelectMode)val);
 
@@ -120,6 +100,30 @@ namespace AvatarInfection.Managers
             });
 
             return group;
+        }
+
+        private static void SelectNewAvatar()
+        {
+            if (Instance.IsStarted)
+                return;
+
+            var rigManager = Player.RigManager;
+            if (rigManager?.AvatarCrate?.Barcode != null)
+            {
+                var avatar = rigManager.AvatarCrate.Barcode.ID;
+
+                if (string.IsNullOrWhiteSpace(avatar))
+                    return;
+                Instance.Config.SelectedAvatar.ClientValue = avatar;
+
+                string title = !string.IsNullOrWhiteSpace(rigManager.AvatarCrate?.Scannable?.Title) ? rigManager.AvatarCrate.Scannable.Title : "N/A";
+
+                Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
+                    "Avatar",
+                    "Selected Avatar:",
+                    (element) => element.Title = $"Selected Avatar: {title}",
+                true);
+            }
         }
 
         internal static GroupElementData CreateElementsForTeam(InfectionTeam team)
