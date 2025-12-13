@@ -98,7 +98,7 @@ namespace AvatarInfection.Managers
                 if (!team.Key.TryGetDisplayName(out var displayName))
                     continue;
 
-                BoneLib.BoneMenu.Page page = teamPages.FirstOrDefault(x => x.Team.Team.TeamName == team.Value.Team.TeamName)?.Page;
+                BoneLib.BoneMenu.Page page = teamPages.FirstOrDefault(x => (x.Team == null && team.Value == null) || (x.Team?.Team?.TeamName == team.Value?.Team?.TeamName))?.Page;
 
                 if (page == null)
                     continue;

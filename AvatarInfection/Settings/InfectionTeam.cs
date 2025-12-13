@@ -23,5 +23,9 @@ namespace AvatarInfection.Settings
             Team = team;
             Metadata = new(team, gamemode, config);
         }
+
+        public override bool Equals(object obj)
+            => obj is InfectionTeam team &&
+               Team == team.Team;
     }
 }
