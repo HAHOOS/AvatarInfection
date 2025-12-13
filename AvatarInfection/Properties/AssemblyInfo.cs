@@ -11,6 +11,7 @@ using AvatarInfection;
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
 [assembly: MelonColor(0, 0, 255, 0)]
 [assembly: MelonAuthorColor(0, 255, 165, 0)]
+[assembly: MelonOptionalDependencies("LabFusion")]
 
 #endregion MelonLoader
 
