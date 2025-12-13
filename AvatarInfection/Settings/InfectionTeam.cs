@@ -25,7 +25,11 @@ namespace AvatarInfection.Settings
         }
 
         public override bool Equals(object obj)
-            => obj is InfectionTeam team &&
-               Team == team.Team;
+            => obj is not null && (ReferenceEquals(this, obj) || (obj is InfectionTeam team && Team == team.Team)
+            || (obj is Team team1 && Team == team1)
+            || (obj is TeamMetadata metadata && metadata.Team == Team));
+
+        public override int GetHashCode()
+            => Team.GetHashCode();
     }
 }
