@@ -57,35 +57,43 @@ namespace AvatarInfection.Settings
         {
             Name = name;
             Entry = Core.Category.CreateEntry(name, ClientValue);
-            GamemodeManager.OnGamemodeStarted += () =>
-            {
-                if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsHost)
-                    Sync();
-            };
-            MultiplayerHooking.OnJoinedServer += () =>
-            {
-                if (NetworkInfo.IsHost)
-                    return;
-                _clientValue = ServerValue.GetValue();
-            };
-            MultiplayerHooking.OnTargetLevelLoaded += () =>
-            {
-                if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
-                    return;
-                _clientValue = ServerValue.GetValue();
-            };
+            GamemodeManager.OnGamemodeStarted += OnGamemodeStarted;
+            MultiplayerHooking.OnJoinedServer += OnJoinedServer;
+            MultiplayerHooking.OnTargetLevelLoaded += OnTargetLevelLoaded;
+            gamemode.Metadata.OnMetadataChanged += MetadataChanged;
 
-            gamemode.Metadata.OnMetadataChanged += (key, _) =>
-            {
-                if (key == ServerValue.Key)
-                {
-                    var old = _clientValue;
-                    _clientValue = ServerValue.GetValue();
+        }
 
-                    if (!old.Equals(_clientValue))
-                        OnValueChanged?.Invoke();
-                }
-            };
+        private void OnGamemodeStarted()
+        {
+            if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsHost)
+                Sync();
+        }
+
+        private void OnJoinedServer()
+        {
+            if (NetworkInfo.IsHost)
+                return;
+            _clientValue = ServerValue.GetValue();
+        }
+
+        private void OnTargetLevelLoaded()
+        {
+            if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
+                return;
+            _clientValue = ServerValue.GetValue();
+        }
+
+        private void MetadataChanged(string key, string value)
+        {
+            if (key == ServerValue.Key)
+            {
+                var old = _clientValue;
+                _clientValue = ServerValue.GetValue();
+
+                if (!old.Equals(_clientValue))
+                    OnValueChanged?.Invoke();
+            }
         }
 
         public ServerSetting(Gamemode gamemode, string name, bool autoSync = true)
@@ -178,47 +186,54 @@ namespace AvatarInfection.Settings
             Name = name;
             Entry = Core.Category.CreateEntry(name, ClientValue);
             EnabledEntry = Core.Category.CreateEntry($"{name}_Enabled", ClientEnabled);
-            GamemodeManager.OnGamemodeStarted += () =>
+            GamemodeManager.OnGamemodeStarted += OnGamemodeStarted;
+            MultiplayerHooking.OnJoinedServer += OnJoinedServer;
+            MultiplayerHooking.OnTargetLevelLoaded += OnTargetLevelLoaded;
+            gamemode.Metadata.OnMetadataChanged += MetadataChanged;
+
+        }
+
+        private void OnGamemodeStarted()
+        {
+            if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsHost)
+                Sync();
+        }
+
+        private void OnJoinedServer()
+        {
+            if (NetworkInfo.IsHost)
+                return;
+            _clientValue = ServerValue.GetValue();
+            _clientEnabled = ServerValue.IsEnabled;
+        }
+
+        private void OnTargetLevelLoaded()
+        {
+            if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
+                return;
+            _clientValue = ServerValue.GetValue();
+            _clientEnabled = ServerValue.IsEnabled;
+        }
+
+        private void MetadataChanged(string key, string value)
+        {
+            if (key == ServerValue.Key)
             {
-                if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsHost)
-                    Sync();
-            };
-            MultiplayerHooking.OnJoinedServer += () =>
-            {
-                if (NetworkInfo.IsHost)
-                    return;
+                var old = _clientValue;
                 _clientValue = ServerValue.GetValue();
-                _clientEnabled = ServerValue.IsEnabled;
-            };
-            MultiplayerHooking.OnTargetLevelLoaded += () =>
-            {
-                if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
-                    return;
-                _clientValue = ServerValue.GetValue();
-                _clientEnabled = ServerValue.IsEnabled;
-            };
 
-            gamemode.Metadata.OnMetadataChanged += (key, _) =>
-            {
-                if (key == ServerValue.Key)
-                {
-                    var old = _clientValue;
-                    _clientValue = ServerValue.GetValue();
-
-                    if (!old.Equals(_clientValue))
-                        OnValueChanged?.Invoke();
-                }
-                else if (key == ServerValue.ToggledKey)
-                {
-                    if (ClientEnabled == ServerValue.IsEnabled)
-                        return;
-
-                    _clientEnabled = ServerValue.IsEnabled;
-
+                if (!old.Equals(_clientValue))
                     OnValueChanged?.Invoke();
-                }
-            };
+            }
+            else if (key == ServerValue.ToggledKey)
+            {
+                if (ClientEnabled == ServerValue.IsEnabled)
+                    return;
 
+                _clientEnabled = ServerValue.IsEnabled;
+
+                OnValueChanged?.Invoke();
+            }
         }
 
         public ToggleServerSetting(Gamemode gamemode, string name, bool autoSync = true)
