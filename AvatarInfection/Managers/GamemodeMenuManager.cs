@@ -6,10 +6,7 @@ using AvatarInfection.Settings;
 
 using BoneLib;
 
-using Il2CppSLZ.Marrow;
-
 using LabFusion.Menu.Data;
-using LabFusion.SDK.Gamemodes;
 
 using static AvatarInfection.Infection;
 

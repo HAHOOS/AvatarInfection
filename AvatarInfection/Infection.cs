@@ -350,11 +350,6 @@ namespace AvatarInfection
 
             team?.Metadata.CanUseGunsChanged();
 
-            if (team != Survivors)
-                SetBodyLog(false);
-            else
-                SetBodyLog(true);
-
             if (!InitialTeam)
                 return;
 
@@ -373,11 +368,6 @@ namespace AvatarInfection
 
             if (TeamManager.GetLocalTeam() == Survivors)
                 SurvivorsUpdate();
-
-            if (IsStarted)
-                SetBodyLog(TeamManager.GetLocalTeam() == Survivors);
-            else if (!IsBodyLogEnabled)
-                SetBodyLog(true);
 
             if (!Config.NoTimeLimit.Value && NetworkInfo.IsHost)
             {
@@ -535,24 +525,12 @@ namespace AvatarInfection
 
                 PlayList.StopPlaylist();
 
-                SetBodyLog(true);
-
                 ClearDeathmatchSpawns();
 
                 StatsManager.ClearOverrides();
 
                 FusionOverrides.ForceUpdateOverrides();
             }
-        }
-
-        // TODO: Patch the PullCordDevice to not appear instead of disabling it completely, which sometimes does not revert to the initial state (high priority)
-        public static void SetBodyLog(bool enabled)
-        {
-            if (IsBodyLogEnabled == enabled)
-                return;
-
-            var devices = Player.RigManager?.gameObject?.GetComponentsInChildren<PullCordDevice>();
-            devices?.ForEach(x => x._bodyLogEnabled = enabled);
         }
 
         private static void TeleportToHost()

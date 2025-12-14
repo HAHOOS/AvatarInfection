@@ -66,12 +66,13 @@ namespace AvatarInfection.Managers
                 CreateErrorMessage("You aren't in any server :(");
                 return;
             }
-
+#if !DEBUG
             if (!Infection.Instance.IsStarted)
             {
                 CreateErrorMessage("Gamemode is not started :(");
                 return;
             }
+#endif
 
             Teams.Clear();
 
