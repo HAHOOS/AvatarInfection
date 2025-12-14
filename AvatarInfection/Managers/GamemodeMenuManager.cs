@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using AvatarInfection.Helper;
 using AvatarInfection.Settings;
@@ -145,6 +146,16 @@ namespace AvatarInfection.Managers
                     EventManager.TryInvokeEvent(EventType.RefreshStats, team);
                 }
             });
+
+            Console.WriteLine($"Creating settings for team: {team.Team.DisplayName}");
+            Console.WriteLine($" -> Mortality: {team.Metadata.Mortality.ClientValue}");
+            Console.WriteLine($" -> CanUseGuns: {team.Metadata.CanUseGuns.ClientValue}");
+
+            Console.WriteLine($" -> Vitality: {team.Metadata.Vitality.ClientValue}");
+            Console.WriteLine($" -> Speed: {team.Metadata.Speed.ClientValue}");
+            Console.WriteLine($" -> Agility: {team.Metadata.Agility.ClientValue}");
+            Console.WriteLine($" -> StrengthUpper: {team.Metadata.StrengthUpper.ClientValue}");
+
             group.CreateStatElement(team, team.Metadata.Mortality);
             group.CreateStatElement(team, team.Metadata.CanUseGuns);
             group.CreateStatElement(team, team.Metadata.Vitality);
@@ -162,29 +173,40 @@ namespace AvatarInfection.Managers
                     "Increment:",
                     (el) => el.Title = $"Increment: {Increment}");
 
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Strength Upper", (el) => el.Increment = Increment);
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Agility", (el) => el.Increment = Increment);
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Jump Power", (el) => el.Increment = Increment);
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Speed", (el) => el.Increment = Increment);
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, "Vitality", (el) => el.Increment = Increment);
+                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.StrengthUpper.GetTeamStatName(), (el) => el.Increment = Increment);
+                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Agility.GetTeamStatName(), (el) => el.Increment = Increment);
+                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Speed.GetTeamStatName(), (el) => el.Increment = Increment);
+                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Vitality.GetTeamStatName(), (el) => el.Increment = Increment);
             });
 
             if (team.Team == Instance.Infected.Team)
-                group.AddElement("Add Infected Children Team", Instance.Config.AddInfectedChildrenTeam.Value, (val) => Instance.Config.AddInfectedChildrenTeam.Value = val);
+            {
+                group.AddElement("Add Infected Children Team", Instance.Config.AddInfectedChildrenTeam.Value, (val) =>
+                {
+                    Instance.Config.AddInfectedChildrenTeam.Value = val;
+                    RefreshSettingsPage();
+                });
+            }
 
             return group;
         }
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ToggleServerSetting<float> stat)
         {
-            group.AddElement($"Override {stat.Name}", stat.ClientEnabled, (val) => { stat.ClientEnabled = val; ApplyButtonUpdate(team); });
-            group.AddElement(stat.Name, stat.ClientValue, (val) => { stat.ClientValue = val; ApplyButtonUpdate(team); }, increment: Increment);
+            group.AddElement($"Override {stat.GetTeamStatName()}", stat.ClientEnabled, (val) => { stat.ClientEnabled = val; ApplyButtonUpdate(team); });
+            group.AddElement(stat.GetTeamStatName(), stat.ClientValue, (val) => { stat.ClientValue = val; ApplyButtonUpdate(team); }, increment: Increment);
         }
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ServerSetting<bool> stat)
         {
-            group.AddElement(stat.Name, stat.ClientValue, (val) => { stat.ClientValue = val; ApplyButtonUpdate(team); });
+            group.AddElement(stat.GetTeamStatName(), stat.ClientValue, (val) => { stat.ClientValue = val; ApplyButtonUpdate(team); });
         }
+
+        public static string GetTeamStatName<T>(this ServerSetting<T> stat) where T : IEquatable<T>
+            => stat.Name.Contains('_') ? stat.Name.Split('_').LastOrDefault() ?? "N/A" : stat.Name;
+
+        public static string GetTeamStatName<T>(this ToggleServerSetting<T> stat) where T : IEquatable<T>
+            => stat.Name.Contains('_') ? stat.Name.Split('_').LastOrDefault() ?? "N/A" : stat.Name;
 
         private static void ApplyButtonUpdate(InfectionTeam team)
         {

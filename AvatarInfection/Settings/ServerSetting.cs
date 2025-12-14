@@ -62,8 +62,18 @@ namespace AvatarInfection.Settings
                 if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsHost)
                     Sync();
             };
-            MultiplayerHooking.OnJoinedServer += () => _clientValue = ServerValue.GetValue();
-            MultiplayerHooking.OnTargetLevelLoaded += () => _clientValue = ServerValue.GetValue();
+            MultiplayerHooking.OnJoinedServer += () =>
+            {
+                if (NetworkInfo.IsHost)
+                    return;
+                _clientValue = ServerValue.GetValue();
+            };
+            MultiplayerHooking.OnTargetLevelLoaded += () =>
+            {
+                if (NetworkInfo.IsHost)
+                    return;
+                _clientValue = ServerValue.GetValue();
+            };
             gamemode.Metadata.OnMetadataChanged += (key, _) =>
             {
                 if (key == ServerValue.Key)
@@ -174,11 +184,15 @@ namespace AvatarInfection.Settings
             };
             MultiplayerHooking.OnJoinedServer += () =>
             {
+                if (NetworkInfo.IsHost)
+                    return;
                 _clientValue = ServerValue.GetValue();
                 _clientEnabled = ServerValue.IsEnabled;
             };
             MultiplayerHooking.OnTargetLevelLoaded += () =>
             {
+                if (NetworkInfo.IsHost)
+                    return;
                 _clientValue = ServerValue.GetValue();
                 _clientEnabled = ServerValue.IsEnabled;
             };

@@ -147,9 +147,9 @@ namespace AvatarInfection
             InfectedChildren.Team.DisplayName = "Infected Children";
 
             TeamManager.Register(this);
-            TeamManager.AddTeam(Infected.Team);
-            TeamManager.AddTeam(Survivors.Team);
-            TeamManager.AddTeam(InfectedChildren.Team);
+            TeamManager.AddTeam(Infected);
+            TeamManager.AddTeam(Survivors);
+            TeamManager.AddTeam(InfectedChildren);
             TeamManager.OnAssignedToInfectedTeam += OnAssignedToTeam;
 
             InfectedLooking = new MetadataBool(nameof(InfectedLooking), Metadata);

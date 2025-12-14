@@ -34,6 +34,7 @@ namespace AvatarInfection.Settings
         {
             Gamemode = gamemode;
             Team = team;
+
             Mortality = CreateSetting(nameof(Mortality), config?.Mortality ?? default);
             CanUseGuns = CreateSetting(nameof(CanUseGuns), config?.CanUseGuns ?? default);
             Vitality = CreateSetting(nameof(Vitality), config?.Vitality);

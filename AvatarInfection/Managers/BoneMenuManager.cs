@@ -7,10 +7,11 @@ using BoneLib.BoneMenu;
 
 using LabFusion.Network;
 using LabFusion.Player;
-using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
 
 using UnityEngine;
+
+using Page = BoneLib.BoneMenu.Page;
 
 namespace AvatarInfection.Managers
 {
@@ -77,7 +78,7 @@ namespace AvatarInfection.Managers
             Teams.Clear();
 
             foreach (var player in PlayerIDManager.PlayerIDs)
-                Teams.Add(player, Infection.Instance.TeamManager.GetPlayerTeam(player));
+                Teams.Add(player, Infection.Instance?.TeamManager?.GetPlayerTeam(player));
 
 
             List<TeamPage> teamPages = [];
@@ -89,17 +90,17 @@ namespace AvatarInfection.Managers
 
             teamPages.Add(CreateTeamPage(null));
 
-            foreach (var team in Teams)
+            foreach (var player in Teams)
             {
-                if (!team.Key.TryGetDisplayName(out var displayName))
+                if (!player.Key.TryGetDisplayName(out var displayName))
                     continue;
 
-                BoneLib.BoneMenu.Page page = teamPages.FirstOrDefault(x => (x.Team == null && team.Value == null) || (x.Team?.Team?.TeamName == team.Value?.Team?.TeamName))?.Page;
+                var team = teamPages?.FirstOrDefault(x => x.Team == player.Value);
 
-                if (page == null)
+                if (team == null)
                     continue;
 
-                page.CreateFunction(displayName, Color.white, null);
+                team.Page.CreateFunction(displayName, Color.white, null);
             }
         }
 
