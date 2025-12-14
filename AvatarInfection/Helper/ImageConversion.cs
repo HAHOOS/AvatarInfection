@@ -9,27 +9,20 @@ namespace AvatarInfection.Helper
 {
     public static class ImageConversion
     {
-        private readonly static TextureAndFlagDelegate EncodeToEXRDelegateField;
-        private readonly static TextureOnlyDelegate EncodeToTGADelegateField;
-        private readonly static TextureOnlyDelegate EncodeToPNGDelegateField;
-        private readonly static TextureAndQualityDelegate EncodeToJPGDelegateField;
-        private readonly static LoadImageDelegate LoadImageDelegateField;
+        private const string NullTextureError = "The texture cannot be null.";
 
-        static ImageConversion()
-        {
-            EncodeToTGADelegateField = IL2CPP.ResolveICall<TextureOnlyDelegate>("UnityEngine.ImageConversion::EncodeToTGA");
-            EncodeToEXRDelegateField = IL2CPP.ResolveICall<TextureAndFlagDelegate>("UnityEngine.ImageConversion::EncodeToEXR");
-            EncodeToPNGDelegateField = IL2CPP.ResolveICall<TextureOnlyDelegate>("UnityEngine.ImageConversion::EncodeToPNG");
-            EncodeToJPGDelegateField = IL2CPP.ResolveICall<TextureAndQualityDelegate>("UnityEngine.ImageConversion::EncodeToJPG");
-            LoadImageDelegateField = IL2CPP.ResolveICall<LoadImageDelegate>("UnityEngine.ImageConversion::LoadImage");
-        }
+        private readonly static TextureAndFlagDelegate EncodeToEXRDelegateField = IL2CPP.ResolveICall<TextureAndFlagDelegate>("UnityEngine.ImageConversion::EncodeToEXR");
+        private readonly static TextureOnlyDelegate EncodeToTGADelegateField = IL2CPP.ResolveICall<TextureOnlyDelegate>("UnityEngine.ImageConversion::EncodeToTGA");
+        private readonly static TextureOnlyDelegate EncodeToPNGDelegateField = IL2CPP.ResolveICall<TextureOnlyDelegate>("UnityEngine.ImageConversion::EncodeToPNG");
+        private readonly static TextureAndQualityDelegate EncodeToJPGDelegateField = IL2CPP.ResolveICall<TextureAndQualityDelegate>("UnityEngine.ImageConversion::EncodeToJPG");
+        private readonly static LoadImageDelegate LoadImageDelegateField = IL2CPP.ResolveICall<LoadImageDelegate>("UnityEngine.ImageConversion::LoadImage");
 
         public static Il2CppStructArray<byte> EncodeToTGA(this Texture2D tex)
         {
             if (tex == null)
-                throw new ArgumentException("The texture cannot be null.");
+                throw new ArgumentNullException(nameof(tex), NullTextureError);
             if (EncodeToTGADelegateField == null)
-                throw new NullReferenceException("The EncodeToTGADelegateField cannot be null.");
+                throw new InvalidOperationException("The EncodeToTGADelegateField cannot be null.");
             Il2CppStructArray<byte> il2CppStructArray;
             IntPtr encodeToTGADelegateField = EncodeToTGADelegateField(IL2CPP.Il2CppObjectBaseToPtr(tex));
             if (encodeToTGADelegateField != IntPtr.Zero)
@@ -42,9 +35,9 @@ namespace AvatarInfection.Helper
         public static Il2CppStructArray<byte> EncodeToPNG(this Texture2D tex)
         {
             if (tex == null)
-                throw new ArgumentException("The texture cannot be null.");
+                throw new ArgumentNullException(nameof(tex), NullTextureError);
             if (EncodeToPNGDelegateField == null)
-                throw new NullReferenceException("The EncodeToPNGDelegateField cannot be null.");
+                throw new InvalidOperationException("The EncodeToPNGDelegateField cannot be null.");
             Il2CppStructArray<byte> il2CppStructArray;
             IntPtr encodeToPNGDelegateField = EncodeToPNGDelegateField(IL2CPP.Il2CppObjectBaseToPtr(tex));
             if (encodeToPNGDelegateField != IntPtr.Zero)
@@ -57,9 +50,9 @@ namespace AvatarInfection.Helper
         public static Il2CppStructArray<byte> EncodeToJPG(this Texture2D tex, int quality)
         {
             if (tex == null)
-                throw new ArgumentException("The texture cannot be null.");
+                throw new ArgumentNullException(nameof(tex), NullTextureError);
             if (EncodeToJPGDelegateField == null)
-                throw new NullReferenceException("The EncodeToJPGDelegateField cannot be null.");
+                throw new InvalidOperationException("The EncodeToJPGDelegateField cannot be null.");
             Il2CppStructArray<byte> il2CppStructArray;
             IntPtr encodeToJPGDelegateField = EncodeToJPGDelegateField(IL2CPP.Il2CppObjectBaseToPtr(tex), quality);
             if (encodeToJPGDelegateField != IntPtr.Zero)
@@ -74,9 +67,9 @@ namespace AvatarInfection.Helper
         public static Il2CppStructArray<byte> EncodeToEXR(this Texture2D tex, Texture2D.EXRFlags flags)
         {
             if (tex == null)
-                throw new ArgumentException("The texture cannot be null.");
+                throw new ArgumentNullException(nameof(tex), NullTextureError);
             if (EncodeToEXRDelegateField == null)
-                throw new NullReferenceException("The EncodeToEXRDelegateField cannot be null.");
+                throw new InvalidOperationException("The EncodeToEXRDelegateField cannot be null.");
             Il2CppStructArray<byte> il2CppStructArray;
             IntPtr encodeToEXRDelegateField = EncodeToEXRDelegateField(IL2CPP.Il2CppObjectBaseToPtr(tex), flags);
             if (encodeToEXRDelegateField != IntPtr.Zero)
@@ -91,11 +84,11 @@ namespace AvatarInfection.Helper
         public static bool LoadImage(this Texture2D tex, Il2CppStructArray<byte> data, bool markNonReadable)
         {
             if (tex == null)
-                throw new ArgumentException("The texture cannot be null.");
+                throw new ArgumentNullException(nameof(tex), NullTextureError);
             if (data == null)
-                throw new ArgumentException("The data cannot be null.");
+                throw new ArgumentNullException(nameof(data), "The data cannot be null.");
             if (LoadImageDelegateField == null)
-                throw new NullReferenceException("The LoadImageDelegateField cannot be null.");
+                throw new InvalidOperationException("The LoadImageDelegateField cannot be null.");
             return LoadImageDelegateField(IL2CPP.Il2CppObjectBaseToPtr(tex), IL2CPP.Il2CppObjectBaseToPtr(data), markNonReadable);
         }
 

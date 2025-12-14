@@ -7,6 +7,7 @@ using BoneLib.BoneMenu;
 
 using LabFusion.Network;
 using LabFusion.Player;
+using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
 
 using UnityEngine;
@@ -45,9 +46,11 @@ namespace AvatarInfection.Managers
 
         private static void Hook(PlayerID _) => PopulatePage();
 
+        private static readonly Dictionary<PlayerID, InfectionTeam> Teams = [];
+
         public static void PopulatePage()
         {
-            if (AuthorPage == null || ModPage == null)
+            if (ModPage == null)
                 return;
 
             if (Infection.Instance == null)
@@ -60,38 +63,30 @@ namespace AvatarInfection.Managers
 
             if (!NetworkInfo.HasServer)
             {
-                var label = ModPage.CreateFunction("You aren't in any server :(", Color.white, null);
-                label.SetProperty(BoneLib.BoneMenu.ElementProperties.NoBorder);
+                CreateErrorMessage("You aren't in any server :(");
                 return;
             }
 
             if (!Infection.Instance.IsStarted)
             {
-                var label = ModPage.CreateFunction("Gamemode is not started :(", Color.white, null);
-                label.SetProperty(BoneLib.BoneMenu.ElementProperties.NoBorder);
+                CreateErrorMessage("Gamemode is not started :(");
                 return;
             }
 
-            Dictionary<PlayerID, InfectionTeam> Teams = [];
+            Teams.Clear();
 
             foreach (var player in PlayerIDManager.PlayerIDs)
-            {
-                var team = Infection.Instance.TeamManager.GetPlayerTeam(player);
-                Teams.Add(player, team);
-            }
+                Teams.Add(player, Infection.Instance.TeamManager.GetPlayerTeam(player));
+
 
             List<TeamPage> teamPages = [];
 
-            teamPages.Add(Teams.Any(x => x.Value == Infection.Instance.Infected) ?
-                new(ModPage.CreatePage($"Infected ({Teams.Count(x => x.Value == Infection.Instance.Infected)})", Color.green), Infection.Instance.Infected) : null);
-            teamPages.Add(Teams.Any(x => x.Value == Infection.Instance.InfectedChildren) ?
-                new(ModPage.CreatePage($"Infected Children ({Teams.Count(x => x.Value == Infection.Instance.InfectedChildren)})", new Color(0, 1, 0)), Infection.Instance.InfectedChildren) : null);
+            teamPages.Add(CreateTeamPage(Infection.Instance.Infected));
+            teamPages.Add(CreateTeamPage(Infection.Instance.InfectedChildren));
 
-            teamPages.Add(Teams.Any(x => x.Value == Infection.Instance.Survivors) ?
-                new(ModPage.CreatePage($"Survivors ({Teams.Count(x => x.Value == Infection.Instance.Survivors)})", Color.cyan), Infection.Instance.Survivors) : null);
+            teamPages.Add(CreateTeamPage(Infection.Instance.Survivors));
 
-            teamPages.Add(Teams.Any(x => x.Value == null) ?
-                new(ModPage.CreatePage($"Unidentified ({Teams.Count(x => x.Value == null)})", Color.gray), null) : null);
+            teamPages.Add(CreateTeamPage(null));
 
             foreach (var team in Teams)
             {
@@ -106,12 +101,36 @@ namespace AvatarInfection.Managers
                 page.CreateFunction(displayName, Color.white, null);
             }
         }
+
+        private static TeamPage CreateTeamPage(InfectionTeam team)
+        {
+            if (!Teams.Any(x => x.Value == team))
+                return null;
+
+            Dictionary<string, Color> teamColors = new()
+            {
+                { "Infected", Color.green },
+                { "Infected Children", new Color(0, 1, 0) },
+                { "Survivors", Color.cyan },
+                { "Unidentified", Color.gray },
+            };
+
+            string name = team != null ? team.Team.DisplayName : "Unidentified";
+            var color = teamColors.ContainsKey(name) ? teamColors[name] : Color.white;
+            return new(ModPage.CreatePage($"{name} ({Teams.Count(x => x.Value == team)})", color), team);
+        }
+
+        private static void CreateErrorMessage(string error)
+        {
+            var label = ModPage.CreateFunction(error, Color.white, null);
+            label.SetProperty(BoneLib.BoneMenu.ElementProperties.NoBorder);
+        }
     }
 
     internal class TeamPage(Page page, InfectionTeam team)
     {
-        public Page Page { get; private set; } = page;
+        public Page Page { get; } = page;
 
-        public InfectionTeam Team { get; private set; } = team;
+        public InfectionTeam Team { get; } = team;
     }
 }
