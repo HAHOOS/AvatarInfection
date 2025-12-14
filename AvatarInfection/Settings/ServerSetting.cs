@@ -72,14 +72,12 @@ namespace AvatarInfection.Settings
 
         private void OnJoinedServer()
         {
-            if (NetworkInfo.IsHost)
-                return;
             _clientValue = ServerValue.GetValue();
         }
 
         private void OnTargetLevelLoaded()
         {
-            if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
+            if (!NetworkInfo.HasServer)
                 return;
             _clientValue = ServerValue.GetValue();
         }
@@ -201,16 +199,15 @@ namespace AvatarInfection.Settings
 
         private void OnJoinedServer()
         {
-            if (NetworkInfo.IsHost)
-                return;
             _clientValue = ServerValue.GetValue();
             _clientEnabled = ServerValue.IsEnabled;
         }
 
         private void OnTargetLevelLoaded()
         {
-            if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
+            if (!NetworkInfo.HasServer)
                 return;
+
             _clientValue = ServerValue.GetValue();
             _clientEnabled = ServerValue.IsEnabled;
         }

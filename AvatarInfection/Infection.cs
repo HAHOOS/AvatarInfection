@@ -569,9 +569,6 @@ namespace AvatarInfection
             {
                 var player = players.Random();
                 TeamManager.TryAssignTeam(player, Infected.Team);
-
-                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.PlatformID, Config.SelectedAvatar.ClientValue));
-
                 bool exists = NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig;
 
                 if (Config.SelectMode.Value == AvatarSelectMode.FIRST_INFECTED && !selected && exists)
@@ -583,6 +580,8 @@ namespace AvatarInfection
                         Config.SelectedAvatar.ClientValue = avatar;
                     }
                 }
+
+                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.PlatformID, Config.SelectedAvatar.ClientValue));
 
                 players.Remove(player);
             }

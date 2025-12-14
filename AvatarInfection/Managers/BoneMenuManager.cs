@@ -7,6 +7,7 @@ using BoneLib.BoneMenu;
 
 using LabFusion.Network;
 using LabFusion.Player;
+using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
 
 using UnityEngine;
@@ -47,7 +48,7 @@ namespace AvatarInfection.Managers
 
         private static void Hook(PlayerID _) => PopulatePage();
 
-        private static readonly Dictionary<PlayerID, InfectionTeam> Teams = [];
+        private static readonly Dictionary<PlayerID, Team> Teams = [];
 
         public static void PopulatePage()
         {
@@ -67,26 +68,25 @@ namespace AvatarInfection.Managers
                 CreateErrorMessage("You aren't in any server :(");
                 return;
             }
-#if !DEBUG
+
             if (!Infection.Instance.IsStarted)
             {
                 CreateErrorMessage("Gamemode is not started :(");
                 return;
             }
-#endif
 
             Teams.Clear();
 
             foreach (var player in PlayerIDManager.PlayerIDs)
-                Teams.Add(player, Infection.Instance?.TeamManager?.GetPlayerTeam(player));
+                Teams.Add(player, Infection.Instance?.TeamManager?.GetPlayerTeam(player)?.Team);
 
 
             List<TeamPage> teamPages = [];
 
-            teamPages.Add(CreateTeamPage(Infection.Instance.Infected));
-            teamPages.Add(CreateTeamPage(Infection.Instance.InfectedChildren));
+            teamPages.Add(CreateTeamPage(Infection.Instance.Infected.Team));
+            teamPages.Add(CreateTeamPage(Infection.Instance.InfectedChildren.Team));
 
-            teamPages.Add(CreateTeamPage(Infection.Instance.Survivors));
+            teamPages.Add(CreateTeamPage(Infection.Instance.Survivors.Team));
 
             teamPages.Add(CreateTeamPage(null));
 
@@ -104,7 +104,7 @@ namespace AvatarInfection.Managers
             }
         }
 
-        private static TeamPage CreateTeamPage(InfectionTeam team)
+        private static TeamPage CreateTeamPage(Team team)
         {
             if (!Teams.Any(x => x.Value == team))
                 return null;
@@ -117,7 +117,7 @@ namespace AvatarInfection.Managers
                 { "Unidentified", Color.gray },
             };
 
-            string name = team != null ? team.Team.DisplayName : "Unidentified";
+            string name = team != null ? team.DisplayName : "Unidentified";
             var color = teamColors.ContainsKey(name) ? teamColors[name] : Color.white;
             return new(ModPage.CreatePage($"{name} ({Teams.Count(x => x.Value == team)})", color), team);
         }
@@ -129,10 +129,10 @@ namespace AvatarInfection.Managers
         }
     }
 
-    internal class TeamPage(Page page, InfectionTeam team)
+    internal class TeamPage(Page page, Team team)
     {
         public Page Page { get; } = page;
 
-        public InfectionTeam Team { get; } = team;
+        public Team Team { get; } = team;
     }
 }

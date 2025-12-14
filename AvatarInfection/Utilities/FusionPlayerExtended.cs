@@ -1,11 +1,7 @@
-﻿using System.Threading.Channels;
-
-using BoneLib;
+﻿using BoneLib;
 
 using Il2CppSLZ.Bonelab;
-using Il2CppSLZ.Bonelab.SaveData;
 using Il2CppSLZ.Marrow.Warehouse;
-using Il2CppSLZ.VRMK;
 
 using LabFusion.Data;
 using LabFusion.Downloading;
@@ -13,11 +9,8 @@ using LabFusion.Marrow;
 using LabFusion.Player;
 using LabFusion.Preferences.Client;
 using LabFusion.RPC;
-using LabFusion.Utilities;
 
 using UnityEngine;
-
-using static BoneLib.CommonBarcodes;
 
 namespace AvatarInfection.Utilities
 {
@@ -118,21 +111,28 @@ namespace AvatarInfection.Utilities
                 LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? CommonBarcodes.Avatars.PolyBlank;
 
             AvatarOverride = barcode;
-            LocalAvatar.AvatarOverride = barcode;
+            Player.RigManager.SwapAvatarCrate(new Barcode(barcode), true);
         }
 
         public static void ClearAvatarOverride()
         {
             AvatarOverride = null;
-            LocalAvatar.AvatarOverride = null;
-            if (Player.RigManager != null && LastAvatar != null && AssetWarehouse.ready)
+            if (Player.RigManager != null && !string.IsNullOrWhiteSpace(LastAvatar) && AssetWarehouse.ready)
             {
-                var rm = Player.RigManager;
-                var last = LastAvatar;
+                ForceChange(LastAvatar);
                 LastAvatar = null;
-                rm.SwapAvatarCrate(new Barcode(last), true);
-                DataManager.ActiveSave.PlayerSettings.CurrentAvatar = last;
             }
+        }
+
+        private static GameObject PullCord;
+
+        private static void ForceChange(string barcode)
+        {
+            PullCord ??= new GameObject("AI_PCFC");
+            var comp = PullCord.GetComponent<PullCordForceChange>() ?? PullCord.AddComponent<PullCordForceChange>();
+            comp.avatarCrate = new AvatarCrateReference(barcode);
+            comp.rigManager = Player.RigManager;
+            comp.ForceChange(Player.RigManager.gameObject);
         }
 
         internal static void SwapAvatar(string barcode, ModResult downloadResult = ModResult.SUCCEEDED)
@@ -148,11 +148,7 @@ namespace AvatarInfection.Utilities
 
             if (CrateFilterer.HasCrate<AvatarCrate>(new(barcode)))
             {
-                var obj = new GameObject("AI_PCFC");
-                var comp = obj.AddComponent<PullCordForceChange>();
-                comp.avatarCrate = new AvatarCrateReference(barcode);
-                comp.rigManager = Player.RigManager;
-                comp.ForceChange(comp.rigManager.gameObject);
+                ForceChange(barcode);
             }
             else
             {
@@ -169,7 +165,7 @@ namespace AvatarInfection.Utilities
                 {
                     Barcode = barcode,
                     Target = PlayerIDManager.LocalSmallID,
-                    FinishDownloadCallback = (ev) => SwapAvatar(barcode, ev.result),
+                    FinishDownloadCallback = (ev) => SwapAvatar(barcode, downloadResult: ev.result),
                     MaxBytes = DataConversions.ConvertMegabytesToBytes(ClientSettings.Downloading.MaxFileSize.Value),
                     HighPriority = true
                 });
