@@ -1,15 +1,15 @@
 <p align="center"><img src="https://github.com/HAHOOS/AvatarInfection/blob/master/AvatarInfection/Media/Icon.png?raw=true" width=64px height=64px></p>
 <h1 align="center">AvatarInfection</h1>
 
-> [!WARNING]
-> The latest changes and the mod generally fucking sucks, so I don't recommend to use it
+> [!NOTE]
+> The mod is barely working, but soon it will be fixed enough to be in a useable state and later - released to Thunderstore
 
-A Fusion gamemode where a virus is released, but it's rather special... It turns the infected people into a selected avatar! I have been talking about this gamemode in Fusion for quite a long time and I am sorry for taking so long to complete it. I wanted to make this as best as possible.
+A Fusion gamemode where a virus is released, but it's rather special... It turns the infected people into a selected avatar! This gamemode offers a lot of customazibility compared to other gamemodes.
 
 <h2 align="center">Features</h2>
 
 - Ability to set any avatar of your choice to be the infected
-- Fully customizable stats for both Infected and UnInfected
+- Fully customizable stats for both Infected and Survivors, and Infected Children if you decide to use them
 - Ability to disable the usage of guns for teams
 - Most of the things are handled server-side, making the gamemode less vulnerable to cheaters
 - Two types of infection: TOUCH and DEATH
