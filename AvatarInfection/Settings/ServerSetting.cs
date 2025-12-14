@@ -70,10 +70,11 @@ namespace AvatarInfection.Settings
             };
             MultiplayerHooking.OnTargetLevelLoaded += () =>
             {
-                if (NetworkInfo.IsHost)
+                if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
                     return;
                 _clientValue = ServerValue.GetValue();
             };
+
             gamemode.Metadata.OnMetadataChanged += (key, _) =>
             {
                 if (key == ServerValue.Key)
@@ -191,11 +192,12 @@ namespace AvatarInfection.Settings
             };
             MultiplayerHooking.OnTargetLevelLoaded += () =>
             {
-                if (NetworkInfo.IsHost)
+                if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
                     return;
                 _clientValue = ServerValue.GetValue();
                 _clientEnabled = ServerValue.IsEnabled;
             };
+
             gamemode.Metadata.OnMetadataChanged += (key, _) =>
             {
                 if (key == ServerValue.Key)
@@ -216,6 +218,7 @@ namespace AvatarInfection.Settings
                     OnValueChanged?.Invoke();
                 }
             };
+
         }
 
         public ToggleServerSetting(Gamemode gamemode, string name, bool autoSync = true)

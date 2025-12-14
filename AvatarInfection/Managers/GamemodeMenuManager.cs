@@ -147,15 +147,6 @@ namespace AvatarInfection.Managers
                 }
             });
 
-            Console.WriteLine($"Creating settings for team: {team.Team.DisplayName}");
-            Console.WriteLine($" -> Mortality: {team.Metadata.Mortality.ClientValue}");
-            Console.WriteLine($" -> CanUseGuns: {team.Metadata.CanUseGuns.ClientValue}");
-
-            Console.WriteLine($" -> Vitality: {team.Metadata.Vitality.ClientValue}");
-            Console.WriteLine($" -> Speed: {team.Metadata.Speed.ClientValue}");
-            Console.WriteLine($" -> Agility: {team.Metadata.Agility.ClientValue}");
-            Console.WriteLine($" -> StrengthUpper: {team.Metadata.StrengthUpper.ClientValue}");
-
             group.CreateStatElement(team, team.Metadata.Mortality);
             group.CreateStatElement(team, team.Metadata.CanUseGuns);
             group.CreateStatElement(team, team.Metadata.Vitality);

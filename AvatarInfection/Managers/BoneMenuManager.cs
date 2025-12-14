@@ -95,7 +95,7 @@ namespace AvatarInfection.Managers
                 if (!player.Key.TryGetDisplayName(out var displayName))
                     continue;
 
-                var team = teamPages?.FirstOrDefault(x => x.Team == player.Value);
+                var team = teamPages?.FirstOrDefault(x => x?.Team == player.Value);
 
                 if (team == null)
                     continue;
