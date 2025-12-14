@@ -13,10 +13,8 @@ using Il2CppSLZ.Interaction;
 using Il2CppSLZ.Marrow;
 
 using LabFusion.Entities;
-using LabFusion.Extensions;
 using LabFusion.Network;
 using LabFusion.Player;
-using LabFusion.Utilities;
 
 using UnityEngine;
 
@@ -25,6 +23,8 @@ namespace AvatarInfection.Patches
     public static class GrabPatches
     {
         internal readonly static Dictionary<Grip, float> HoldTime = [];
+
+        #region Patches
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
@@ -38,6 +38,55 @@ namespace AvatarInfection.Patches
             if (HoldTime.ContainsKey(__instance))
                 HoldTime.Remove(__instance);
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Hand), nameof(Hand.AttachObject))]
+        [HarmonyPriority(10000)]
+        public static bool GrabAttempt(Hand __instance, GameObject objectToAttach)
+            => CanGrab(__instance, objectToAttach);
+
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverBegin))]
+        [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverEnd))]
+        [HarmonyPriority(10000)]
+        public static bool InventoryGrabAttempt(InventorySlotReceiver __instance, Hand hand)
+            => CanGrab(hand, __instance._weaponHost?.GetHostGameObject());
+
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandGrab))]
+        [HarmonyPriority(10000)]
+        public static bool InventoryGrabAttempt2(InventorySlotReceiver __instance, Hand hand)
+        {
+            bool res = CanGrab(hand, __instance._weaponHost?.GetHostGameObject());
+            if (!res)
+                __instance.DropWeapon();
+
+            return res;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InteractableIcon), nameof(InteractableIcon.MyFarHandHoverBegin))]
+        [HarmonyPatch(typeof(InteractableIcon), nameof(InteractableIcon.MyHandHoverBegin))]
+        [HarmonyPriority(10000)]
+        public static bool IconAttempt(InteractableIcon __instance, Hand hand)
+            => CanGrab(hand, __instance.gameObject);
+
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.CoPull))]
+        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnStartAttach))]
+        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnFarHandHoverBegin))]
+        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnFarHandHoverUpdate))]
+        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnFarHandHoverEnd))]
+        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnForcePullComplete))]
+        [HarmonyPriority(10000)]
+        public static bool ForceGrabAttempt(Hand hand, ForcePullGrip __instance)
+            => CanGrab(hand, __instance?.gameObject);
+
+
+        #endregion
 
         private static void Grabbed(Grip grip, Hand hand)
         {
@@ -72,94 +121,15 @@ namespace AvatarInfection.Patches
                 return;
 
             if (Infection.Instance.TeamManager.GetPlayerTeam(otherPlayer.PlayerID) == Infection.Instance.Survivors)
-            {
-                var longId = otherPlayer.PlayerID.PlatformID;
-
-                if (Infection.Instance.Config.HoldTime.Value == 0)
-                    EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, longId);
-                else
-                    HoldTime.Add(grip, 0);
-            }
+                RegisterTouch(grip, otherPlayer.PlayerID.PlatformID);
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(Hand), nameof(Hand.AttachObject))]
-        [HarmonyPriority(10000)]
-        public static bool GrabAttempt(Hand __instance, GameObject objectToAttach)
+        private static void RegisterTouch(Grip grip, ulong longId)
         {
-            if (objectToAttach == null)
-                return true;
-
-            return CanGrab(__instance, objectToAttach);
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverBegin))]
-        [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverEnd))]
-        [HarmonyPriority(10000)]
-        public static bool InventoryGrabAttempt(InventorySlotReceiver __instance, Hand hand)
-        {
-            if (hand == null || __instance._weaponHost == null)
-                return true;
-
-            var weapon = __instance._weaponHost?.GetHostGameObject();
-            if (weapon == null)
-                return true;
-
-            return CanGrab(hand, weapon);
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandGrab))]
-        [HarmonyPriority(10000)]
-        public static bool InventoryGrabAttempt2(InventorySlotReceiver __instance, Hand hand)
-        {
-            if (hand == null || __instance._weaponHost == null)
-                return true;
-
-            var weapon = __instance._weaponHost?.GetHostGameObject();
-            if (weapon == null)
-                return true;
-
-            bool res = CanGrab(hand, weapon);
-            if (!res)
-                __instance.DropWeapon();
-
-            return res;
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(InteractableIcon), nameof(InteractableIcon.MyFarHandHoverBegin))]
-        [HarmonyPatch(typeof(InteractableIcon), nameof(InteractableIcon.MyHandHoverBegin))]
-        [HarmonyPriority(10000)]
-        public static bool IconAttempt(InteractableIcon __instance, Hand hand)
-        {
-            if (__instance.gameObject == null)
-                return true;
-
-            var gameObject = __instance.gameObject;
-            if (hand == null)
-                return true;
-
-            return CanGrab(hand, gameObject);
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.CoPull))]
-        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnStartAttach))]
-        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnFarHandHoverBegin))]
-        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnFarHandHoverUpdate))]
-        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnFarHandHoverEnd))]
-        [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnForcePullComplete))]
-        [HarmonyPriority(10000)]
-        public static bool ForceGrabAttempt(Hand hand, ForcePullGrip __instance)
-        {
-            var gameObject = __instance?.gameObject;
-
-            if (gameObject == null)
-                return true;
-
-            return CanGrab(hand, gameObject);
+            if (Infection.Instance.Config.HoldTime.Value == 0)
+                EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, longId);
+            else
+                HoldTime.Add(grip, 0);
         }
 
         private static bool CanGrab(Hand hand, GameObject gameObject)
@@ -170,48 +140,50 @@ namespace AvatarInfection.Patches
             if (Infection.Instance?.IsStarted != true)
                 return true;
 
-            if (gameObject == null || Player.RigManager != hand?.GetComponentInParent<RigManager>())
+            if (hand == null || gameObject == null || Player.RigManager != hand?.GetComponentInParent<RigManager>())
                 return true;
 
-            TeamMetadata config;
-            if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected)
-            {
-                config = Infection.Instance.Infected.Metadata;
-            }
-            else if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren)
-            {
-                if (!Infection.Instance.Config.AddInfectedChildrenTeam.Value)
-                    config = Infection.Instance.Infected.Metadata;
-                else
-                    config = Infection.Instance.InfectedChildren.Metadata;
-            }
-            else
-            {
-                config = Infection.Instance.Survivors.Metadata;
-            }
+            TeamMetadata config = GetMetadata();
 
             if (config == null)
                 return true;
 
             var gun = gameObject.GetComponent<Gun>() ?? gameObject.GetComponentInParent<Gun>();
-            var spawnGun = gameObject.GetComponent<SpawnGun>() ?? gameObject.GetComponentInParent<SpawnGun>();
 
-            if (spawnGun != null)
+            if (IsSpawnGun(gameObject))
                 return true;
 
             return gun == null || config.CanUseGuns.ClientValue;
         }
 
+        private static TeamMetadata GetMetadata()
+        {
+            if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected)
+            {
+                return Infection.Instance.Infected.Metadata;
+            }
+            else if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren)
+            {
+                if (!Infection.Instance.Config.AddInfectedChildrenTeam.Value)
+                    return Infection.Instance.Infected.Metadata;
+                else
+                    return Infection.Instance.InfectedChildren.Metadata;
+            }
+            else
+            {
+                return Infection.Instance.Survivors.Metadata;
+            }
+        }
+
+        private static bool IsSpawnGun(GameObject gameObject)
+        {
+            var spawnGun = gameObject.GetComponent<SpawnGun>() ?? gameObject.GetComponentInParent<SpawnGun>();
+            return spawnGun != null;
+        }
+
         internal static void Update()
         {
-            if (!NetworkInfo.HasServer
-                || !NetworkInfo.IsHost
-                || Infection.Instance?.IsStarted != true
-                || Player.RigManager == null)
-            {
-                HoldTime.Clear();
-                return;
-            }
+            ClearHoldIfNecessary();
 
             foreach (var hold in new Dictionary<Grip, float>(HoldTime))
             {
@@ -225,13 +197,33 @@ namespace AvatarInfection.Patches
                     if (!NetworkPlayerManager.TryGetPlayer(grip._marrowEntity, out var player))
                         continue;
 
-                    if (Infection.Instance.TeamManager.GetPlayerTeam(player.PlayerID) == Infection.Instance.Infected)
+                    if (IsInfected(player.PlayerID))
                         continue;
 
                     HoldTime.Remove(grip);
                     EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, player.PlayerID.PlatformID);
                 }
             }
+        }
+
+        private static bool IsInfected(PlayerID id) => Infection.Instance.TeamManager.GetPlayerTeam(id) == Infection.Instance.Infected
+            || Infection.Instance.TeamManager.GetPlayerTeam(id) == Infection.Instance.InfectedChildren;
+
+        private static void ClearHoldIfNecessary()
+        {
+            if (NetworkInfo.HasServer)
+                return;
+
+            if (!NetworkInfo.IsHost)
+                return;
+
+            if (Infection.Instance?.IsStarted == true)
+                return;
+
+            if (Player.RigManager != null)
+                return;
+
+            HoldTime.Clear();
         }
     }
 }
