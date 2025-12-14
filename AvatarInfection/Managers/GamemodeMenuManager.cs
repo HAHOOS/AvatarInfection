@@ -9,6 +9,7 @@ using BoneLib;
 using Il2CppSLZ.Marrow;
 
 using LabFusion.Menu.Data;
+using LabFusion.SDK.Gamemodes;
 
 using static AvatarInfection.Infection;
 
@@ -133,14 +134,6 @@ namespace AvatarInfection.Managers
                 Title = $"{team.Team.DisplayName} Stats"
             };
 
-            void applyButtonUpdate()
-            {
-                const string name = "Apply new settings";
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
-                    string.Format(TeamConfigName, Instance.Infected.Team.DisplayName),
-                    "Apply new settings", (el) => el.Title = team.Metadata.IsApplied ? $"<color=#FF0000>{name}</color>" : name, true);
-            }
-
             group.AddElement("Apply new settings (use when the gamemode is already started)", () =>
             {
                 if (Instance.IsStarted)
@@ -155,16 +148,12 @@ namespace AvatarInfection.Managers
                     EventManager.TryInvokeEvent(EventType.RefreshStats, team);
                 }
             });
-            group.AddElement("Mortality", team.Metadata.Mortality.ClientValue, (val) => { team.Metadata.Mortality.ClientValue = val; applyButtonUpdate(); });
-            group.AddElement("Can Use Guns", team.Metadata.CanUseGuns.ClientValue, (val) => { team.Metadata.CanUseGuns.ClientValue = val; applyButtonUpdate(); });
-            group.AddElement("Override Vitality", team.Metadata.Vitality.ClientEnabled, (val) => { team.Metadata.Vitality.ClientEnabled = val; applyButtonUpdate(); });
-            group.AddElement("Vitality", team.Metadata.Vitality.ClientValue, (val) => { team.Metadata.Vitality.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
-            group.AddElement("Override Speed", team.Metadata.Speed.ClientEnabled, (val) => { team.Metadata.Speed.ClientEnabled = val; applyButtonUpdate(); });
-            group.AddElement("Speed", team.Metadata.Speed.ClientValue, (val) => { team.Metadata.Speed.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
-            group.AddElement("Override Agility", team.Metadata.Agility.ClientEnabled, (val) => { team.Metadata.Agility.ClientEnabled = val; applyButtonUpdate(); });
-            group.AddElement("Agility", team.Metadata.Agility.ClientValue, (val) => { team.Metadata.Agility.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
-            group.AddElement("Override Strength Upper", team.Metadata.StrengthUpper.ClientEnabled, (val) => { team.Metadata.StrengthUpper.ClientEnabled = val; applyButtonUpdate(); });
-            group.AddElement("Strength Upper", team.Metadata.StrengthUpper.ClientValue, (val) => { team.Metadata.StrengthUpper.ClientValue = val; applyButtonUpdate(); }, increment: Increment);
+            group.CreateStatElement(team, team.Metadata.Mortality);
+            group.CreateStatElement(team, team.Metadata.CanUseGuns);
+            group.CreateStatElement(team, team.Metadata.Vitality);
+            group.CreateStatElement(team, team.Metadata.Speed);
+            group.CreateStatElement(team, team.Metadata.Agility);
+            group.CreateStatElement(team, team.Metadata.StrengthUpper);
             group.AddElement($"Increment: {Increment}", () =>
             {
                 var group = string.Format(TeamConfigName, team.Team.DisplayName);
@@ -188,6 +177,26 @@ namespace AvatarInfection.Managers
 
             return group;
         }
+
+        private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ToggleServerSetting<float> stat)
+        {
+            group.AddElement($"Override {stat.Name}", stat.ClientEnabled, (val) => { stat.ClientEnabled = val; ApplyButtonUpdate(team); });
+            group.AddElement(stat.Name, stat.ClientValue, (val) => { stat.ClientValue = val; ApplyButtonUpdate(team); }, increment: Increment);
+        }
+
+        private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ServerSetting<bool> stat)
+        {
+            group.AddElement(stat.Name, stat.ClientValue, (val) => { stat.ClientValue = val; ApplyButtonUpdate(team); });
+        }
+
+        private static void ApplyButtonUpdate(InfectionTeam team)
+        {
+            const string name = "Apply new settings";
+            Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
+                string.Format(TeamConfigName, team.Team.DisplayName),
+                name, (el) => el.Title = team.Metadata.IsApplied ? $"<color=#FF0000>{name}</color>" : name, true);
+        }
+
         // For some reason, visual studio deems the suppression unnecessary, but if I remove it, it gives me a fucking warning, very logical.
         // Copilot stop trying to suggest me how to write commands. pretty please.
 #pragma warning disable IDE0079 // Remove unnecessary suppression
