@@ -10,7 +10,7 @@ namespace AvatarInfection
 {
     internal static class Constants
     {
-        public const string Version = "1.1.0";
+        public const string Version = "2.0.0";
 
         internal static class Defaults
         {
