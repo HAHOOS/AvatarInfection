@@ -14,8 +14,6 @@ using MelonLoader;
 
 using UnityEngine;
 
-using static UnityEngine.GraphicsBuffer;
-
 namespace AvatarInfection.Managers
 {
     internal static class VisionManager

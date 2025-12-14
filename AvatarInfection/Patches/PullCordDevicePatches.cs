@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using BoneLib;
+﻿using BoneLib;
 
 using HarmonyLib;
 
@@ -16,11 +10,13 @@ using LabFusion.SDK.Gamemodes;
 
 namespace AvatarInfection.Patches
 {
+    [HarmonyPatch(typeof(PullCordDevice))]
     public static class PullCordDevicePatches
     {
 
-        [HarmonyPatch(typeof(PullCordDevice), nameof(PullCordDevice.EnableBall))]
-        public static bool Prefix(PullCordDevice __instance)
+        [HarmonyPrefix]
+        [HarmonyPatch(nameof(PullCordDevice.EnableBall))]
+        public static bool OnBall(PullCordDevice __instance)
         {
             if (__instance == null)
                 return true;

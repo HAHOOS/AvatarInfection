@@ -509,6 +509,9 @@ namespace AvatarInfection
             base.OnGamemodeStopped();
             Cleanup();
 
+            if (!NetworkInfo.HasServer)
+                return;
+
             if (NetworkInfo.IsHost)
                 TeamManager.UnassignAllPlayers();
             else if (Config.TeleportOnEnd.ClientValue)
