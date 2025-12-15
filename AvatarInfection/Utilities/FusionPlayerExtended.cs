@@ -111,7 +111,7 @@ namespace AvatarInfection.Utilities
                 LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? CommonBarcodes.Avatars.PolyBlank;
 
             AvatarOverride = barcode;
-            Player.RigManager.SwapAvatarCrate(new Barcode(barcode), true);
+            SwapAvatar(barcode);
         }
 
         public static void ClearAvatarOverride()
@@ -119,29 +119,26 @@ namespace AvatarInfection.Utilities
             AvatarOverride = null;
             if (Player.RigManager != null && !string.IsNullOrWhiteSpace(LastAvatar) && AssetWarehouse.ready)
             {
-                ForceChange(LastAvatar);
+                SwapAvatar(LastAvatar);
                 LastAvatar = null;
             }
         }
 
-        private static GameObject PullCord;
-
         private static void ForceChange(string barcode)
         {
-            PullCord ??= new GameObject("AI_PCFC");
-            var comp = PullCord.GetComponent<PullCordForceChange>() ?? PullCord.AddComponent<PullCordForceChange>();
+            var pullCord = new GameObject("AI_PCFC");
+            var comp = pullCord.GetComponent<PullCordForceChange>() ?? pullCord.AddComponent<PullCordForceChange>();
             comp.avatarCrate = new AvatarCrateReference(barcode);
             comp.rigManager = Player.RigManager;
             comp.ForceChange(Player.RigManager.gameObject);
+            GameObject.Destroy(pullCord);
         }
 
-        internal static void SwapAvatar(string barcode, ModResult downloadResult = ModResult.SUCCEEDED)
+        private static void SwapAvatar(string barcode, ModResult downloadResult = ModResult.SUCCEEDED)
         {
             if (string.IsNullOrWhiteSpace(barcode) || barcode == Barcode.EMPTY)
-            {
-                FusionModule.Logger.Error("ALERT! ALERT! This is not supposed to fucking happen, what the fuck did you do that the SelectedAvatar is empty. Now relax, calm down and fix this issue\nfuck you rottencheese, this shit will never work.");
                 return;
-            }
+
 
             if (Player.RigManager == null)
                 return;

@@ -27,6 +27,8 @@ namespace AvatarInfection.Patches
         {
             try
             {
+                __result = new UniTask<bool>(true);
+
                 if (IsBarcodeEmpty(barcode))
                     return true;
 
@@ -47,28 +49,12 @@ namespace AvatarInfection.Patches
 
                 if (barcode == new Barcode(Infection.Instance.Config.SelectedAvatar.ClientValue))
                 {
-                    if (Ignore)
-                    {
-                        Ignore = false;
-                        return true;
-                    }
-                    else
-                    {
-                        __result = new UniTask<bool>(true);
-                        if (IsInfected())
-                        {
-                            Ignore = true;
-                            FusionPlayerExtended.SetAvatarOverride(Infection.Instance.Config.SelectedAvatar.ClientValue);
-                        }
-                        return false;
-                    }
+                    return IsInfected();
                 }
-
-                bool returned = Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Survivors;
-
-                if (!returned) __result = new UniTask<bool>(true);
-
-                return returned;
+                else
+                {
+                    return !IsInfected();
+                }
             }
             catch (Exception e)
             {

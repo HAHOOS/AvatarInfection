@@ -95,7 +95,7 @@ namespace AvatarInfection.Settings
                 return;
             }
 
-            FusionPlayerExtended.SwapAvatar(SelectedAvatar.ClientValue);
+            FusionPlayerExtended.SetAvatarOverride(SelectedAvatar.ClientValue);
         }
     }
 }

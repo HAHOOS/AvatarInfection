@@ -205,7 +205,7 @@ namespace AvatarInfection.Settings
 
         private void OnTargetLevelLoaded()
         {
-            if (!NetworkInfo.HasServer)
+            if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
                 return;
 
             _clientValue = ServerValue.GetValue();
