@@ -24,8 +24,6 @@ namespace AvatarInfection.Settings
 
         public ToggleServerSetting<float> Speed { get; set; }
 
-        public ToggleServerSetting<float> JumpPower { get; set; }
-
         public ToggleServerSetting<float> Agility { get; set; }
 
         public ToggleServerSetting<float> StrengthUpper { get; set; }
@@ -35,16 +33,15 @@ namespace AvatarInfection.Settings
             Gamemode = gamemode;
             Team = team;
 
-            Mortality = CreateSetting(nameof(Mortality), config?.Mortality ?? default);
-            CanUseGuns = CreateSetting(nameof(CanUseGuns), config?.CanUseGuns ?? default);
-            Vitality = CreateSetting(nameof(Vitality), config?.Vitality);
-            Speed = CreateSetting(nameof(Speed), config?.Speed);
-            JumpPower = CreateSetting(nameof(JumpPower), config?.JumpPower);
-            Agility = CreateSetting(nameof(Agility), config?.Agility);
-            StrengthUpper = CreateSetting(nameof(StrengthUpper), config?.StrengthUpper);
+            Mortality = CreateSetting(nameof(Mortality), config?.Mortality ?? default, nameof(Mortality));
+            CanUseGuns = CreateSetting(nameof(CanUseGuns), config?.CanUseGuns ?? default, "Can Use Guns");
+            Vitality = CreateSetting(nameof(Vitality), config?.Vitality, nameof(Vitality));
+            Speed = CreateSetting(nameof(Speed), config?.Speed, nameof(Speed));
+            Agility = CreateSetting(nameof(Agility), config?.Agility, nameof(Agility));
+            StrengthUpper = CreateSetting(nameof(StrengthUpper), config?.StrengthUpper, "Strength Upper");
         }
 
-        private ToggleServerSetting<T> CreateSetting<T>(string name, ToggleSetting<T> config) where T : IEquatable<T>
+        private ToggleServerSetting<T> CreateSetting<T>(string name, ToggleSetting<T> config, string displayName = null) where T : IEquatable<T>
         {
             T _value;
             if (config == null)
@@ -52,11 +49,11 @@ namespace AvatarInfection.Settings
             else
                 _value = config.Value ?? default;
 
-            return CreateToggleServerSetting($"{Team.TeamName}_{name}", _value, config?.Enabled ?? default, false);
+            return CreateToggleServerSetting($"{Team.TeamName}_{name}", _value, config?.Enabled ?? default, displayName, false);
         }
 
-        private ServerSetting<T> CreateSetting<T>(string name, T value) where T : IEquatable<T>
-            => CreateServerSetting($"{Team.TeamName}_{name}", value, false);
+        private ServerSetting<T> CreateSetting<T>(string name, T value, string displayName = null) where T : IEquatable<T>
+            => CreateServerSetting($"{Team.TeamName}_{name}", value, displayName, false);
 
         public void ApplyConfig()
         {

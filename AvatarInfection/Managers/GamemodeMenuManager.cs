@@ -15,7 +15,7 @@ namespace AvatarInfection.Managers
 {
     internal static class GamemodeMenuManager
     {
-        private const string TeamConfigName = "{0} Config";
+        private const string TeamConfigName = "{0} Stats";
 
         internal static float Increment
         {
@@ -125,11 +125,12 @@ namespace AvatarInfection.Managers
             }
         }
 
+        // TODO: fix this fuckass code not changing stats.
         internal static GroupElementData CreateElementsForTeam(InfectionTeam team)
         {
             var group = new GroupElementData()
             {
-                Title = $"{team.Team.DisplayName} Stats"
+                Title = string.Format(TeamConfigName, team.Team.DisplayName),
             };
 
             group.AddElement("Apply new settings (use when the gamemode is already started)", () =>
@@ -146,13 +147,19 @@ namespace AvatarInfection.Managers
                     EventManager.TryInvokeEvent(EventType.RefreshStats, team);
                 }
             });
+            FormatApplyName(team);
 
-            group.CreateStatElement(team, team.Metadata.Mortality);
-            group.CreateStatElement(team, team.Metadata.CanUseGuns);
-            group.CreateStatElement(team, team.Metadata.Vitality);
-            group.CreateStatElement(team, team.Metadata.Speed);
-            group.CreateStatElement(team, team.Metadata.Agility);
-            group.CreateStatElement(team, team.Metadata.StrengthUpper);
+            (team.Metadata as SettingsCollection)._settingsList
+                .Where(setting => setting is ToggleServerSetting<float> || setting is ServerSetting<bool>)
+                .ToList()
+                .ForEach(x =>
+                {
+                    if (x is ToggleServerSetting<float> toggleStat)
+                        group.CreateStatElement(team, toggleStat);
+                    else if (x is ServerSetting<bool> boolStat)
+                        group.CreateStatElement(team, boolStat);
+                });
+
             group.AddElement($"Increment: {Increment}", () =>
             {
                 var group = string.Format(TeamConfigName, team.Team.DisplayName);
@@ -164,10 +171,10 @@ namespace AvatarInfection.Managers
                     "Increment:",
                     (el) => el.Title = $"Increment: {Increment}");
 
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.StrengthUpper.GetTeamStatName(), (el) => el.Increment = Increment);
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Agility.GetTeamStatName(), (el) => el.Increment = Increment);
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Speed.GetTeamStatName(), (el) => el.Increment = Increment);
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Vitality.GetTeamStatName(), (el) => el.Increment = Increment);
+                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.StrengthUpper.DisplayName, (el) => el.Increment = Increment);
+                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Agility.DisplayName, (el) => el.Increment = Increment);
+                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Speed.DisplayName, (el) => el.Increment = Increment);
+                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Vitality.DisplayName, (el) => el.Increment = Increment);
             });
 
             if (team.Team == Instance.Infected.Team)
@@ -184,27 +191,29 @@ namespace AvatarInfection.Managers
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ToggleServerSetting<float> stat)
         {
-            group.AddElement($"Override {stat.GetTeamStatName()}", stat.ClientEnabled, (val) => { stat.ClientEnabled = val; ApplyButtonUpdate(team); });
-            group.AddElement(stat.GetTeamStatName(), stat.ClientValue, (val) => { stat.ClientValue = val; ApplyButtonUpdate(team); }, increment: Increment);
+            group.AddElement($"Override {stat.DisplayName}", stat.ClientEnabled, (val) => { stat.ClientEnabled = val; FormatApplyName(team); });
+            group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; Console.WriteLine("New: " + stat.ClientValue); Console.WriteLine("New2: " + Infection.Instance.Infected.Metadata.Speed.ClientValue); FormatApplyName(team); }, increment: Increment);
         }
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ServerSetting<bool> stat)
         {
-            group.AddElement(stat.GetTeamStatName(), stat.ClientValue, (val) => { stat.ClientValue = val; ApplyButtonUpdate(team); });
+            group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; FormatApplyName(team); });
         }
 
-        public static string GetTeamStatName<T>(this ServerSetting<T> stat) where T : IEquatable<T>
-            => stat.Name.Contains('_') ? stat.Name.Split('_').LastOrDefault() ?? "N/A" : stat.Name;
-
-        public static string GetTeamStatName<T>(this ToggleServerSetting<T> stat) where T : IEquatable<T>
-            => stat.Name.Contains('_') ? stat.Name.Split('_').LastOrDefault() ?? "N/A" : stat.Name;
-
-        private static void ApplyButtonUpdate(InfectionTeam team)
+        private static void FormatApplyName(InfectionTeam team)
         {
             const string name = "Apply new settings";
+
+            string _name;
+
+            if (!Instance.IsStarted)
+                _name = $"<color=#000000>{name} (Gamemode not started)</color>";
+            else
+                _name = team.Metadata.IsApplied ? $"<color=#00FF00>{name} (Applied)</color>" : $"<color=#FF0000>{name} (Not Applied)</color>";
+
             Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
                 string.Format(TeamConfigName, team.Team.DisplayName),
-                name, (el) => el.Title = team.Metadata.IsApplied ? $"<color=#FF0000>{name}</color>" : name, true);
+                name, (el) => el.Title = _name, true);
         }
 
         // For some reason, visual studio deems the suppression unnecessary, but if I remove it, it gives me a fucking warning, very logical.

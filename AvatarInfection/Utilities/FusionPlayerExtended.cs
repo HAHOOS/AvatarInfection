@@ -18,8 +18,6 @@ namespace AvatarInfection.Utilities
     {
         public static float? SpeedOverride { get; private set; }
 
-        public static float? JumpPowerOverride { get; private set; }
-
         public static float? AgilityOverride { get; private set; }
 
         public static float? StrengthUpperOverride { get; private set; }
@@ -29,10 +27,9 @@ namespace AvatarInfection.Utilities
 
         public static string LastAvatar { get; private set; }
 
-        internal static void SetOverrides(float? jumpPower, float? speed, float? agility, float? strengthUpper)
+        internal static void SetOverrides(float? speed, float? agility, float? strengthUpper)
         {
             SpeedOverride = speed;
-            JumpPowerOverride = jumpPower;
             AgilityOverride = agility;
             StrengthUpperOverride = strengthUpper;
 
@@ -45,9 +42,6 @@ namespace AvatarInfection.Utilities
 
                 if (SetOverrideValue(AgilityOverride, avatar._agility, ref changed, out float res))
                     avatar._agility = res;
-
-                if (SetOverrideValue(JumpPowerOverride, avatar._strengthLower, ref changed, out float res2))
-                    avatar._strengthLower = res2;
 
                 if (SetOverrideValue(SpeedOverride, avatar._speed, ref changed, out float res3))
                     avatar._speed = res3;
@@ -85,7 +79,6 @@ namespace AvatarInfection.Utilities
             if (AgilityOverride == null &&
                 SpeedOverride == null &&
                 StrengthUpperOverride == null &&
-                JumpPowerOverride == null &&
                 SpeedOverride == null)
             {
                 return;
@@ -94,7 +87,6 @@ namespace AvatarInfection.Utilities
             AgilityOverride = null;
             SpeedOverride = null;
             StrengthUpperOverride = null;
-            JumpPowerOverride = null;
             SpeedOverride = null;
             if (Player.RigManager != null)
             {

@@ -23,9 +23,6 @@ namespace AvatarInfection.Patches
             if (FusionPlayerExtended.SpeedOverride != null)
                 __instance._speed = (float)FusionPlayerExtended.SpeedOverride;
 
-            if (FusionPlayerExtended.JumpPowerOverride != null)
-                __instance._strengthLower = (float)FusionPlayerExtended.JumpPowerOverride;
-
             if (FusionPlayerExtended.AgilityOverride != null)
                 __instance._agility = (float)FusionPlayerExtended.AgilityOverride;
 

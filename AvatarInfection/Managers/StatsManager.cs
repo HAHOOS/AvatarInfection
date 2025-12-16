@@ -50,12 +50,11 @@ namespace AvatarInfection.Managers
             // Push nametag updates
             FusionOverrides.ForceUpdateOverrides();
 
-            float? jumpPower = GetToggleValue(metadata.JumpPower);
             float? speed = GetToggleValue(metadata.Speed);
             float? agility = GetToggleValue(metadata.Agility);
             float? strengthUpper = GetToggleValue(metadata.StrengthUpper);
 
-            FusionPlayerExtended.SetOverrides(jumpPower, speed, agility, strengthUpper);
+            FusionPlayerExtended.SetOverrides(speed, agility, strengthUpper);
 
             // Force mortality
             LocalHealth.MortalityOverride = metadata.Mortality.ClientValue;

@@ -23,9 +23,9 @@ namespace AvatarInfection.Settings
                     ((IServerSetting)x).Sync();
             });
 
-        internal ServerSetting<T> CreateServerSetting<T>(string name, T value, bool autoSync = true) where T : IEquatable<T>
+        internal ServerSetting<T> CreateServerSetting<T>(string name, T value, string displayName = null, bool autoSync = true) where T : IEquatable<T>
         {
-            var setting = new ServerSetting<T>(Infection.Instance, name, value, autoSync);
+            var setting = new ServerSetting<T>(Infection.Instance, name, value, displayName, autoSync);
             _settingsList.Add(setting);
             return setting;
         }
@@ -37,9 +37,9 @@ namespace AvatarInfection.Settings
             return setting;
         }
 
-        internal ToggleServerSetting<T> CreateToggleServerSetting<T>(string name, T value, bool enabled, bool autoSync = true) where T : IEquatable<T>
+        internal ToggleServerSetting<T> CreateToggleServerSetting<T>(string name, T value, bool enabled, string displayName = null, bool autoSync = true) where T : IEquatable<T>
         {
-            var setting = new ToggleServerSetting<T>(Infection.Instance, name, value, enabled, autoSync);
+            var setting = new ToggleServerSetting<T>(Infection.Instance, name, value, enabled, displayName, autoSync);
             _settingsList.Add(setting);
             return setting;
         }
@@ -48,6 +48,6 @@ namespace AvatarInfection.Settings
     public static class SettingsHelper
     {
         public static bool IsServerSetting(this ISetting setting)
-            => setting.GetType() is IServerSetting;
+            => setting is IServerSetting;
     }
 }
