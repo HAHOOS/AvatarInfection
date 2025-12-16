@@ -22,7 +22,6 @@ namespace AvatarInfection.Utilities
 
         public static float? StrengthUpperOverride { get; private set; }
 
-        // Avatar override calls everything in FusionPlayer, but restores the old avatar
         public static string AvatarOverride { get; private set; }
 
         public static string LastAvatar { get; private set; }
@@ -38,28 +37,27 @@ namespace AvatarInfection.Utilities
 
             if (avatar != null)
             {
-                bool changed = false;
-
-                if (SetOverrideValue(AgilityOverride, avatar._agility, ref changed, out float res))
+                if (SetOverrideValue(AgilityOverride, avatar._agility, out bool changed1, out float res))
                     avatar._agility = res;
 
-                if (SetOverrideValue(SpeedOverride, avatar._speed, ref changed, out float res3))
-                    avatar._speed = res3;
+                if (SetOverrideValue(SpeedOverride, avatar._speed, out bool changed2, out float res2))
+                    avatar._speed = res2;
 
-                if (SetOverrideValue(StrengthUpperOverride, avatar._strengthUpper, ref changed, out float res4))
+                if (SetOverrideValue(StrengthUpperOverride, avatar._strengthUpper, out bool changed3, out float res3))
                 {
-                    avatar._strengthUpper = res4;
-                    avatar._strengthGrip = res4;
+                    avatar._strengthUpper = res3;
+                    avatar._strengthGrip = res3;
                 }
 
-                if (changed)
+                if (changed1 || changed2 || changed3)
                     rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
 
             }
         }
 
-        private static bool SetOverrideValue(float? _override, float? actual, ref bool changed, out float res)
+        private static bool SetOverrideValue(float? _override, float? actual, out bool changed, out float res)
         {
+            changed = false;
             if (_override.HasValue && !actual.Equals(AgilityOverride.Value))
             {
                 changed = true;
@@ -95,6 +93,8 @@ namespace AvatarInfection.Utilities
                     rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
             }
         }
+
+        #region Avatar Override
 
         public static void SetAvatarOverride(string barcode)
         {
@@ -160,5 +160,7 @@ namespace AvatarInfection.Utilities
                 });
             }
         }
+
+        #endregion Avatar Override
     }
 }
