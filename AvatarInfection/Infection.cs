@@ -141,9 +141,9 @@ namespace AvatarInfection
 
             MultiplayerHooking.OnDisconnected += Cleanup;
 
-            Infected = new(new("Infected"), this, new(Constants.Defaults.InfectedStats));
-            Survivors = new(new("Survivors"), this, new(Constants.Defaults.SurvivorsStats));
-            InfectedChildren = new(new("Infected Children"), this, new(Constants.Defaults.InfectedChildrenStats));
+            Infected = new(new("Infected"), Color.green, this, new(Constants.Defaults.InfectedStats));
+            Survivors = new(new("Survivors"), Color.cyan, this, new(Constants.Defaults.SurvivorsStats));
+            InfectedChildren = new(new("Infected Children"), new Color(0, 1, 0), this, new(Constants.Defaults.InfectedChildrenStats));
             InfectedChildren.Team.DisplayName = "Infected Children";
 
             TeamManager.Register(this);

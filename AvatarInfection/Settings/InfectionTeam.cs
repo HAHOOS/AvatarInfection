@@ -1,5 +1,7 @@
 ﻿using LabFusion.SDK.Gamemodes;
 
+using UnityEngine;
+
 namespace AvatarInfection.Settings
 {
     public class InfectionTeam
@@ -8,19 +10,23 @@ namespace AvatarInfection.Settings
 
         public TeamMetadata Metadata { get; set; }
 
+        public Color Color { get; set; }
+
         public InfectionTeam()
         {
         }
 
-        public InfectionTeam(Team team, TeamMetadata metadata)
+        public InfectionTeam(Team team, Color color, TeamMetadata metadata)
         {
             Team = team;
+            Color = color;
             Metadata = metadata;
         }
 
-        public InfectionTeam(Team team, Gamemode gamemode, TeamSettings? config = null)
+        public InfectionTeam(Team team, Color color, Gamemode gamemode, TeamSettings? config = null)
         {
             Team = team;
+            Color = color;
             Metadata = new(team, gamemode, config);
         }
 

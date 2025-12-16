@@ -109,16 +109,8 @@ namespace AvatarInfection.Managers
             if (!Teams.Any(x => x.Value == team))
                 return null;
 
-            Dictionary<string, Color> teamColors = new()
-            {
-                { "Infected", Color.green },
-                { "Infected Children", new Color(0, 1, 0) },
-                { "Survivors", Color.cyan },
-                { "Unidentified", Color.gray },
-            };
-
             string name = team != null ? team.DisplayName : "Unidentified";
-            var color = teamColors.ContainsKey(name) ? teamColors[name] : Color.white;
+            var color = team != null ? Infection.Instance.TeamManager.GetInfectionTeamFromTeam(team).Color : Color.gray;
             return new(ModPage.CreatePage($"{name} ({Teams.Count(x => x.Value == team)})", color), team);
         }
 

@@ -27,8 +27,10 @@ namespace AvatarInfection
         public override void OnInitializeMelon()
         {
             Logger = LoggerInstance;
+
             Category = MelonPreferences.CreateCategory("AvatarInfection_Save");
             Category.SetFilePath(Path.Combine(MelonEnvironment.UserDataDirectory, "AvatarInfection.cfg"));
+
             try
             {
                 LoggerInstance.Msg("Loading icon");
