@@ -197,7 +197,7 @@ namespace AvatarInfection.Patches
                     if (!NetworkPlayerManager.TryGetPlayer(grip._marrowEntity, out var player))
                         continue;
 
-                    if (IsInfected(player.PlayerID))
+                    if (Infection.Instance.IsPlayerInfected(player.PlayerID))
                         continue;
 
                     HoldTime.Remove(grip);
@@ -205,9 +205,6 @@ namespace AvatarInfection.Patches
                 }
             }
         }
-
-        private static bool IsInfected(PlayerID id) => Infection.Instance.TeamManager.GetPlayerTeam(id) == Infection.Instance.Infected
-            || Infection.Instance.TeamManager.GetPlayerTeam(id) == Infection.Instance.InfectedChildren;
 
         private static void ClearHoldIfNecessary()
         {

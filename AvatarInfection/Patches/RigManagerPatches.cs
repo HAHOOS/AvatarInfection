@@ -49,11 +49,11 @@ namespace AvatarInfection.Patches
 
                 if (barcode == new Barcode(Infection.Instance.Config.SelectedAvatar.ClientValue))
                 {
-                    return IsInfected();
+                    return Infection.Instance.IsLocalPlayerInfected();
                 }
                 else
                 {
-                    return !IsInfected();
+                    return !Infection.Instance.IsLocalPlayerInfected();
                 }
             }
             catch (Exception e)
@@ -76,9 +76,6 @@ namespace AvatarInfection.Patches
 
             return true;
         }
-
-        private static bool IsInfected() => Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected
-            || Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren;
 
         private static bool IsBarcodeEmpty(Barcode barcode) => barcode == null || string.IsNullOrWhiteSpace(barcode.ID) || barcode.ID == Barcode.EMPTY;
     }

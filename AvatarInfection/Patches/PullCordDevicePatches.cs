@@ -27,27 +27,10 @@ namespace AvatarInfection.Patches
             if (!NetworkInfo.HasServer)
                 return true;
 
-            if (!IsGamemodeActive())
+            if (!Infection.Instance.IsStarted)
                 return true;
 
-            return !IsInfected();
-        }
-
-        private static bool IsInfected() => Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Infected
-            || Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren;
-
-        private static bool IsGamemodeActive()
-        {
-            if (!GamemodeManager.IsGamemodeStarted)
-                return false;
-
-            if (GamemodeManager.ActiveGamemode == null
-                || GamemodeManager.ActiveGamemode.Barcode != Constants.Defaults.Barcode)
-            {
-                return false;
-            }
-
-            return true;
+            return !Infection.Instance.IsLocalPlayerInfected();
         }
     }
 }

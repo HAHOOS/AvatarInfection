@@ -71,6 +71,10 @@ namespace AvatarInfection
 
         public bool IsInfected(InfectionTeam team) => team != null && (team.Team == Infected.Team || team.Team == InfectedChildren.Team);
 
+        public bool IsPlayerInfected(PlayerID id) => IsInfected(TeamManager?.GetPlayerTeam(id));
+
+        public bool IsLocalPlayerInfected() => IsInfected(TeamManager?.GetLocalTeam());
+
         internal InfectionTeamManager TeamManager { get; } = new();
 
         public MusicPlaylist PlayList { get; } = new();
@@ -619,7 +623,7 @@ namespace AvatarInfection
             if (killer == null || Config.InfectType.Value != InfectType.DEATH)
                 return;
 
-            if (TeamManager.GetPlayerTeam(player) == Survivors && IsInfected(TeamManager.GetPlayerTeam(killer)))
+            if (TeamManager.GetPlayerTeam(player) == Survivors && IsPlayerInfected(killer))
                 EventManager.TryInvokeEvent(EventType.PlayerInfected, player.PlatformID);
         }
 
