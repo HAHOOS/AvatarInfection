@@ -1,5 +1,7 @@
 ﻿using LabFusion.SDK.Metadata;
 
+using LabPresence;
+
 using MelonLoader;
 
 namespace AvatarInfection.Utilities
@@ -17,18 +19,27 @@ namespace AvatarInfection.Utilities
         }
 
         internal static void Internal_Init()
+            => LabPresence.Gamemodes.RegisterGamemode(Constants.Defaults.Barcode, CustomToolTip, CustomTimestamp);
+
+
+        private static string CustomToolTip()
+            => $"{Infection.Instance.Survivors.Team.PlayerCount} survivors left!";
+
+        private static Timestamp CustomTimestamp()
         {
-            LabPresence.Gamemodes.RegisterGamemode(Constants.Defaults.Barcode,
-                () => $"{Infection.Instance.Survivors.Team.PlayerCount} survivors left!", () =>
+            if (NotNull(Infection.Instance.EndUnix) && NotNull(Infection.Instance.StartUnix))
             {
-                if ((Infection.Instance.EndUnix as MetadataVariable).GetValue() != null
-                    && (Infection.Instance.StartUnix as MetadataVariable).GetValue() != null)
-                {
-                    var value = Infection.Instance.EndUnix.GetValue();
-                    return new((ulong?)Infection.Instance.StartUnix.GetValue(), value == -1 ? null : (ulong?)value);
-                }
-                return null;
-            });
+                var start = (ulong?)Infection.Instance.StartUnix.GetValue();
+                var end = Infection.Instance.EndUnix.GetValue();
+                if (end == -1)
+                    end = null;
+
+                return new(start, (ulong?)end);
+            }
+            return null;
         }
+
+        private static bool NotNull(MetadataVariable val)
+            => val.GetValue() != null;
     }
 }
