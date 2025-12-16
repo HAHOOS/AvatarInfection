@@ -125,7 +125,6 @@ namespace AvatarInfection.Managers
             }
         }
 
-        // TODO: fix this fuckass code not changing stats.
         internal static GroupElementData CreateElementsForTeam(InfectionTeam team)
         {
             var group = new GroupElementData()
@@ -133,7 +132,7 @@ namespace AvatarInfection.Managers
                 Title = string.Format(TeamConfigName, team.Team.DisplayName),
             };
 
-            group.AddElement("Apply new settings (use when the gamemode is already started)", () =>
+            group.AddElement(FormatApplyName(team, apply: false), () =>
             {
                 if (Instance.IsStarted)
                 {
@@ -147,7 +146,6 @@ namespace AvatarInfection.Managers
                     EventManager.TryInvokeEvent(EventType.RefreshStats, team);
                 }
             });
-            FormatApplyName(team);
 
             (team.Metadata as SettingsCollection)._settingsList
                 .Where(setting => setting is ToggleServerSetting<float> || setting is ServerSetting<bool>)
@@ -166,15 +164,20 @@ namespace AvatarInfection.Managers
 
                 IncrementIndex++;
                 IncrementIndex %= IncrementValues.Count;
+
                 Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
                     group,
                     "Increment:",
                     (el) => el.Title = $"Increment: {Increment}");
 
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.StrengthUpper.DisplayName, (el) => el.Increment = Increment);
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Agility.DisplayName, (el) => el.Increment = Increment);
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Speed.DisplayName, (el) => el.Increment = Increment);
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, team.Metadata.Vitality.DisplayName, (el) => el.Increment = Increment);
+                (team.Metadata as SettingsCollection)._settingsList
+                    .Where(setting => setting is ToggleServerSetting<float>)
+                    .ToList()
+                    .ForEach(x =>
+                    {
+                        var _x = x as ToggleServerSetting<float>;
+                        Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, _x.DisplayName, (el) => el.Increment = Increment);
+                    });
             });
 
             if (team.Team == Instance.Infected.Team)
@@ -200,7 +203,7 @@ namespace AvatarInfection.Managers
             group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; FormatApplyName(team); });
         }
 
-        private static void FormatApplyName(InfectionTeam team)
+        private static string FormatApplyName(InfectionTeam team, bool apply = true)
         {
             const string name = "Apply new settings";
 
@@ -211,9 +214,14 @@ namespace AvatarInfection.Managers
             else
                 _name = team.Metadata.IsApplied ? $"<color=#00FF00>{name} (Applied)</color>" : $"<color=#FF0000>{name} (Not Applied)</color>";
 
-            Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
-                string.Format(TeamConfigName, team.Team.DisplayName),
-                name, (el) => el.Title = _name, true);
+            if (apply)
+            {
+                Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
+                    string.Format(TeamConfigName, team.Team.DisplayName),
+                    name, (el) => el.Title = _name, true);
+            }
+
+            return _name;
         }
 
         // For some reason, visual studio deems the suppression unnecessary, but if I remove it, it gives me a fucking warning, very logical.
