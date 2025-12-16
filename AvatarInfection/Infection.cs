@@ -100,26 +100,6 @@ namespace AvatarInfection
 
         public bool OneMinuteLeft { get; private set; } = false;
 
-        public static bool IsBodyLogEnabled
-        {
-            get
-            {
-                var rig = Player.RigManager;
-                if (rig != null)
-                {
-                    bool disabled = false;
-                    var PCDs = rig?.gameObject?.GetComponentsInChildren<PullCordDevice>();
-                    PCDs?.ForEach(x =>
-                    {
-                        if (!x._bodyLogEnabled)
-                            disabled = true;
-                    });
-                    return !disabled;
-                }
-                return true;
-            }
-        }
-
         private readonly Dictionary<PlayerID, PlayerActionType> LastPlayerActions = [];
 
         private int _surivorsLastCheckedMinutes;
