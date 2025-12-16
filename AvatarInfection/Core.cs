@@ -32,25 +32,7 @@ namespace AvatarInfection
             try
             {
                 LoggerInstance.Msg("Loading icon");
-                var assembly = Assembly.GetExecutingAssembly();
-                var name = assembly.GetName().Name;
-                var path = $"{name}.Embedded.Icons.AvatarInfection.png";
-                var stream = assembly.GetManifestResourceStream(path);
-                List<byte> bytes = [];
-                stream.Position = 0;
-                while (true)
-                {
-                    var _byte = stream.ReadByte();
-                    if (_byte == -1)
-                        break;
-
-                    bytes.Add((byte)_byte);
-                }
-                var texture2d = new Texture2D(2, 2);
-                texture2d.LoadImage(bytes.ToArray(), false);
-                texture2d.name = "AvatarInfectionIcon";
-                texture2d.hideFlags = HideFlags.DontUnloadUnusedAsset;
-                Icon = texture2d;
+                Icon = ImageConversion.LoadTexture("AvatarInfectionIcon", "AvatarInfection.png");
             }
             catch (Exception e)
             {

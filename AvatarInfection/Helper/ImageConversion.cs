@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 
 using UnityEngine;
 
@@ -94,6 +96,25 @@ namespace AvatarInfection.Helper
 
         public static bool LoadImage(this Texture2D tex, Il2CppStructArray<byte> data) => LoadImage(tex, data, false);
 
+        public static Texture2D LoadTexture(string name, byte[] bytes)
+        {
+            var texture2d = new Texture2D(2, 2);
+            texture2d.LoadImage(bytes, false);
+            texture2d.name = name;
+            texture2d.hideFlags = HideFlags.DontUnloadUnusedAsset;
+            return texture2d;
+        }
+
+        public static Texture2D LoadTexture(string name, string file, string folder = "Icons")
+        {
+            var bytes = ReadEmbeddedFile(file, folder);
+            var texture2d = new Texture2D(2, 2);
+            texture2d.LoadImage(bytes, false);
+            texture2d.name = name;
+            texture2d.hideFlags = HideFlags.DontUnloadUnusedAsset;
+            return texture2d;
+        }
+
         private delegate IntPtr TextureOnlyDelegate(IntPtr tex);
 
         private delegate IntPtr TextureAndQualityDelegate(IntPtr tex, int quality);
@@ -101,5 +122,31 @@ namespace AvatarInfection.Helper
         private delegate IntPtr TextureAndFlagDelegate(IntPtr tex, Texture2D.EXRFlags flags);
 
         private delegate bool LoadImageDelegate(IntPtr tex, IntPtr data, bool markNonReadable);
+
+        public static byte[] ReadEmbeddedFile(string file, string folder = "Icons")
+        {
+            if (string.IsNullOrWhiteSpace(file))
+                return [];
+
+            var assembly = Assembly.GetExecutingAssembly();
+            var name = assembly.GetName().Name;
+            var path = $"{name}.Embedded.{(!string.IsNullOrWhiteSpace(folder) ? $"{folder}." : string.Empty)}{file}";
+            var stream = assembly.GetManifestResourceStream(path);
+
+            if (stream == null)
+                return [];
+
+            byte[] bytes = [];
+            stream.Position = 0;
+            while (true)
+            {
+                var _byte = stream.ReadByte();
+                if (_byte == -1)
+                    break;
+
+                bytes.Push((byte)_byte);
+            }
+            return bytes;
+        }
     }
 }
