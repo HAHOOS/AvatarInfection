@@ -38,7 +38,7 @@ namespace AvatarInfection.Patches
                 if (__instance?.IsLocalPlayer() != true)
                     return true;
 
-                if (!IsGamemodeActive())
+                if (!Infection.Instance.IsStarted)
                     return true;
 
                 if (Infection.Instance.TeamManager?.GetLocalTeam() == null)
@@ -61,20 +61,6 @@ namespace AvatarInfection.Patches
                 FusionModule.Logger.Error($"An unexpected error has occurred while handing SwapAvatarCrate in RigManager, exception:\n{e}");
                 return true;
             }
-        }
-
-        private static bool IsGamemodeActive()
-        {
-            if (!GamemodeManager.IsGamemodeStarted)
-                return false;
-
-            if (GamemodeManager.ActiveGamemode == null
-                || GamemodeManager.ActiveGamemode.Barcode != Constants.Defaults.Barcode)
-            {
-                return false;
-            }
-
-            return true;
         }
 
         private static bool IsBarcodeEmpty(Barcode barcode) => barcode == null || string.IsNullOrWhiteSpace(barcode.ID) || barcode.ID == Barcode.EMPTY;
