@@ -1,9 +1,10 @@
-﻿using AvatarInfection.Utilities;
+using AvatarInfection.Utilities;
 
 using static AvatarInfection.Infection;
 
 namespace AvatarInfection.Settings
 {
+    // TODO: Add TeamMetadata for less hard-coded methods
     internal class InfectionSettings : SettingsCollection
     {
         #region Server
