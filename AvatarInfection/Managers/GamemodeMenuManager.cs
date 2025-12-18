@@ -143,7 +143,7 @@ namespace AvatarInfection.Managers
                     if (_metadata.IsApplied)
                         return;
                     _metadata.ApplyConfig();
-                    EventManager.TryInvokeEvent(EventType.RefreshStats, team);
+                    EventManager.TryInvokeEvent(EventType.RefreshStats, team.Team.TeamName);
                 }
             });
 
