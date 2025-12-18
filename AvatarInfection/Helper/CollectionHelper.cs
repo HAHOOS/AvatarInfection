@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AvatarInfection.Helper
 {
@@ -26,18 +24,6 @@ namespace AvatarInfection.Helper
         {
             var entry = dictionary._entries[random.Next(0, dictionary.Count)];
             return new KeyValuePair<KeyT, ValT>(entry.key, entry.value);
-        }
-
-        public static int Push<T>(this T[] source, T value)
-        {
-            var index = Array.IndexOf(source, default);
-
-            if (index != -1)
-            {
-                source[index] = value;
-            }
-
-            return index;
         }
     }
 }

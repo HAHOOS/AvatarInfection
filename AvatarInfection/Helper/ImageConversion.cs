@@ -1,10 +1,12 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 
 using UnityEngine;
+using UnityEngine.Windows;
 
 namespace AvatarInfection.Helper
 {
@@ -107,11 +109,7 @@ namespace AvatarInfection.Helper
         public static Texture2D LoadTexture(string name, string file, string folder = "Icons")
         {
             var bytes = ReadEmbeddedFile(file, folder);
-            var texture2d = new Texture2D(2, 2);
-            texture2d.LoadImage(bytes, false);
-            texture2d.name = name;
-            texture2d.hideFlags = HideFlags.DontUnloadUnusedAsset;
-            return texture2d;
+            return LoadTexture(name, bytes);
         }
 
         private delegate IntPtr TextureOnlyDelegate(IntPtr tex);
@@ -135,17 +133,10 @@ namespace AvatarInfection.Helper
             if (stream == null)
                 return [];
 
-            byte[] bytes = [];
             stream.Position = 0;
-            while (true)
-            {
-                var _byte = stream.ReadByte();
-                if (_byte == -1)
-                    break;
-
-                bytes.Push((byte)_byte);
-            }
-            return bytes;
+            using MemoryStream ms = new();
+            stream.CopyTo(ms);
+            return ms.ToArray();
         }
     }
 }
