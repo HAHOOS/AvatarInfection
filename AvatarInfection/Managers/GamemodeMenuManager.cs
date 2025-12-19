@@ -105,6 +105,7 @@ namespace AvatarInfection.Managers
                 try
                 {
                     Instance.Config.Load();
+                    Instance.TeamManager.InfectedTeams.ForEach(x => x.Metadata.Load());
                     RefreshSettingsPage();
                     MenuHelper.ShowNotification("Success", "Successfully loaded settings!", 3.5f);
                 }

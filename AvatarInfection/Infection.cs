@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections;
 
 using Il2CppSLZ.Marrow.Warehouse;
-using Il2CppSLZ.Bonelab;
 
 using LabFusion.Menu.Data;
 using LabFusion.Player;
@@ -25,8 +24,6 @@ using LabFusion.UI.Popups;
 using UnityEngine;
 
 using MelonLoader;
-
-using BoneLib;
 
 using AvatarInfection.Utilities;
 using AvatarInfection.Helper;
@@ -127,7 +124,7 @@ namespace AvatarInfection
 
             Infected = new(new("Infected"), Color.green, this, new(Constants.Defaults.InfectedStats));
             Survivors = new(new("Survivors"), Color.cyan, this, new(Constants.Defaults.SurvivorsStats));
-            InfectedChildren = new(new("Infected Children"), new Color(0, 1, 0), this, new(Constants.Defaults.InfectedChildrenStats));
+            InfectedChildren = new(new("InfectedChildren"), new Color(0, 1, 0), this, new(Constants.Defaults.InfectedChildrenStats));
             InfectedChildren.Team.DisplayName = "Infected Children";
 
             TeamManager.Register(this);

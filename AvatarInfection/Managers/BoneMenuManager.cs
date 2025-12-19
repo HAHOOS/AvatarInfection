@@ -59,7 +59,7 @@ namespace AvatarInfection.Managers
             ModPage.RemoveAll();
             ModPage.CreateFunction("Refresh", Color.cyan, PopulatePage);
             var seperator = ModPage.CreateFunction("[===============]", Color.magenta, null);
-            seperator.SetProperty(BoneLib.BoneMenu.ElementProperties.NoBorder);
+            seperator.SetProperty(ElementProperties.NoBorder);
 
             if (!NetworkInfo.HasServer)
             {
@@ -115,7 +115,7 @@ namespace AvatarInfection.Managers
         private static void CreateErrorMessage(string error)
         {
             var label = ModPage.CreateFunction(error, Color.white, null);
-            label.SetProperty(BoneLib.BoneMenu.ElementProperties.NoBorder);
+            label.SetProperty(ElementProperties.NoBorder);
         }
     }
 

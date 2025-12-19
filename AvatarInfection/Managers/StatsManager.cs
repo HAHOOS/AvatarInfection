@@ -47,7 +47,6 @@ namespace AvatarInfection.Managers
             if (metadata == null)
                 return;
 
-            // Push nametag updates
             FusionOverrides.ForceUpdateOverrides();
 
             float? speed = GetToggleValue(metadata.Speed);
@@ -56,7 +55,6 @@ namespace AvatarInfection.Managers
 
             FusionPlayerExtended.SetOverrides(speed, agility, strengthUpper);
 
-            // Force mortality
             LocalHealth.MortalityOverride = metadata.Mortality.ClientValue;
 
             if (metadata.Vitality.ClientEnabled)
