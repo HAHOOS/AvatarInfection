@@ -343,9 +343,22 @@ namespace AvatarInfection
                 VisionManager.HideVisionAndReveal(team != Infected ? 3 : 0);
         }
 
+        private float _elapsedTimeMenu = 0f;
+
         protected override void OnUpdate()
         {
             _elapsedTime += TimeUtilities.DeltaTime;
+            // HACK: There's a better way to do this, but for some fucking reason it doesnt want to cooperate. This must do for now.
+            if (NetworkInfo.IsHost)
+            {
+                _elapsedTimeMenu += TimeUtilities.DeltaTime;
+
+                if (_elapsedTimeMenu >= 1f)
+                {
+                    _elapsedTimeMenu = 0f;
+                    TeamManager.InfectedTeams.ForEach(x => GamemodeMenuManager.FormatApplyName(x, true));
+                }
+            }
 
             if (TeamManager.GetLocalTeam() == Survivors)
                 SurvivorsUpdate();
@@ -403,9 +416,7 @@ namespace AvatarInfection
 
             CountdownValue.SetValue(Config.CountdownLength.ClientValue);
 
-            Infected.Metadata.ApplyConfig();
-            InfectedChildren.Metadata.ApplyConfig();
-            Survivors.Metadata.ApplyConfig();
+            TeamManager.InfectedTeams.ForEach(x => x.Metadata.ApplyConfig());
 
             var now = DateTimeOffset.Now;
             StartUnix.SetValue(now.ToUnixTimeMilliseconds());

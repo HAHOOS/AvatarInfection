@@ -11,6 +11,7 @@ using Il2CppSLZ.Marrow.Warehouse;
 
 using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
+using LabFusion.Menu.Gamemodes;
 
 using static AvatarInfection.Infection;
 
@@ -23,6 +24,8 @@ namespace AvatarInfection.Managers
         private static readonly Dictionary<string, int> IncrementTeams = [];
 
         private static readonly IReadOnlyList<float> IncrementValues = [0.2f, 0.5f, 1f, 5f];
+
+        private static string SelectedAvatarTitle;
 
         internal static GroupElementData CreateSettingsGroup()
         {
@@ -40,7 +43,10 @@ namespace AvatarInfection.Managers
 
             GroupElementData avatarGroup = group.AddGroup("Avatar");
 
-            avatarGroup.AddElement($"Selected Avatar: {GetBarcodeTitle(Instance.Config.SelectedAvatar.ClientValue)}", SelectNewAvatar);
+            SelectedAvatarTitle = GetBarcodeTitle(Instance.Config.SelectedAvatar.ClientValue);
+            avatarGroup.AddElement(SelectedAvatarTitle, null);
+
+            avatarGroup.AddElement("Select From Current Avatar", SelectNewAvatar);
 
             avatarGroup.AddElement("Select Mode", Instance.Config.SelectMode.Value, (val) => Instance.Config.SelectMode.Value = (AvatarSelectMode)val);
 
@@ -132,12 +138,13 @@ namespace AvatarInfection.Managers
 
                 if (string.IsNullOrWhiteSpace(avatar))
                     return;
+
                 Instance.Config.SelectedAvatar.ClientValue = avatar;
 
                 string title = !string.IsNullOrWhiteSpace(rigManager.AvatarCrate?.Scannable?.Title) ? rigManager.AvatarCrate.Scannable.Title : "N/A";
 
-                const string startsWith = "Selected Avatar:";
-                Instance.ChangeElement<FunctionElement>("Avatar", startsWith, (element) => element.Title = $"{startsWith} {title}");
+                Instance.ChangeElement<FunctionElement>("Avatar", SelectedAvatarTitle, (element) => element.Title = title, false);
+                SelectedAvatarTitle = title;
             }
         }
 
@@ -212,7 +219,7 @@ namespace AvatarInfection.Managers
             group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; FormatApplyName(team); });
         }
 
-        private static string FormatApplyName(InfectionTeam team, bool apply = true)
+        internal static string FormatApplyName(InfectionTeam team, bool apply = true)
         {
             const string name = "Apply new settings";
 
@@ -237,9 +244,8 @@ namespace AvatarInfection.Managers
             }
 
             if (apply)
-            {
-                Instance.ChangeElement<FunctionElement>(team.GetGroupName(), name, (el) => el.Title = _name, true);
-            }
+                Instance.ChangeElement<FunctionElement>(team.GetGroupName(), name, (el) => el.Title = _name, false);
+
 
             return _name;
         }
@@ -252,11 +258,13 @@ namespace AvatarInfection.Managers
                 if (team.Team == Instance.InfectedChildren.Team && !Instance.Config.AddInfectedChildrenTeam.Value)
                     _metadata = Instance.Infected.Metadata;
 
-                if (_metadata.IsApplied)
-                    return;
+                if (!_metadata.IsApplied)
+                {
+                    _metadata.ApplyConfig();
+                    EventManager.TryInvokeEvent(EventType.RefreshStats, team.Team.TeamName);
+                }
 
-                _metadata.ApplyConfig();
-                EventManager.TryInvokeEvent(EventType.RefreshStats, team.Team.TeamName);
+                FormatApplyName(team);
             }
         }
 
@@ -272,10 +280,31 @@ namespace AvatarInfection.Managers
         // Copilot stop trying to suggest me how to write commands. pretty please.
 #pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable S3011 // Make sure that this accessibility bypass is safe here
-        private static void RefreshSettingsPage() => typeof(LabFusion.Menu.Gamemodes.MenuGamemode)
+        private static void RefreshSettingsPage()
+        {
+
+            if (MenuGamemode.SelectedGamemode != Instance)
+                return;
+
+            List<string> openGroups = [];
+            MenuGamemode.SettingsPageElement.Elements.ForEach(x =>
+            {
+                if (x is DropdownElement group && group.Expanded)
+                    openGroups.Add(group.Title);
+
+            });
+
+            typeof(LabFusion.Menu.Gamemodes.MenuGamemode)
                 .GetMethod("OverrideSettingsPage",
                             bindingAttr: System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
                 .Invoke(null, [Instance]);
+
+            MenuGamemode.SettingsPageElement.Elements.ForEach(x =>
+            {
+                if (x is DropdownElement group && !group.Expanded && openGroups.Contains(group.Title))
+                    group.Expand();
+            });
+        }
 
 #pragma warning restore S3011 // Make sure that this accessibility bypass is safe here
 #pragma warning restore IDE0079 // Remove unnecessary suppression

@@ -46,8 +46,13 @@ namespace AvatarInfection.Settings
         /// </summary>
         public event Action OnValueChanged;
 
+        public event Action OnSynced;
+
         public void Sync()
-            => ServerValue.SetValue(_clientValue);
+        {
+            ServerValue.SetValue(_clientValue);
+            OnSynced?.Invoke();
+        }
 
         public void Load()
             => ClientValue = Entry.Value;
@@ -169,10 +174,13 @@ namespace AvatarInfection.Settings
         /// </summary>
         public event Action OnValueChanged;
 
+        public event Action OnSynced;
+
         public void Sync()
         {
             ServerValue.SetValue(_clientValue);
             ServerValue.SetEnabled(_clientEnabled);
+            OnSynced?.Invoke();
         }
 
         public void Load()

@@ -1,5 +1,7 @@
 ﻿using System;
 
+using AvatarInfection.Managers;
+
 using BoneLib;
 
 using Il2CppSLZ.Marrow;
@@ -39,6 +41,25 @@ namespace AvatarInfection.Settings
             Speed = CreateSetting(nameof(Speed), config?.Speed, nameof(Speed));
             Agility = CreateSetting(nameof(Agility), config?.Agility, nameof(Agility));
             StrengthUpper = CreateSetting(nameof(StrengthUpper), config?.StrengthUpper, "Strength Upper");
+        }
+
+        public new void Sync()
+        {
+            base.Sync();
+            UpdateMenu();
+        }
+
+        private void UpdateMenu()
+        {
+            if (!Gamemode.IsStarted)
+                return;
+
+            var team = Infection.Instance.TeamManager.GetInfectionTeamFromTeam(Team);
+
+            if (team == null)
+                return;
+
+            GamemodeMenuManager.FormatApplyName(team, true);
         }
 
         private ToggleServerSetting<T> CreateSetting<T>(string name, ToggleSetting<T> config, string displayName = null) where T : IEquatable<T>
