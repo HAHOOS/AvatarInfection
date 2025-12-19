@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-using AvatarInfection.Settings;
-
 using BoneLib.BoneMenu;
 
 using LabFusion.Network;

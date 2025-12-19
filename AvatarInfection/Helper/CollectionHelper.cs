@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using AvatarInfection.Settings;
+
 namespace AvatarInfection.Helper
 {
     public static class CollectionHelper
@@ -24,6 +26,12 @@ namespace AvatarInfection.Helper
         {
             var entry = dictionary._entries[random.Next(0, dictionary.Count)];
             return new KeyValuePair<KeyT, ValT>(entry.key, entry.value);
+        }
+
+        internal static void Types(this List<ISetting> settings, Action<ISetting> forEach, params Type[] types)
+        {
+            settings.RemoveAll(x => !types.Contains(x.GetType()));
+            settings.ForEach(forEach);
         }
     }
 }

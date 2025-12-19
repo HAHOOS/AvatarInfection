@@ -7,6 +7,9 @@ using AvatarInfection.Settings;
 
 using BoneLib;
 
+using Il2CppSLZ.Marrow.Warehouse;
+
+using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 
 using static AvatarInfection.Infection;
@@ -17,16 +20,9 @@ namespace AvatarInfection.Managers
     {
         private const string TeamConfigName = "{0} Stats";
 
-        internal static float Increment
-        {
-            get
-            {
-                return IncrementValues[IncrementIndex];
-            }
-        }
+        private static readonly Dictionary<string, int> IncrementTeams = [];
 
         private static readonly IReadOnlyList<float> IncrementValues = [0.2f, 0.5f, 1f, 5f];
-        private static int IncrementIndex = 0;
 
         internal static GroupElementData CreateSettingsGroup()
         {
@@ -44,7 +40,7 @@ namespace AvatarInfection.Managers
 
             GroupElementData avatarGroup = group.AddGroup("Avatar");
 
-            avatarGroup.AddElement("Selected Avatar: N/A", SelectNewAvatar);
+            avatarGroup.AddElement($"Selected Avatar: {GetBarcodeTitle(Instance.Config.SelectedAvatar.ClientValue)}", SelectNewAvatar);
 
             avatarGroup.AddElement("Select Mode", Instance.Config.SelectMode.Value, (val) => Instance.Config.SelectMode.Value = (AvatarSelectMode)val);
 
@@ -91,11 +87,32 @@ namespace AvatarInfection.Managers
 
             generalGroup.AddElement("Suicide Infects", Instance.Config.SuicideInfects.Value, (val) => Instance.Config.SuicideInfects.Value = val);
             generalGroup.AddElement("Hold Time (Touch Infect Type)", Instance.Config.HoldTime.Value, (val) => Instance.Config.HoldTime.Value = val, max: 60);
-            generalGroup.AddElement("Save Settings", Instance.Config.Save);
+            generalGroup.AddElement("Save Settings", () =>
+            {
+                try
+                {
+                    Instance.Config.Save();
+                    MenuHelper.ShowNotification("Success", "Successfully saved settings!", 3.5f);
+                }
+                catch (Exception ex)
+                {
+                    Core.Logger.Error(ex);
+                    MenuHelper.ShowNotification("Fail", "Failed to save settings, check console for more details", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
+                }
+            });
             generalGroup.AddElement("Load Settings", () =>
             {
-                Instance.Config.Load();
-                RefreshSettingsPage();
+                try
+                {
+                    Instance.Config.Load();
+                    RefreshSettingsPage();
+                    MenuHelper.ShowNotification("Success", "Successfully loaded settings!", 3.5f);
+                }
+                catch (Exception ex)
+                {
+                    Core.Logger.Error(ex);
+                    MenuHelper.ShowNotification("Fail", "Failed to load settings, check console for more details", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
+                }
             });
 
             return group;
@@ -117,13 +134,13 @@ namespace AvatarInfection.Managers
 
                 string title = !string.IsNullOrWhiteSpace(rigManager.AvatarCrate?.Scannable?.Title) ? rigManager.AvatarCrate.Scannable.Title : "N/A";
 
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
-                    "Avatar",
-                    "Selected Avatar:",
-                    (element) => element.Title = $"Selected Avatar: {title}",
-                true);
+                const string startsWith = "Selected Avatar:";
+                Instance.ChangeElement<FunctionElement>("Avatar", startsWith, (element) => element.Title = $"{startsWith} {title}");
             }
         }
+
+        private static string GetBarcodeTitle(string barcode)
+            => !string.IsNullOrWhiteSpace(barcode) ? (new AvatarCrateReference(barcode).Crate.Title ?? "N/A") : "N/A";
 
         internal static GroupElementData CreateElementsForTeam(InfectionTeam team)
         {
@@ -132,52 +149,34 @@ namespace AvatarInfection.Managers
                 Title = string.Format(TeamConfigName, team.Team.DisplayName),
             };
 
-            group.AddElement(FormatApplyName(team, apply: false), () =>
+            group.AddElement(FormatApplyName(team, apply: false), () => ApplyMetadata(team));
+
+            team.Metadata._settingsList.Types(x =>
             {
-                if (Instance.IsStarted)
-                {
-                    var _metadata = team.Metadata;
-                    if (team.Team == Instance.InfectedChildren.Team && !Instance.Config.AddInfectedChildrenTeam.Value)
-                        _metadata = Instance.Infected.Metadata;
+                if (x is ToggleServerSetting<float> toggleStat)
+                    group.CreateStatElement(team, toggleStat);
+                else if (x is ServerSetting<bool> boolStat)
+                    group.CreateStatElement(team, boolStat);
+            }, typeof(ToggleServerSetting<float>), typeof(ServerSetting<bool>));
 
-                    if (_metadata.IsApplied)
-                        return;
-                    _metadata.ApplyConfig();
-                    EventManager.TryInvokeEvent(EventType.RefreshStats, team.Team.TeamName);
-                }
-            });
-
-            (team.Metadata as SettingsCollection)._settingsList
-                .Where(setting => setting is ToggleServerSetting<float> || setting is ServerSetting<bool>)
-                .ToList()
-                .ForEach(x =>
-                {
-                    if (x is ToggleServerSetting<float> toggleStat)
-                        group.CreateStatElement(team, toggleStat);
-                    else if (x is ServerSetting<bool> boolStat)
-                        group.CreateStatElement(team, boolStat);
-                });
-
-            group.AddElement($"Increment: {Increment}", () =>
+            group.AddElement($"Increment: {GetIncrement(team.Team.TeamName)}", () =>
             {
                 var group = string.Format(TeamConfigName, team.Team.DisplayName);
 
-                IncrementIndex++;
-                IncrementIndex %= IncrementValues.Count;
+                if (!IncrementTeams.TryGetValue(team.Team.TeamName, out int index))
+                    index = 0;
 
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
-                    group,
-                    "Increment:",
-                    (el) => el.Title = $"Increment: {Increment}");
+                index++;
+                index %= IncrementValues.Count;
+                IncrementTeams[team.Team.TeamName] = index;
 
-                (team.Metadata as SettingsCollection)._settingsList
-                    .Where(setting => setting is ToggleServerSetting<float>)
-                    .ToList()
-                    .ForEach(x =>
-                    {
-                        var _x = x as ToggleServerSetting<float>;
-                        Instance.ChangeElement<LabFusion.Marrow.Proxies.FloatElement>(group, _x.DisplayName, (el) => el.Increment = Increment);
-                    });
+                Instance.ChangeElement<FunctionElement>(group, "Increment:", (el) => el.Title = $"Increment: {GetIncrement(team.Team.TeamName)}");
+
+                team.Metadata._settingsList.Types(x =>
+                {
+                    var _x = x as ToggleServerSetting<float>;
+                    Instance.ChangeElement<FloatElement>(group, _x.DisplayName, (el) => el.Increment = GetIncrement(team.Team.TeamName));
+                }, typeof(ToggleServerSetting<float>));
             });
 
             if (team.Team == Instance.Infected.Team)
@@ -192,10 +191,19 @@ namespace AvatarInfection.Managers
             return group;
         }
 
+        private static float GetIncrement(string teamName)
+        {
+            if (IncrementTeams.TryGetValue(teamName, out int index))
+                return IncrementValues[index];
+
+            IncrementTeams[teamName] = 0;
+            return IncrementValues[0];
+        }
+
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ToggleServerSetting<float> stat)
         {
             group.AddElement($"Override {stat.DisplayName}", stat.ClientEnabled, (val) => { stat.ClientEnabled = val; FormatApplyName(team); });
-            group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; Console.WriteLine("New: " + stat.ClientValue); Console.WriteLine("New2: " + Infection.Instance.Infected.Metadata.Speed.ClientValue); FormatApplyName(team); }, increment: Increment);
+            group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; FormatApplyName(team); }, increment: GetIncrement(team.Team.TeamName));
         }
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ServerSetting<bool> stat)
@@ -210,9 +218,22 @@ namespace AvatarInfection.Managers
             string _name;
 
             if (!Instance.IsStarted)
+            {
                 _name = $"<color=#000000>{name} (Gamemode not started)</color>";
+            }
+            else if (team.Metadata.IsApplied)
+            {
+                _name = $"<color=#00FF00>{name} (Applied)</color>";
+            }
+            else if (team.Metadata.HasNoServerSettings())
+            {
+                // For some fucking reason this happens, so I am making this to be able to tell when the code stops working, again.
+                _name = $"<color=#898989>{name} (No Server Settings, fucked up code)</color>";
+            }
             else
-                _name = team.Metadata.IsApplied ? $"<color=#00FF00>{name} (Applied)</color>" : $"<color=#FF0000>{name} (Not Applied)</color>";
+            {
+                _name = $"<color=#FF0000>{name} (Not Applied)</color>";
+            }
 
             if (apply)
             {
@@ -222,6 +243,27 @@ namespace AvatarInfection.Managers
             }
 
             return _name;
+        }
+
+        private static void ApplyMetadata(InfectionTeam team)
+        {
+            if (Instance.IsStarted)
+            {
+                var _metadata = team.Metadata;
+                if (team.Team == Instance.InfectedChildren.Team && !Instance.Config.AddInfectedChildrenTeam.Value)
+                    _metadata = Instance.Infected.Metadata;
+
+                if (_metadata.IsApplied)
+                    return;
+
+                _metadata.ApplyConfig();
+                EventManager.TryInvokeEvent(EventType.RefreshStats, team.Team.TeamName);
+            }
+        }
+
+        private static bool HasNoServerSettings(this TeamMetadata metadata)
+        {
+            return !metadata._settingsList.Any(setting => setting is IServerSetting);
         }
 
         // For some reason, visual studio deems the suppression unnecessary, but if I remove it, it gives me a fucking warning, very logical.

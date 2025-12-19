@@ -122,9 +122,7 @@ namespace AvatarInfection.Helper
              float popupLength,
              bool showPopup = true,
              NotificationType type = NotificationType.INFORMATION,
-             bool saveToMenu = false,
-             Action onAccepted = null,
-             Action onDeclined = null)
+             bool saveToMenu = false)
         {
             Notifier.Send(new Notification
             {
@@ -133,8 +131,8 @@ namespace AvatarInfection.Helper
                 PopupLength = popupLength,
                 ShowPopup = showPopup,
                 Type = type,
-                OnAccepted = onAccepted,
-                OnDeclined = onDeclined,
+                OnAccepted = null,
+                OnDeclined = null,
                 SaveToMenu = saveToMenu
             });
         }
