@@ -91,6 +91,7 @@ namespace AvatarInfection.Managers
             {
                 try
                 {
+                    Instance.TeamManager.InfectedTeams.ForEach(x => x.Metadata.Save(false));
                     Instance.Config.Save();
                     MenuHelper.ShowNotification("Success", "Successfully saved settings!", 3.5f);
                 }
@@ -147,7 +148,7 @@ namespace AvatarInfection.Managers
         {
             var group = new GroupElementData()
             {
-                Title = string.Format(TeamConfigName, team.Team.DisplayName),
+                Title = team.GetGroupName(),
             };
 
             group.AddElement(FormatApplyName(team, apply: false), () => ApplyMetadata(team));
@@ -162,8 +163,6 @@ namespace AvatarInfection.Managers
 
             group.AddElement($"Increment: {GetIncrement(team.Team.TeamName)}", () =>
             {
-                var group = string.Format(TeamConfigName, team.Team.DisplayName);
-
                 if (!IncrementTeams.TryGetValue(team.Team.TeamName, out int index))
                     index = 0;
 
@@ -171,12 +170,13 @@ namespace AvatarInfection.Managers
                 index %= IncrementValues.Count;
                 IncrementTeams[team.Team.TeamName] = index;
 
-                Instance.ChangeElement<FunctionElement>(group, "Increment:", (el) => el.Title = $"Increment: {GetIncrement(team.Team.TeamName)}");
+                const string startsWith = "Increment:";
+                Instance.ChangeElement<FunctionElement>(team.GetGroupName(), startsWith, (el) => el.Title = $"{startsWith} {GetIncrement(team.Team.TeamName)}");
 
                 team.Metadata._settingsList.Types(x =>
                 {
                     var _x = x as ToggleServerSetting<float>;
-                    Instance.ChangeElement<FloatElement>(group, _x.DisplayName, (el) => el.Increment = GetIncrement(team.Team.TeamName));
+                    Instance.ChangeElement<FloatElement>(team.GetGroupName(), _x.DisplayName, (el) => el.Increment = GetIncrement(team.Team.TeamName));
                 }, typeof(ToggleServerSetting<float>));
             });
 
@@ -238,9 +238,7 @@ namespace AvatarInfection.Managers
 
             if (apply)
             {
-                Instance.ChangeElement<LabFusion.Marrow.Proxies.FunctionElement>(
-                    string.Format(TeamConfigName, team.Team.DisplayName),
-                    name, (el) => el.Title = _name, true);
+                Instance.ChangeElement<FunctionElement>(team.GetGroupName(), name, (el) => el.Title = _name, true);
             }
 
             return _name;
@@ -266,6 +264,9 @@ namespace AvatarInfection.Managers
         {
             return !metadata._settingsList.Any(setting => setting is IServerSetting);
         }
+
+        private static string GetGroupName(this InfectionTeam team)
+            => string.Format(TeamConfigName, team.Team.DisplayName);
 
         // For some reason, visual studio deems the suppression unnecessary, but if I remove it, it gives me a fucking warning, very logical.
         // Copilot stop trying to suggest me how to write commands. pretty please.
