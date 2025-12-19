@@ -1,9 +1,6 @@
 <p align="center"><img src="https://github.com/HAHOOS/AvatarInfection/blob/master/AvatarInfection/Media/Icon.png?raw=true" width=64px height=64px></p>
 <h1 align="center">AvatarInfection</h1>
 
-> [!NOTE]
-> The mod is barely working, but soon it will be fixed enough to be in a useable state and later - released to Thunderstore
-
 A Fusion gamemode where a virus is released, but it's rather special... It turns the infected people into a selected avatar! This gamemode offers a lot of customazibility compared to other gamemodes.
 
 <h2 align="center">Features</h2>
