@@ -7,6 +7,7 @@ using AvatarInfection.Settings;
 
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
+using LabFusion.SDK.Metadata;
 
 namespace AvatarInfection.Managers
 {
@@ -16,44 +17,113 @@ namespace AvatarInfection.Managers
 
         public event Action<PlayerID, InfectionTeam> OnAssignedToInfectedTeam, OnRemovedFromInfectedTeam;
 
+        private readonly Dictionary<byte, MetadataVariable> _playersToInfectedTeam = new();
+
         public new void Register(Gamemode gamemode)
         {
             base.Register(gamemode);
-            base.OnAssignedToTeam += OnAssigned;
-            base.OnRemovedFromTeam += OnRemoved;
+
+            gamemode.Metadata.OnMetadataChanged += OnMetadataChanged;
+            gamemode.Metadata.OnMetadataRemoved += OnMetadataRemoved;
         }
 
         public new void Unregister()
         {
             base.Unregister();
-            base.OnAssignedToTeam -= OnAssigned;
-            base.OnRemovedFromTeam -= OnRemoved;
+
+            Gamemode.Metadata.OnMetadataChanged -= OnMetadataChanged;
+            Gamemode.Metadata.OnMetadataRemoved -= OnMetadataRemoved;
         }
 
-        private void OnAssigned(PlayerID player, Team team)
+        private void OnMetadataChanged(string key, string value)
         {
-            var infectionTeam = GetInfectionTeamFromTeam(team);
-            if (infectionTeam != null)
-                OnAssignedToInfectedTeam?.Invoke(player, infectionTeam);
+            // Check if this is a team key
+            if (!KeyHelper.KeyMatchesVariable(key, CommonKeys.TeamKey))
+            {
+                return;
+            }
+
+            var player = KeyHelper.GetPlayerFromKey(key);
+
+            var playerID = PlayerIDManager.GetPlayerID(player);
+
+            var teamVariable = new MetadataVariable(key, Gamemode.Metadata);
+
+            _playersToInfectedTeam[player] = teamVariable;
+
+            // Remove from existing teams
+            foreach (var existingTeam in InfectedTeams)
+            {
+                if (!existingTeam.HasPlayer(player))
+                {
+                    continue;
+                }
+
+                if (existingTeam.HasPlayer(player))
+                    existingTeam.ForceRemovePlayer(player);
+
+                if (playerID != null)
+                {
+                    OnRemovedFromInfectedTeam?.Invoke(playerID, existingTeam);
+                }
+            }
+
+            // Invoke team change event
+            var team = GetTeamByName(value);
+
+            if (team != null)
+            {
+
+                if (!team.HasPlayer(player))
+                    team.ForceAddPlayer(player);
+
+                if (playerID != null)
+                {
+                    OnAssignedToInfectedTeam?.Invoke(playerID, team);
+                }
+            }
         }
 
-        private void OnRemoved(PlayerID player, Team team)
+        private void OnMetadataRemoved(string key, string value)
         {
-            var infectionTeam = GetInfectionTeamFromTeam(team);
-            if (infectionTeam != null)
-                OnRemovedFromInfectedTeam?.Invoke(player, infectionTeam);
+            // Check if this is a team key
+            if (!KeyHelper.KeyMatchesVariable(key, CommonKeys.TeamKey))
+            {
+                return;
+            }
+
+            var player = KeyHelper.GetPlayerFromKey(key);
+
+            var playerID = PlayerIDManager.GetPlayerID(player);
+
+            _playersToInfectedTeam.Remove(player);
+
+            // Invoke team remove event
+            var team = GetTeamByName(value);
+
+            if (team != null)
+            {
+
+                if (team.HasPlayer(player))
+                    team.ForceRemovePlayer(player);
+
+                if (playerID != null)
+                {
+                    OnRemovedFromInfectedTeam?.Invoke(playerID, team);
+                }
+            }
         }
 
         public void AddTeam(InfectionTeam team)
         {
             InfectedTeams.Add(team);
-            base.AddTeam(team.Team);
+            base.AddTeam(team);
         }
 
         public void RemoveTeam(InfectionTeam team)
         {
             InfectedTeams.Remove(team);
-            base.RemoveTeam(team.Team);
+            base.RemoveTeam(team);
         }
 
         public new void ClearTeams()
@@ -68,7 +138,7 @@ namespace AvatarInfection.Managers
         {
             foreach (var team in InfectedTeams)
             {
-                if (team.Team.TeamName == name)
+                if (team.TeamName == name)
                 {
                     return team;
                 }
@@ -78,7 +148,7 @@ namespace AvatarInfection.Managers
         }
 
         public new InfectionTeam GetPlayerTeam(PlayerID player)
-            => InfectedTeams.FirstOrDefault(x => x.Team.HasPlayer(player));
+            => InfectedTeams.FirstOrDefault(x => x.HasPlayer(player));
 
 
         public new InfectionTeam GetLocalTeam()
@@ -98,9 +168,9 @@ namespace AvatarInfection.Managers
 
             foreach (var team in InfectedTeams)
             {
-                if (team.Team.PlayerCount < lowestPlayers)
+                if (team.PlayerCount < lowestPlayers)
                 {
-                    lowestPlayers = team.Team.PlayerCount;
+                    lowestPlayers = team.PlayerCount;
                     lowestTeam = team;
                 }
             }
@@ -110,6 +180,6 @@ namespace AvatarInfection.Managers
 
 
         public InfectionTeam GetInfectionTeamFromTeam(Team team)
-            => InfectedTeams.FirstOrDefault(x => x.Team == team);
+            => InfectedTeams.FirstOrDefault(x => x == team);
     }
 }

@@ -23,7 +23,7 @@ namespace AvatarInfection.Utilities
 
 
         private static string CustomToolTip()
-            => $"{Infection.Instance.Survivors.Team.PlayerCount} survivors left!";
+            => $"{Infection.Instance.Survivors.PlayerCount} survivors left!";
 
         private static Timestamp CustomTimestamp()
         {

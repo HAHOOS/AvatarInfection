@@ -9,9 +9,10 @@ using Il2CppSLZ.VRMK;
 
 namespace AvatarInfection.Patches
 {
+    [HarmonyPatch(typeof(Avatar))]
     public static class AvatarPatches
     {
-        [HarmonyPatch(typeof(Avatar), nameof(Avatar.ComputeBaseStats))]
+        [HarmonyPatch(nameof(Avatar.ComputeBaseStats))]
         public static void Postfix(Avatar __instance)
         {
             if (__instance == null || __instance.name == "[RealHeptaRig (Marrow1)]")

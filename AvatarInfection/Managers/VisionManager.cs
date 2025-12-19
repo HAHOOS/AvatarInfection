@@ -24,7 +24,7 @@ namespace AvatarInfection.Managers
 
         private static InfectionSettings Config => Infection.Instance.Config;
 
-        private static Team Infected => Infection.Instance.Infected.Team;
+        private static Team Infected => Infection.Instance.Infected;
 
         internal static void Setup()
             => MultiplayerHooking.OnUpdate += OnUpdate;

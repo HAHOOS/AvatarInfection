@@ -76,15 +76,15 @@ namespace AvatarInfection.Managers
             Teams.Clear();
 
             foreach (var player in PlayerIDManager.PlayerIDs)
-                Teams.Add(player, Infection.Instance?.TeamManager?.GetPlayerTeam(player)?.Team);
+                Teams.Add(player, Infection.Instance?.TeamManager?.GetPlayerTeam(player));
 
 
             List<TeamPage> teamPages = [];
 
-            teamPages.Add(CreateTeamPage(Infection.Instance.Infected.Team));
-            teamPages.Add(CreateTeamPage(Infection.Instance.InfectedChildren.Team));
+            teamPages.Add(CreateTeamPage(Infection.Instance.Infected));
+            teamPages.Add(CreateTeamPage(Infection.Instance.InfectedChildren));
 
-            teamPages.Add(CreateTeamPage(Infection.Instance.Survivors.Team));
+            teamPages.Add(CreateTeamPage(Infection.Instance.Survivors));
 
             teamPages.Add(CreateTeamPage(null));
 

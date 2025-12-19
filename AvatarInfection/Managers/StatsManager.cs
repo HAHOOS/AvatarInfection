@@ -25,10 +25,12 @@ namespace AvatarInfection.Managers
             if (!Infection.Instance.IsStarted)
                 return;
 
-            if (Infection.Instance.TeamManager.GetLocalTeam() == null)
+            // why the fuck does this return null
+            var team = Infection.Instance.TeamManager.GetLocalTeam();
+            if (team == null)
                 ClearOverrides();
             else
-                Internal_SetStats(Infection.Instance.TeamManager.GetLocalTeam().Metadata);
+                Internal_SetStats(team);
         }
 
         private static T? GetToggleValue<T>(ToggleServerSetting<T> serverSetting) where T : struct, IEquatable<T>
@@ -42,8 +44,9 @@ namespace AvatarInfection.Managers
                 return null;
         }
 
-        private static void Internal_SetStats(TeamMetadata metadata)
+        private static void Internal_SetStats(InfectionTeam team)
         {
+            var metadata = team.Metadata;
             if (metadata == null)
                 return;
 

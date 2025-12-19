@@ -168,26 +168,26 @@ namespace AvatarInfection.Managers
                     group.CreateStatElement(team, boolStat);
             }, typeof(ToggleServerSetting<float>), typeof(ServerSetting<bool>));
 
-            group.AddElement($"Increment: {GetIncrement(team.Team.TeamName)}", () =>
+            group.AddElement($"Increment: {GetIncrement(team.TeamName)}", () =>
             {
-                if (!IncrementTeams.TryGetValue(team.Team.TeamName, out int index))
+                if (!IncrementTeams.TryGetValue(team.TeamName, out int index))
                     index = 0;
 
                 index++;
                 index %= IncrementValues.Count;
-                IncrementTeams[team.Team.TeamName] = index;
+                IncrementTeams[team.TeamName] = index;
 
                 const string startsWith = "Increment:";
-                Instance.ChangeElement<FunctionElement>(team.GetGroupName(), startsWith, (el) => el.Title = $"{startsWith} {GetIncrement(team.Team.TeamName)}");
+                Instance.ChangeElement<FunctionElement>(team.GetGroupName(), startsWith, (el) => el.Title = $"{startsWith} {GetIncrement(team.TeamName)}");
 
                 team.Metadata._settingsList.Types(x =>
                 {
                     var _x = x as ToggleServerSetting<float>;
-                    Instance.ChangeElement<FloatElement>(team.GetGroupName(), _x.DisplayName, (el) => el.Increment = GetIncrement(team.Team.TeamName));
+                    Instance.ChangeElement<FloatElement>(team.GetGroupName(), _x.DisplayName, (el) => el.Increment = GetIncrement(team.TeamName));
                 }, typeof(ToggleServerSetting<float>));
             });
 
-            if (team.Team == Instance.Infected.Team)
+            if (team == Instance.Infected)
             {
                 group.AddElement("Add Infected Children Team", Instance.Config.AddInfectedChildrenTeam.Value, (val) =>
                 {
@@ -211,7 +211,7 @@ namespace AvatarInfection.Managers
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ToggleServerSetting<float> stat)
         {
             group.AddElement($"Override {stat.DisplayName}", stat.ClientEnabled, (val) => { stat.ClientEnabled = val; FormatApplyName(team); });
-            group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; FormatApplyName(team); }, increment: GetIncrement(team.Team.TeamName));
+            group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; FormatApplyName(team); }, increment: GetIncrement(team.TeamName));
         }
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ServerSetting<bool> stat)
@@ -255,13 +255,13 @@ namespace AvatarInfection.Managers
             if (Instance.IsStarted)
             {
                 var _metadata = team.Metadata;
-                if (team.Team == Instance.InfectedChildren.Team && !Instance.Config.AddInfectedChildrenTeam.Value)
+                if (team == Instance.InfectedChildren && !Instance.Config.AddInfectedChildrenTeam.Value)
                     _metadata = Instance.Infected.Metadata;
 
                 if (!_metadata.IsApplied)
                 {
                     _metadata.ApplyConfig();
-                    EventManager.TryInvokeEvent(EventType.RefreshStats, team.Team.TeamName);
+                    EventManager.TryInvokeEvent(EventType.RefreshStats, team.TeamName);
                 }
 
                 FormatApplyName(team);
@@ -274,7 +274,7 @@ namespace AvatarInfection.Managers
         }
 
         private static string GetGroupName(this InfectionTeam team)
-            => string.Format(TeamConfigName, team.Team.DisplayName);
+            => string.Format(TeamConfigName, team.DisplayName);
 
         // For some reason, visual studio deems the suppression unnecessary, but if I remove it, it gives me a fucking warning, very logical.
         // Copilot stop trying to suggest me how to write commands. pretty please.
