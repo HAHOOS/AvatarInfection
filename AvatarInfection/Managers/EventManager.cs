@@ -76,29 +76,25 @@ namespace AvatarInfection.Managers
         public static void RegisterGlobalNotification(Enum @enum, Notification notification, bool serverOnly = true)
             => RegisterGlobalNotification(@enum.ToString(), notification, serverOnly);
 
+        // The only difference between the method requiring the Notification object and this one is having less parameters for cleaner look
         public static void RegisterGlobalNotification(
             Enum @enum, string title, string message, float popupDuration, bool serverOnly = true,
             bool showPopup = true,
-             NotificationType type = NotificationType.INFORMATION,
-             bool saveToMenu = false,
-             Action onAccepted = null,
-             Action onDeclined = null)
-            => RegisterGlobalNotification(@enum.ToString(), title, message, popupDuration, serverOnly, showPopup, type, saveToMenu, onAccepted, onDeclined);
+             NotificationType type = NotificationType.INFORMATION)
+            => RegisterGlobalNotification(@enum.ToString(), title, message, popupDuration, serverOnly, showPopup, type);
 
+        // Same as above
         public static void RegisterGlobalNotification(
             string name, string title, string message, float popupDuration, bool serverOnly = true,
             bool showPopup = true,
-             NotificationType type = NotificationType.INFORMATION,
-             bool saveToMenu = false,
-             Action onAccepted = null,
-             Action onDeclined = null)
+             NotificationType type = NotificationType.INFORMATION)
         {
             RegisterEvent(name, () =>
             {
                 if (!Infection.Instance.IsStarted)
                     return;
 
-                MenuHelper.ShowNotification(title, message, popupDuration, showPopup, type, saveToMenu, onAccepted, onDeclined);
+                MenuHelper.ShowNotification(title, message, popupDuration, showPopup, type);
             }, serverOnly);
         }
 
