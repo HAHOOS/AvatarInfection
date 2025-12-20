@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using LabFusion.SDK.Gamemodes;
 using LabFusion.SDK.Metadata;

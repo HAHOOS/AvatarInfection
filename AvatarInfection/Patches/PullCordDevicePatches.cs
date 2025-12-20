@@ -6,7 +6,6 @@ using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.Marrow;
 
 using LabFusion.Network;
-using LabFusion.SDK.Gamemodes;
 
 namespace AvatarInfection.Patches
 {

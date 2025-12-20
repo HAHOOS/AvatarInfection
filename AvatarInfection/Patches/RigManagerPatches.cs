@@ -6,12 +6,9 @@ using Il2CppSLZ.Marrow;
 using Il2CppCysharp.Threading.Tasks;
 
 using LabFusion.Network;
-using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
 
 using HarmonyLib;
-
-using AvatarInfection.Utilities;
 
 namespace AvatarInfection.Patches
 {

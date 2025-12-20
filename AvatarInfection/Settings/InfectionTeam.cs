@@ -31,5 +31,8 @@ namespace AvatarInfection.Settings
             => obj is not null && (ReferenceEquals(this, obj) || (obj is InfectionTeam team && this == team)
             || (obj is Team team1 && this == team1)
             || (obj is TeamMetadata metadata && metadata.Team == this));
+
+        public override int GetHashCode()
+            => this.TeamName.GetHashCode() + this.PlayerCount.GetHashCode() + this.Color.GetHashCode();
     }
 }

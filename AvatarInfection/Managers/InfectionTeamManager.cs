@@ -17,7 +17,7 @@ namespace AvatarInfection.Managers
 
         public event Action<PlayerID, InfectionTeam> OnAssignedToInfectedTeam, OnRemovedFromInfectedTeam;
 
-        private readonly Dictionary<byte, MetadataVariable> _playersToInfectedTeam = new();
+        private readonly Dictionary<byte, MetadataVariable> _playersToInfectedTeam = [];
 
         public new void Register(Gamemode gamemode)
         {
