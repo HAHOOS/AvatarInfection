@@ -19,7 +19,8 @@ namespace AvatarInfection.Patches
             if (__instance == null || __instance.name == "[RealHeptaRig (Marrow1)]")
                 return;
 
-            if (__instance.GetComponentInParent<RigManager>() != Player.RigManager)
+            var rm = __instance.GetComponentInParent<RigManager>();
+            if (rm != Player.RigManager)
                 return;
 
             if (FusionPlayerExtended.SpeedOverride != null)
@@ -27,6 +28,12 @@ namespace AvatarInfection.Patches
 
             if (FusionPlayerExtended.AgilityOverride != null)
                 __instance._agility = (float)FusionPlayerExtended.AgilityOverride;
+
+            if (FusionPlayerExtended.VitalityOverride != null)
+                __instance._vitality = (float)FusionPlayerExtended.VitalityOverride;
+
+            if (FusionPlayerExtended.MortalityOverride != null)
+                rm.health.healthMode = (FusionPlayerExtended.MortalityOverride.Value ? Health.HealthMode.Mortal : Health.HealthMode.Invincible);
 
             if (FusionPlayerExtended.StrengthUpperOverride != null)
             {

@@ -30,8 +30,14 @@ namespace AvatarInfection.Helper
 
         internal static void Types(this List<ISetting> settings, Action<ISetting> forEach, params Type[] types)
         {
-            settings.RemoveAll(x => !types.Contains(x.GetType()));
-            settings.ForEach(forEach);
+            var copy = new List<ISetting>(settings);
+            copy.RemoveAll(x => !types.Contains(x.GetType()));
+            copy.ForEach(x =>
+            {
+                if (x != null && types.Contains(x.GetType()))
+                    forEach(x);
+
+            });
         }
     }
 }

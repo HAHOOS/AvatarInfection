@@ -1,6 +1,9 @@
-﻿using BoneLib;
+﻿using System;
+
+using BoneLib;
 
 using Il2CppSLZ.Bonelab;
+using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Warehouse;
 
 using LabFusion.Data;
@@ -22,15 +25,21 @@ namespace AvatarInfection.Utilities
 
         public static float? StrengthUpperOverride { get; private set; }
 
+        public static float? VitalityOverride { get; private set; }
+
+        public static bool? MortalityOverride { get; private set; }
+
         public static string AvatarOverride { get; private set; }
 
         public static string LastAvatar { get; private set; }
 
-        internal static void SetOverrides(float? speed, float? agility, float? strengthUpper)
+        internal static void SetOverrides(float? speed, float? agility, float? strengthUpper, float? vitality, bool? mortality)
         {
             SpeedOverride = speed;
             AgilityOverride = agility;
             StrengthUpperOverride = strengthUpper;
+            VitalityOverride = vitality;
+            MortalityOverride = mortality;
 
             var rm = Player.RigManager;
             var avatar = rm?._avatar;
@@ -49,7 +58,12 @@ namespace AvatarInfection.Utilities
                     avatar._strengthGrip = res3;
                 }
 
-                if (changed1 || changed2 || changed3)
+                if (SetOverrideValue(VitalityOverride, avatar._speed, out bool changed4, out float res4))
+                    avatar._vitality = res4;
+
+                SetMortality(mortality, out bool changed5);
+
+                if (changed1 || changed2 || changed3 || changed4 || changed5)
                     rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
 
             }
@@ -68,6 +82,18 @@ namespace AvatarInfection.Utilities
             return false;
         }
 
+        private static void SetMortality(bool? mortality, out bool changed)
+        {
+            changed = false;
+            var rm = Player.RigManager;
+            if (rm?.health != null && mortality.HasValue)
+            {
+                Health.HealthMode mode = mortality.Value ? Health.HealthMode.Mortal : Health.HealthMode.Invincible;
+                changed = rm.health.healthMode != mode;
+                rm.health.SetHealthMode((int)mode);
+            }
+        }
+
 
         internal static void ClearAllOverrides()
         {
@@ -77,7 +103,8 @@ namespace AvatarInfection.Utilities
             if (AgilityOverride == null &&
                 SpeedOverride == null &&
                 StrengthUpperOverride == null &&
-                SpeedOverride == null)
+                VitalityOverride == null &&
+                MortalityOverride == null)
             {
                 return;
             }
@@ -85,7 +112,8 @@ namespace AvatarInfection.Utilities
             AgilityOverride = null;
             SpeedOverride = null;
             StrengthUpperOverride = null;
-            SpeedOverride = null;
+            VitalityOverride = null;
+            MortalityOverride = null;
             if (Player.RigManager != null)
             {
                 var rm = Player.RigManager;

@@ -164,7 +164,12 @@ namespace AvatarInfection.Managers
 
             LocalVision.BlindColor = Color.black;
             LocalVision.Blind = active;
-            LocalHealth.MortalityOverride = !active && Infection.Instance.Infected.Metadata.Mortality.ClientValue;
+            FusionPlayerExtended.SetOverrides(
+                FusionPlayerExtended.SpeedOverride,
+                FusionPlayerExtended.AgilityOverride,
+                FusionPlayerExtended.StrengthUpperOverride,
+                FusionPlayerExtended.VitalityOverride,
+                !active && Infection.Instance.Infected.Metadata.Mortality.ClientValue);
         }
     }
 }

@@ -12,10 +12,6 @@ namespace AvatarInfection.Managers
     {
         public static void ClearOverrides()
         {
-            // Reset mortality
-            LocalHealth.MortalityOverride = null;
-            LocalHealth.VitalityOverride = null;
-
             FusionPlayerExtended.ClearAllOverrides();
             FusionPlayerExtended.ClearAvatarOverride();
         }
@@ -55,14 +51,9 @@ namespace AvatarInfection.Managers
             float? speed = GetToggleValue(metadata.Speed);
             float? agility = GetToggleValue(metadata.Agility);
             float? strengthUpper = GetToggleValue(metadata.StrengthUpper);
+            float? vitality = GetToggleValue(metadata.Vitality);
 
-
-            LocalHealth.MortalityOverride = metadata.Mortality.ClientValue;
-
-            FusionPlayerExtended.SetOverrides(speed, agility, strengthUpper);
-
-            if (metadata.Vitality.ClientEnabled)
-                LocalHealth.VitalityOverride = metadata.Vitality.ClientValue;
+            FusionPlayerExtended.SetOverrides(speed, agility, strengthUpper, vitality, metadata.Mortality.ClientValue);
         }
 
         internal static void RefreshStats(string teamName)
