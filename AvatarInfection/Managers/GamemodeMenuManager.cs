@@ -158,7 +158,7 @@ namespace AvatarInfection.Managers
                 Title = team.GetGroupName(),
             };
 
-            if (!Instance.IsStarted)
+            if (Instance.IsStarted)
                 group.AddElement(FormatApplyName(team, apply: false), () => ApplyMetadata(team));
 
             team.Metadata._settingsList.Types(x =>

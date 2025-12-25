@@ -598,7 +598,7 @@ namespace AvatarInfection
 
                 selectedNum++;
 
-                TeamManager.TryAssignTeam(player, Infected);
+                TeamManager.TryAssignTeam(player, InfectedChildren);
                 bool exists = NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig;
 
                 if (Config.SelectMode.Value == AvatarSelectMode.FIRST_INFECTED && !selected && exists)
