@@ -26,7 +26,7 @@ namespace AvatarInfection.Patches
             if (!NetworkInfo.HasServer)
                 return true;
 
-            if (!Infection.Instance.IsStarted)
+            if (Infection.Instance?.IsStarted != true)
                 return true;
 
             return !Infection.Instance.IsLocalPlayerInfected();

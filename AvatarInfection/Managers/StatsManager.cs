@@ -56,9 +56,10 @@ namespace AvatarInfection.Managers
             float? agility = GetToggleValue(metadata.Agility);
             float? strengthUpper = GetToggleValue(metadata.StrengthUpper);
 
-            FusionPlayerExtended.SetOverrides(speed, agility, strengthUpper);
 
             LocalHealth.MortalityOverride = metadata.Mortality.ClientValue;
+
+            FusionPlayerExtended.SetOverrides(speed, agility, strengthUpper);
 
             if (metadata.Vitality.ClientEnabled)
                 LocalHealth.VitalityOverride = metadata.Vitality.ClientValue;
