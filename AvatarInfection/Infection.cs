@@ -105,6 +105,8 @@ namespace AvatarInfection
 
         private bool WasStarted = false;
 
+        public const string HAS_AVATAR_INFECTED_KEY = "DoYouHaveAvatarInfection";
+
         public override GroupElementData CreateSettingsGroup()
             => GamemodeMenuManager.CreateSettingsGroup();
 
@@ -119,6 +121,9 @@ namespace AvatarInfection
             MultiplayerHooking.OnPlayerAction += OnPlayerAction;
             MultiplayerHooking.OnPlayerJoined += OnPlayerJoin;
             MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
+
+            MultiplayerHooking.OnStartedServer += IHaveAvatarInfection;
+            MultiplayerHooking.OnJoinedServer += IHaveAvatarInfection;
 
             MultiplayerHooking.OnDisconnected += Cleanup;
 
@@ -158,6 +163,13 @@ namespace AvatarInfection
             BoneMenuManager.Setup();
             VisionManager.Setup();
         }
+
+        private static void IHaveAvatarInfection()
+            => LocalPlayer.Metadata.Metadata.TrySetMetadata(HAS_AVATAR_INFECTED_KEY, bool.TrueString);
+
+        private static bool DoYouHaveAvatarInfection(PlayerID player)
+        => player.Metadata.Metadata.TryGetMetadata(HAS_AVATAR_INFECTED_KEY, out string val)
+            && !string.IsNullOrWhiteSpace(val) && bool.TryParse(val, out bool res) && res;
 
         private void OneMinuteLeftEvent()
         {
@@ -407,6 +419,9 @@ namespace AvatarInfection
             return true;
         }
 
+        public override void OnGamemodeReady()
+            => IHaveAvatarInfection();
+
         private void ApplyGamemodeSettings()
         {
             if (Config.SelectMode.Value == AvatarSelectMode.RANDOM)
@@ -559,9 +574,20 @@ namespace AvatarInfection
             players.Shuffle();
 
             bool selected = false;
-            for (int i = 0; i < Config.InfectedCount.Value; i++)
+            int selectedNum = 0;
+            int failSafe = 0;
+            while (failSafe < 1000)
             {
+                failSafe++;
+                if (selectedNum >= Config.InfectedCount.Value)
+                    break;
+
                 var player = players.Random();
+                if (!DoYouHaveAvatarInfection(player))
+                    continue;
+
+                selectedNum++;
+
                 TeamManager.TryAssignTeam(player, Infected);
                 bool exists = NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig;
 
