@@ -158,7 +158,8 @@ namespace AvatarInfection.Managers
                 Title = team.GetGroupName(),
             };
 
-            group.AddElement(FormatApplyName(team, apply: false), () => ApplyMetadata(team));
+            if (!Instance.IsStarted)
+                group.AddElement(FormatApplyName(team, apply: false), () => ApplyMetadata(team));
 
             team.Metadata._settingsList.Types(x =>
             {
@@ -280,7 +281,7 @@ namespace AvatarInfection.Managers
         // Copilot stop trying to suggest me how to write commands. pretty please.
 #pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable S3011 // Make sure that this accessibility bypass is safe here
-        private static void RefreshSettingsPage()
+        internal static void RefreshSettingsPage()
         {
 
             if (MenuGamemode.SelectedGamemode != Instance)

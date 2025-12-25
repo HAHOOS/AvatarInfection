@@ -478,6 +478,8 @@ namespace AvatarInfection
                 else
                     ClearDeathmatchSpawns();
             });
+
+            GamemodeMenuManager.RefreshSettingsPage();
         }
 
         private void RevertToDefault(bool wasStarted = true)
@@ -525,6 +527,8 @@ namespace AvatarInfection
                 TeamManager.UnassignAllPlayers();
             else if (Config.TeleportOnEnd.ClientValue)
                 TeleportToHost();
+
+            GamemodeMenuManager.RefreshSettingsPage();
         }
 
         private void Cleanup()
