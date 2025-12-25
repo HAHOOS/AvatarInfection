@@ -456,6 +456,7 @@ namespace AvatarInfection
 
             if (NetworkInfo.IsHost)
             {
+                LobbyInfoManager.LobbyInfo.Knockout = false;
                 ApplyGamemodeSettings();
                 AssignTeams();
                 MelonCoroutines.Start(InfectedLookingWait());
