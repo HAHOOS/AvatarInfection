@@ -255,13 +255,9 @@ namespace AvatarInfection.Managers
         {
             if (Instance.IsStarted)
             {
-                var _metadata = team.Metadata;
-                if (team == Instance.InfectedChildren && !Instance.Config.AddInfectedChildrenTeam.Value)
-                    _metadata = Instance.Infected.Metadata;
-
-                if (!_metadata.IsApplied)
+                if (!team.Metadata.IsApplied)
                 {
-                    _metadata.ApplyConfig();
+                    team.Metadata.ApplyConfig();
                     EventManager.TryInvokeEvent(EventType.RefreshStats, team.TeamName);
                 }
 

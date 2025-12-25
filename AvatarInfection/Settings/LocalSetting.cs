@@ -1,10 +1,24 @@
-﻿using MelonLoader;
+﻿using System;
+
+using MelonLoader;
 
 namespace AvatarInfection.Settings
 {
     internal class LocalSetting<T> : ISetting
     {
-        public T Value { get; set; }
+        private T _value;
+
+        public T Value
+        {
+            get => _value;
+            set
+            {
+                _value = value;
+                OnValueChanged?.Invoke();
+            }
+        }
+
+        public event Action OnValueChanged;
 
         private MelonPreferences_Entry<T> Entry { get; }
 

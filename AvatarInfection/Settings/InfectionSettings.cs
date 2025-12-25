@@ -80,6 +80,13 @@ namespace AvatarInfection.Settings
             SelectMode = CreateLocalSetting(nameof(SelectMode), Constants.Defaults.SelectMode);
             SuicideInfects = CreateLocalSetting(nameof(SuicideInfects), Constants.Defaults.SuicideInfects);
             AddInfectedChildrenTeam = CreateLocalSetting(nameof(AddInfectedChildrenTeam), Constants.Defaults.AddInfectedChildrenTeam);
+            AddInfectedChildrenTeam.OnValueChanged += () =>
+            {
+                if (AddInfectedChildrenTeam.Value)
+                    Instance?.InfectedChildren?.Metadata?.StopSync();
+                else
+                    Instance?.InfectedChildren?.Metadata?.SyncWith(Instance.Infected.Metadata);
+            };
             TeleportOnStart = CreateLocalSetting(nameof(TeleportOnStart), Constants.Defaults.TeleportOnStart);
             TimeLimit = CreateLocalSetting(nameof(TimeLimit), Constants.Defaults.TimeLimit);
         }

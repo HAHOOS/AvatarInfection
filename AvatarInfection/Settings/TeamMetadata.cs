@@ -30,6 +30,8 @@ namespace AvatarInfection.Settings
 
         public ToggleServerSetting<float> StrengthUpper { get; set; }
 
+        private TeamMetadata _SyncWith;
+
         public TeamMetadata(Team team, Gamemode gamemode, TeamSettings? config = null)
         {
             Gamemode = gamemode;
@@ -37,6 +39,7 @@ namespace AvatarInfection.Settings
 
             Mortality = CreateSetting(nameof(Mortality), config?.Mortality ?? default, nameof(Mortality));
             CanUseGuns = CreateSetting(nameof(CanUseGuns), config?.CanUseGuns ?? default, "Can Use Guns");
+
             Vitality = CreateSetting(nameof(Vitality), config?.Vitality, nameof(Vitality));
             Speed = CreateSetting(nameof(Speed), config?.Speed, nameof(Speed));
             Agility = CreateSetting(nameof(Agility), config?.Agility, nameof(Agility));
@@ -46,6 +49,43 @@ namespace AvatarInfection.Settings
         public new void Sync()
         {
             base.Sync();
+            UpdateMenu();
+        }
+
+        public void SyncWith(TeamMetadata other)
+        {
+            _SyncWith = other;
+            _SyncWith.OnSettingChanged += SettingChanged;
+            _SyncWith.OnSettingSynced += Sync;
+        }
+
+        public void StopSync()
+        {
+            if (_SyncWith != null)
+            {
+                _SyncWith.OnSettingChanged -= SettingChanged;
+                _SyncWith.OnSettingSynced -= Sync;
+                _SyncWith = null;
+            }
+        }
+
+        private void SettingChanged()
+        {
+            Mortality.ClientValue = _SyncWith.Mortality.ClientValue;
+            CanUseGuns.ClientValue = _SyncWith.CanUseGuns.ClientValue;
+
+            Vitality.ClientValue = _SyncWith.Vitality.ClientValue;
+            Vitality.ClientEnabled = _SyncWith.Vitality.ClientEnabled;
+
+            Speed.ClientValue = _SyncWith.Speed.ClientValue;
+            Speed.ClientEnabled = _SyncWith.Speed.ClientEnabled;
+
+            Agility.ClientValue = _SyncWith.Agility.ClientValue;
+            Agility.ClientEnabled = _SyncWith.Agility.ClientEnabled;
+
+            StrengthUpper.ClientValue = _SyncWith.StrengthUpper.ClientValue;
+            StrengthUpper.ClientEnabled = _SyncWith.StrengthUpper.ClientEnabled;
+
             UpdateMenu();
         }
 

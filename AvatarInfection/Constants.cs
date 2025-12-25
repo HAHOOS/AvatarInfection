@@ -85,7 +85,7 @@ namespace AvatarInfection
 
             public const bool UseDeathMatchSpawns = true;
 
-            public const bool AddInfectedChildrenTeam = false;
+            public const bool AddInfectedChildrenTeam = true;
 
             public const bool ShowCountdownToAll = false;
 

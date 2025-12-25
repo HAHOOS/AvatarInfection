@@ -8,8 +8,6 @@ namespace AvatarInfection.Settings
 
         public void Sync();
 
-        public event Action OnValueChanged;
-
         public event Action OnSynced;
     }
 }
