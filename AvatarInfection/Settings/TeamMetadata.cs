@@ -56,7 +56,7 @@ namespace AvatarInfection.Settings
         {
             _SyncWith = other;
             _SyncWith.OnSettingChanged += SettingChanged;
-            _SyncWith.OnSettingSynced += Sync;
+            _SyncWith.OnSettingSynced += ApplyConfig;
         }
 
         public void StopSync()
@@ -64,12 +64,12 @@ namespace AvatarInfection.Settings
             if (_SyncWith != null)
             {
                 _SyncWith.OnSettingChanged -= SettingChanged;
-                _SyncWith.OnSettingSynced -= Sync;
+                _SyncWith.OnSettingSynced -= ApplyConfig;
                 _SyncWith = null;
             }
         }
 
-        private void SettingChanged()
+        internal void SettingChanged()
         {
             Mortality.ClientValue = _SyncWith.Mortality.ClientValue;
             CanUseGuns.ClientValue = _SyncWith.CanUseGuns.ClientValue;

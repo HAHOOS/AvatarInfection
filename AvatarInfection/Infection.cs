@@ -457,9 +457,14 @@ namespace AvatarInfection
             if (NetworkInfo.IsHost)
             {
                 if (Config.AddInfectedChildrenTeam.Value)
+                {
                     InfectedChildren.Metadata.StopSync();
+                }
                 else
+                {
                     InfectedChildren.Metadata.SyncWith(Infected.Metadata);
+                    InfectedChildren.Metadata.SettingChanged();
+                }
 
                 LobbyInfoManager.LobbyInfo.Knockout = false;
                 ApplyGamemodeSettings();

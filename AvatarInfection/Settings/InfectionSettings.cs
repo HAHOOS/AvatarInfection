@@ -83,9 +83,14 @@ namespace AvatarInfection.Settings
             AddInfectedChildrenTeam.OnValueChanged += () =>
             {
                 if (AddInfectedChildrenTeam.Value)
+                {
                     Instance?.InfectedChildren?.Metadata?.StopSync();
+                }
                 else
+                {
                     Instance?.InfectedChildren?.Metadata?.SyncWith(Instance.Infected.Metadata);
+                    Instance?.InfectedChildren?.Metadata?.SettingChanged();
+                }
             };
             TeleportOnStart = CreateLocalSetting(nameof(TeleportOnStart), Constants.Defaults.TeleportOnStart);
             TimeLimit = CreateLocalSetting(nameof(TimeLimit), Constants.Defaults.TimeLimit);
