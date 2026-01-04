@@ -2,8 +2,6 @@
 
 using Il2CppSLZ.Marrow.Warehouse;
 
-using LabFusion.Bonelab;
-
 using static AvatarInfection.Infection;
 
 namespace AvatarInfection
@@ -11,6 +9,22 @@ namespace AvatarInfection
     internal static class Constants
     {
         public const string Version = "2.0.0";
+
+        public static readonly MonoDiscReference ItDoBeGroovinReference = new("SLZ.BONELAB.Content.MonoDisc.ItDoBeGroovin");
+
+        public static readonly MonoDiscReference TheRecurringDreamReference = new("SLZ.BONELAB.Content.MonoDisc.TheRecurringDream");
+
+        public static readonly MonoDiscReference StankFaceReference = new("SLZ.BONELAB.Content.MonoDisc.StankFace");
+
+        public static readonly MonoDiscReference TakeARideReference = new("SLZ.BONELAB.Content.MonoDisc.TakeARide");
+
+        public static readonly MonoDiscReference HeavyStepsReference = new("SLZ.BONELAB.Content.MonoDisc.HeavySteps");
+
+        public static readonly MonoDiscReference KnewBeforeReference = new("SLZ.BONELAB.Content.MonoDisc.KnewBefore");
+
+        public static readonly MonoDiscReference AlexInWonderlandReference = new("SLZ.BONELAB.Content.MonoDisc.AlexinWonderland");
+
+        public static readonly MonoDiscReference ConcreteCryptReference = new("SLZ.BONELAB.Content.MonoDisc.ConcreteCrypt");
 
         internal static class Defaults
         {
@@ -95,13 +109,13 @@ namespace AvatarInfection
             // TODO: Add more "original" tracks and not just have the same as Hide & Seek
             public static readonly MonoDiscReference[] Tracks =
         [
-            BonelabMonoDiscReferences.TheRecurringDreamReference,
-            BonelabMonoDiscReferences.HeavyStepsReference,
-            BonelabMonoDiscReferences.StankFaceReference,
-            BonelabMonoDiscReferences.AlexInWonderlandReference,
-            BonelabMonoDiscReferences.ItDoBeGroovinReference,
+            TheRecurringDreamReference,
+            HeavyStepsReference,
+            StankFaceReference,
+            AlexInWonderlandReference,
+           ItDoBeGroovinReference,
 
-            BonelabMonoDiscReferences.ConcreteCryptReference, // concrete crypt
+            ConcreteCryptReference, // concrete crypt
         ];
         }
     }

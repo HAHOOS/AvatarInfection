@@ -182,7 +182,7 @@ namespace AvatarInfection.Utilities
                 {
                     Barcode = barcode,
                     Target = PlayerIDManager.LocalSmallID,
-                    FinishDownloadCallback = (ev) => SwapAvatar(barcode, downloadResult: ev.result),
+                    FinishDownloadCallback = (ev) => SwapAvatar(barcode, downloadResult: ev.Result),
                     MaxBytes = DataConversions.ConvertMegabytesToBytes(ClientSettings.Downloading.MaxFileSize.Value),
                     HighPriority = true
                 });
