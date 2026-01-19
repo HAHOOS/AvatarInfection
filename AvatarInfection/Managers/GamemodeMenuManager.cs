@@ -81,6 +81,8 @@ namespace AvatarInfection.Managers
                 }, min: 1);
             }
 
+            generalGroup.AddElement("Friendly Fire", Instance.Config.FriendlyFire.ClientValue, (val) => Instance.Config.FriendlyFire.ClientValue = val);
+
             generalGroup.AddElement("Disable Spawn Gun", Instance.DisableSpawnGun, (val) => Instance.Config.DisableSpawnGun.ClientValue = val);
 
             generalGroup.AddElement("Disable Developer Tools", Instance.DisableDevTools, (val) => Instance.Config.DisableDevTools.ClientValue = val);

@@ -433,6 +433,19 @@ namespace AvatarInfection
         public override void OnGamemodeSelected()
             => IHaveAvatarInfection();
 
+        public override bool CanAttack(PlayerID player)
+        {
+            if (!IsStarted)
+                return true;
+
+            if (Config.FriendlyFire.ClientValue)
+                return true;
+
+            var playerTeam = TeamManager.GetPlayerTeam(player);
+            var localTeam = TeamManager.GetLocalTeam();
+            return playerTeam != localTeam && (!IsInfected(playerTeam) || !IsInfected(TeamManager.GetLocalTeam()));
+        }
+
         private void ApplyGamemodeSettings()
         {
             if (Config.SelectMode.Value == AvatarSelectMode.RANDOM)

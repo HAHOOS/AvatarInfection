@@ -29,6 +29,8 @@ namespace AvatarInfection.Settings
 
         internal ServerSetting<bool> ShowCountdownToAll { get; set; }
 
+        internal ServerSetting<bool> FriendlyFire { get; set; }
+
         internal ServerSetting<int> CountdownLength { get; set; }
 
         #endregion Server
