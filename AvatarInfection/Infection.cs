@@ -182,7 +182,7 @@ namespace AvatarInfection
             if (data.Target != PlayerIDManager.LocalPlatformID)
                 return;
 
-            FusionPlayerExtended.SetAvatarOverride(data.Barcode);
+            FusionPlayerExtended.SetAvatarOverride(data.Barcode, data.Origin);
         }
 
         private new void OnMetadataChanged(string key, string value)
