@@ -43,12 +43,15 @@ namespace AvatarInfection.Managers
 
             GroupElementData avatarGroup = group.AddGroup("Avatar");
 
+            avatarGroup.AddElement("Select Mode", Instance.Config.SelectMode.Value, (val) => { Instance.Config.SelectMode.Value = (AvatarSelectMode)val; RefreshSettingsPage(); });
+
             SelectedAvatarTitle = GetBarcodeTitle(Instance.Config.SelectedAvatar.ClientValue);
-            avatarGroup.AddElement(SelectedAvatarTitle, null);
+            if (Instance.Config.SelectMode.Value == AvatarSelectMode.CONFIG)
+            {
+                avatarGroup.AddElement(SelectedAvatarTitle, null);
 
-            avatarGroup.AddElement("Select From Current Avatar", SelectNewAvatar);
-
-            avatarGroup.AddElement("Select Mode", Instance.Config.SelectMode.Value, (val) => Instance.Config.SelectMode.Value = (AvatarSelectMode)val);
+                avatarGroup.AddElement("Select From Current Avatar", SelectNewAvatar);
+            }
 
             group.AddElement(CreateElementsForTeam(Instance.Infected));
 
@@ -60,25 +63,29 @@ namespace AvatarInfection.Managers
 
             generalGroup.AddElement("Infected Start Number", Instance.Config.InfectedCount.Value, (val) => Instance.Config.InfectedCount.Value = val, min: 1, max: 5);
 
-            generalGroup.AddElement("Time Limit", Instance.Config.TimeLimit.Value, (val) =>
+            generalGroup.AddElement("No Time Limit", Instance.Config.NoTimeLimit.Value, (val) =>
             {
-                Instance.Config.TimeLimit.Value = val;
+                Instance.Config.NoTimeLimit.Value = val;
                 if (Instance.IsStarted)
-                    Instance.EndUnix.SetValue(DateTimeOffset.FromUnixTimeMilliseconds((long)Instance.StartUnix.GetValue()).AddMinutes(val).ToUnixTimeMilliseconds());
-            }, min: 1);
+                    Instance.EndUnix.SetValue(-1);
+                RefreshSettingsPage();
+            });
+
+            if (!Instance.Config.NoTimeLimit.Value)
+            {
+                generalGroup.AddElement("Time Limit", Instance.Config.TimeLimit.Value, (val) =>
+                {
+                    Instance.Config.TimeLimit.Value = val;
+                    if (Instance.IsStarted)
+                        Instance.EndUnix.SetValue(DateTimeOffset.FromUnixTimeMilliseconds((long)Instance.StartUnix.GetValue()).AddMinutes(val).ToUnixTimeMilliseconds());
+                }, min: 1);
+            }
 
             generalGroup.AddElement("Disable Spawn Gun", Instance.DisableSpawnGun, (val) => Instance.Config.DisableSpawnGun.ClientValue = val);
 
             generalGroup.AddElement("Disable Developer Tools", Instance.DisableDevTools, (val) => Instance.Config.DisableDevTools.ClientValue = val);
 
             generalGroup.AddElement("Allow Keep Inventory", Instance.Config.AllowKeepInventory.ClientValue, (val) => Instance.Config.AllowKeepInventory.ClientValue = val);
-
-            generalGroup.AddElement("No Time Limit", Instance.Config.NoTimeLimit.Value, (val) =>
-            {
-                Instance.Config.NoTimeLimit.Value = val;
-                if (Instance.IsStarted)
-                    Instance.EndUnix.SetValue(-1);
-            });
 
             generalGroup.AddElement("Use DeathMatch Spawns", Instance.Config.UseDeathmatchSpawns.ClientValue, (val) => Instance.Config.UseDeathmatchSpawns.ClientValue = val);
 
@@ -89,10 +96,12 @@ namespace AvatarInfection.Managers
             generalGroup.AddElement("Countdown Length", Instance.Config.CountdownLength.ClientValue, (val) => Instance.Config.CountdownLength.ClientValue = val, 5, 0, 3600);
             generalGroup.AddElement("Show Countdown to All Players", Instance.Config.ShowCountdownToAll.ClientValue, (val) => Instance.Config.ShowCountdownToAll.ClientValue = val);
 
-            generalGroup.AddElement("Infect Type", Instance.Config.InfectType.Value, (val) => Instance.Config.InfectType.Value = (InfectType)val);
+            generalGroup.AddElement("Infect Type", Instance.Config.InfectType.Value, (val) => { Instance.Config.InfectType.Value = (InfectType)val; RefreshSettingsPage(); });
+
+            if (Instance.Config.InfectType.Value == InfectType.TOUCH)
+                generalGroup.AddElement("Hold Time", Instance.Config.HoldTime.Value, (val) => Instance.Config.HoldTime.Value = val, max: 60);
 
             generalGroup.AddElement("Suicide Infects", Instance.Config.SuicideInfects.Value, (val) => Instance.Config.SuicideInfects.Value = val);
-            generalGroup.AddElement("Hold Time (Touch Infect Type)", Instance.Config.HoldTime.Value, (val) => Instance.Config.HoldTime.Value = val, max: 60);
             generalGroup.AddElement("Save Settings", () =>
             {
                 try
@@ -211,8 +220,9 @@ namespace AvatarInfection.Managers
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ToggleServerSetting<float> stat)
         {
-            group.AddElement($"Override {stat.DisplayName}", stat.ClientEnabled, (val) => { stat.ClientEnabled = val; FormatApplyName(team); });
-            group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; FormatApplyName(team); }, increment: GetIncrement(team.TeamName));
+            group.AddElement($"Override {stat.DisplayName}", stat.ClientEnabled, (val) => { stat.ClientEnabled = val; FormatApplyName(team); RefreshSettingsPage(); });
+            if (stat.ClientEnabled)
+                group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; FormatApplyName(team); }, increment: GetIncrement(team.TeamName));
         }
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ServerSetting<bool> stat)
@@ -247,7 +257,6 @@ namespace AvatarInfection.Managers
             if (apply)
                 Instance.ChangeElement<FunctionElement>(team.GetGroupName(), name, (el) => el.Title = _name, false);
 
-
             return _name;
         }
 
@@ -274,12 +283,12 @@ namespace AvatarInfection.Managers
             => string.Format(TeamConfigName, team.DisplayName);
 
         // For some reason, visual studio deems the suppression unnecessary, but if I remove it, it gives me a fucking warning, very logical.
-        // Copilot stop trying to suggest me how to write commands. pretty please.
+        // Copilot stop trying to suggest me how to write commands. please.
 #pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable S3011 // Make sure that this accessibility bypass is safe here
+
         internal static void RefreshSettingsPage()
         {
-
             if (MenuGamemode.SelectedGamemode != Instance)
                 return;
 
@@ -288,10 +297,9 @@ namespace AvatarInfection.Managers
             {
                 if (x is DropdownElement group && group.Expanded)
                     openGroups.Add(group.Title);
-
             });
 
-            typeof(LabFusion.Menu.Gamemodes.MenuGamemode)
+            typeof(MenuGamemode)
                 .GetMethod("OverrideSettingsPage",
                             bindingAttr: System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
                 .Invoke(null, [Instance]);
