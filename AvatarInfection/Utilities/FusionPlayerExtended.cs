@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 using BoneLib;
 
@@ -65,7 +66,6 @@ namespace AvatarInfection.Utilities
 
                 if (changed1 || changed2 || changed3 || changed4 || changed5)
                     rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
-
             }
         }
 
@@ -93,7 +93,6 @@ namespace AvatarInfection.Utilities
                 rm.health.SetHealthMode((int)mode);
             }
         }
-
 
         internal static void ClearAllOverrides()
         {
@@ -124,14 +123,14 @@ namespace AvatarInfection.Utilities
 
         #region Avatar Override
 
-        public static void SetAvatarOverride(string barcode)
+        public static void SetAvatarOverride(string barcode, long origin = -1)
         {
             bool wasEmpty = string.IsNullOrEmpty(AvatarOverride);
             if (Player.RigManager != null && AssetWarehouse.ready && wasEmpty)
                 LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? CommonBarcodes.Avatars.PolyBlank;
 
             AvatarOverride = barcode;
-            SwapAvatar(barcode);
+            SwapAvatar(barcode, origin);
         }
 
         public static void ClearAvatarOverride()
@@ -154,11 +153,10 @@ namespace AvatarInfection.Utilities
             GameObject.Destroy(pullCord);
         }
 
-        private static void SwapAvatar(string barcode, ModResult downloadResult = ModResult.SUCCEEDED)
+        private static void SwapAvatar(string barcode, long origin = -1, ModResult downloadResult = ModResult.SUCCEEDED)
         {
             if (string.IsNullOrWhiteSpace(barcode) || barcode == Barcode.EMPTY)
                 return;
-
 
             if (Player.RigManager == null)
                 return;
@@ -178,11 +176,21 @@ namespace AvatarInfection.Utilities
                     return;
                 }
 
+                if (origin > 0)
+                    origin = (long)PlayerIDManager.GetHostID().PlatformID;
+
+                var id = PlayerIDManager.PlayerIDs.FirstOrDefault(x => (long)x.PlatformID == origin);
+                if (id == null)
+                {
+                    FusionModule.Logger.Error("Cannot download avatar '{barcode}', the player that has the avatar was not found");
+                    return;
+                }
+
                 NetworkModRequester.RequestAndInstallMod(new NetworkModRequester.ModInstallInfo()
                 {
                     Barcode = barcode,
-                    Target = PlayerIDManager.LocalSmallID,
-                    FinishDownloadCallback = (ev) => SwapAvatar(barcode, downloadResult: ev.Result),
+                    Target = id.SmallID,
+                    FinishDownloadCallback = (ev) => SwapAvatar(barcode, origin, ev.Result),
                     MaxBytes = DataConversions.ConvertMegabytesToBytes(ClientSettings.Downloading.MaxFileSize.Value),
                     HighPriority = true
                 });

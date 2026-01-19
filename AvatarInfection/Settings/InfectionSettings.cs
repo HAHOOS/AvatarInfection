@@ -1,5 +1,7 @@
 using AvatarInfection.Utilities;
 
+using LabFusion.Player;
+
 using static AvatarInfection.Infection;
 
 namespace AvatarInfection.Settings
@@ -8,21 +10,26 @@ namespace AvatarInfection.Settings
     {
         #region Server
 
+        internal ServerSetting<string> SelectedAvatar { get; set; }
+
+        /// <summary>
+        /// The player that the selected avatar is from. Used when downloading missing avatar.
+        /// </summary>
+        internal ServerSetting<long> SelectedAvatar_Origin { get; set; }
+
         internal ServerSetting<bool> DisableSpawnGun { get; set; }
 
         internal ServerSetting<bool> DisableDevTools { get; set; }
 
-        internal ServerSetting<string> SelectedAvatar { get; set; }
-
         internal ServerSetting<bool> AllowKeepInventory { get; set; }
-
-        internal ServerSetting<int> CountdownLength { get; set; }
 
         internal ServerSetting<bool> TeleportOnEnd { get; set; }
 
         internal ServerSetting<bool> UseDeathmatchSpawns { get; set; }
 
         internal ServerSetting<bool> ShowCountdownToAll { get; set; }
+
+        internal ServerSetting<int> CountdownLength { get; set; }
 
         #endregion Server
 
@@ -55,6 +62,8 @@ namespace AvatarInfection.Settings
 
             SelectedAvatar = CreateServerSetting(nameof(SelectedAvatar), string.Empty);
             SelectedAvatar.OnValueChanged += SelectedPlayerOverride;
+
+            SelectedAvatar_Origin = CreateServerSetting<long>(nameof(SelectedAvatar_Origin), -1);
 
             CountdownLength = CreateServerSetting(nameof(CountdownLength), Constants.Defaults.CountdownLength);
 
@@ -108,6 +117,12 @@ namespace AvatarInfection.Settings
             }
 
             FusionPlayerExtended.SetAvatarOverride(SelectedAvatar.ClientValue);
+        }
+
+        public void SetAvatar(string barcode, PlayerID player)
+        {
+            SelectedAvatar.ClientValue = barcode;
+            SelectedAvatar_Origin.ClientValue = (long)player.PlatformID;
         }
     }
 }

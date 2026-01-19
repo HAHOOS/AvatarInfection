@@ -1,34 +1,36 @@
 ﻿// Ignore Spelling: Metadata Unragdoll
 
 using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 
-using Il2CppSLZ.Marrow.Warehouse;
-
-using LabFusion.Menu.Data;
-using LabFusion.Player;
-using LabFusion.SDK.Gamemodes;
-using LabFusion.Utilities;
-using LabFusion.Entities;
-using LabFusion.Network;
-using LabFusion.Extensions;
-using LabFusion.SDK.Points;
-using LabFusion.Marrow;
-using LabFusion.Scene;
-using LabFusion.Senders;
-using LabFusion.Marrow.Integration;
-using LabFusion.SDK.Metadata;
-using LabFusion.UI.Popups;
-
-using UnityEngine;
-
-using MelonLoader;
-
-using AvatarInfection.Utilities;
 using AvatarInfection.Helper;
 using AvatarInfection.Managers;
 using AvatarInfection.Settings;
+using AvatarInfection.Utilities;
+
+using BoneLib;
+
+using Il2CppSLZ.Marrow.Warehouse;
+
+using LabFusion.Entities;
+using LabFusion.Extensions;
+using LabFusion.Marrow;
+using LabFusion.Marrow.Integration;
+using LabFusion.Menu.Data;
+using LabFusion.Network;
+using LabFusion.Player;
+using LabFusion.Scene;
+using LabFusion.SDK.Gamemodes;
+using LabFusion.SDK.Metadata;
+using LabFusion.SDK.Points;
+using LabFusion.Senders;
+using LabFusion.UI.Popups;
+using LabFusion.Utilities;
+
+using MelonLoader;
+
+using UnityEngine;
 
 namespace AvatarInfection
 {
@@ -46,9 +48,7 @@ namespace AvatarInfection
 
         public override bool DisableSpawnGun => Config?.DisableSpawnGun?.ClientValue ?? true;
 
-
         public override bool DisableDevTools => Config?.DisableDevTools?.ClientValue ?? true;
-
 
         public override bool AutoHolsterOnDeath => true;
 
@@ -287,7 +287,7 @@ namespace AvatarInfection
                 else
                 {
                     TeamManager.TryAssignTeam(playerId, InfectedChildren);
-                    EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(playerId.PlatformID, Config.SelectedAvatar.ClientValue));
+                    EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(playerId.PlatformID, Config.SelectedAvatar.ClientValue, Config.SelectedAvatar_Origin.ClientValue));
                 }
             }
 
@@ -428,7 +428,7 @@ namespace AvatarInfection
             {
                 var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
                 avatars.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
-                Config.SelectedAvatar.ClientValue = avatars.Random().Barcode.ID;
+                Config.SetAvatar(avatars.Random().Barcode.ID, PlayerIDManager.LocalID);
             }
 
             CountdownValue.SetValue(Config.CountdownLength.ClientValue);
@@ -612,11 +612,11 @@ namespace AvatarInfection
                     if (!string.IsNullOrWhiteSpace(avatar))
                     {
                         selected = true;
-                        Config.SelectedAvatar.ClientValue = avatar;
+                        Config.SetAvatar(avatar, plr.PlayerID);
                     }
                 }
 
-                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.PlatformID, Config.SelectedAvatar.ClientValue));
+                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.PlatformID, Config.SelectedAvatar.ClientValue, Config.SelectedAvatar_Origin.ClientValue));
 
                 players.Remove(player);
             }
@@ -683,10 +683,12 @@ namespace AvatarInfection
         }
     }
 
-    internal class SwapAvatarData(ulong target, string barcode)
+    internal class SwapAvatarData(ulong target, string barcode, long origin = -1)
     {
         public ulong Target { get; set; } = target;
 
         public string Barcode { get; set; } = barcode;
+
+        public long Origin { get; set; } = origin;
     }
 }
