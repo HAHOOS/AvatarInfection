@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 using AvatarInfection.Helper;
 using AvatarInfection.Managers;
@@ -170,6 +171,10 @@ namespace AvatarInfection
         private static bool DoYouHaveAvatarInfection(PlayerID player)
         => player.Metadata.Metadata.TryGetMetadata(HAS_AVATAR_INFECTED_KEY, out string val)
             && !string.IsNullOrWhiteSpace(val) && bool.TryParse(val, out bool res) && res;
+
+        private static int CountPlayersThatHaveAvatarInfection()
+            => PlayerIDManager.PlayerIDs.Count(x => x.Metadata.Metadata.TryGetMetadata(HAS_AVATAR_INFECTED_KEY, out string val)
+                && !string.IsNullOrWhiteSpace(val) && bool.TryParse(val, out bool res) && res);
 
         private void OneMinuteLeftEvent()
         {
@@ -406,20 +411,26 @@ namespace AvatarInfection
             if (NetworkPlayer.Players.Count < 2)
                 return false;
 
-            if (string.IsNullOrWhiteSpace(SelectedAvatar))
+            if (string.IsNullOrWhiteSpace(Config.SelectedAvatar.ClientValue))
                 return false;
 
-            var selected = new Barcode(SelectedAvatar);
+            var selected = new Barcode(Config.SelectedAvatar.ClientValue);
             if (selected?.IsValid() != true || selected?.IsValidSize() != true)
                 return false;
 
-            if (InfectedCount > NetworkPlayer.Players.Count - 1)
+            if (Config.InfectedCount.Value > NetworkPlayer.Players.Count - 1)
+                return false;
+
+            if (Config.InfectedCount.Value > CountPlayersThatHaveAvatarInfection() - 1)
                 return false;
 #endif
             return true;
         }
 
         public override void OnGamemodeReady()
+            => IHaveAvatarInfection();
+
+        public override void OnGamemodeSelected()
             => IHaveAvatarInfection();
 
         private void ApplyGamemodeSettings()
