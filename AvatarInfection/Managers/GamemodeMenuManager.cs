@@ -12,6 +12,7 @@ using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 using LabFusion.Menu.Gamemodes;
+using LabFusion.Player;
 
 using static AvatarInfection.Infection;
 
@@ -150,7 +151,7 @@ namespace AvatarInfection.Managers
                 if (string.IsNullOrWhiteSpace(avatar))
                     return;
 
-                Instance.Config.SelectedAvatar.ClientValue = avatar;
+                Instance.Config.SetAvatar(avatar, PlayerIDManager.LocalID);
 
                 string title = !string.IsNullOrWhiteSpace(rigManager.AvatarCrate?.Scannable?.Title) ? rigManager.AvatarCrate.Scannable.Title : "N/A";
 

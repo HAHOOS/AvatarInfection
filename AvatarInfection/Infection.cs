@@ -10,8 +10,6 @@ using AvatarInfection.Managers;
 using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
 
-using BoneLib;
-
 using Il2CppSLZ.Marrow.Warehouse;
 
 using LabFusion.Entities;

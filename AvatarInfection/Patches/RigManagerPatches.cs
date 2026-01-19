@@ -45,13 +45,9 @@ namespace AvatarInfection.Patches
                     return true;
 
                 if (barcode == new Barcode(Infection.Instance.Config.SelectedAvatar.ClientValue))
-                {
                     return Infection.Instance.IsLocalPlayerInfected();
-                }
                 else
-                {
                     return !Infection.Instance.IsLocalPlayerInfected();
-                }
             }
             catch (Exception e)
             {
