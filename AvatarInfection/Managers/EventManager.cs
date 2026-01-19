@@ -62,7 +62,7 @@ namespace AvatarInfection.Managers
         public static void RegisterEvent<T>(Enum @enum, Action<T> callback, bool serverOnly = false)
             => RegisterEvent(@enum.ToString(), callback, serverOnly);
 
-        public static void RegisterGlobalNotification(string name, Notification notification, bool serverOnly = true)
+        public static void RegisterNotification(string name, Notification notification, bool serverOnly = true)
         {
             RegisterEvent(name, () =>
             {
@@ -73,19 +73,19 @@ namespace AvatarInfection.Managers
             }, serverOnly);
         }
 
-        public static void RegisterGlobalNotification(Enum @enum, Notification notification, bool serverOnly = true)
-            => RegisterGlobalNotification(@enum.ToString(), notification, serverOnly);
+        public static void RegisterNotification(Enum @enum, Notification notification, bool serverOnly = true)
+            => RegisterNotification(@enum.ToString(), notification, serverOnly);
 
         // The only difference between the method requiring the Notification object and this one is having less parameters for cleaner look
-        public static void RegisterGlobalNotification(
-            Enum @enum, string title, string message, float popupDuration, bool serverOnly = true,
+        public static void RegisterNotification(
+            Enum @enum, string title, string message, float popupDuration = 4f, bool serverOnly = true,
             bool showPopup = true,
              NotificationType type = NotificationType.INFORMATION)
-            => RegisterGlobalNotification(@enum.ToString(), title, message, popupDuration, serverOnly, showPopup, type);
+            => RegisterNotification(@enum.ToString(), title, message, popupDuration, serverOnly, showPopup, type);
 
         // Same as above
-        public static void RegisterGlobalNotification(
-            string name, string title, string message, float popupDuration, bool serverOnly = true,
+        public static void RegisterNotification(
+            string name, string title, string message, float popupDuration = 4f, bool serverOnly = true,
             bool showPopup = true,
              NotificationType type = NotificationType.INFORMATION)
         {

@@ -158,8 +158,8 @@ namespace AvatarInfection
             EventManager.RegisterEvent(EventType.TeleportToHost, TeleportToHost, true);
             EventManager.RegisterEvent(EventType.OneMinuteLeft, OneMinuteLeftEvent, true);
 
-            EventManager.RegisterGlobalNotification(EventType.InfectedVictory, "Infected Won", "Everyone has been infected!", 4f, true);
-            EventManager.RegisterGlobalNotification(EventType.SurvivorsVictory, "Survivors Won", "There were people not infected in time!", 4f, true);
+            EventManager.RegisterNotification(EventType.InfectedVictory, "Infected Won", "Everyone has been infected!");
+            EventManager.RegisterNotification(EventType.SurvivorsVictory, "Survivors Won", "There were people not infected in time!");
 
             BoneMenuManager.Setup();
             VisionManager.Setup();
