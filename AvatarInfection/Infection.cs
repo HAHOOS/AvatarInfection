@@ -366,6 +366,7 @@ namespace AvatarInfection
         {
             _elapsedTime += TimeUtilities.DeltaTime;
             // HACK: There's a better way to do this, but for some fucking reason it doesnt want to cooperate. This must do for now.
+            // TODO: Change this shit.
             if (NetworkInfo.IsHost)
             {
                 _elapsedTimeMenu += TimeUtilities.DeltaTime;
