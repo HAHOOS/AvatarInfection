@@ -478,7 +478,7 @@ namespace AvatarInfection
 
             if (NetworkInfo.IsHost)
             {
-                if (Config.AddInfectedChildrenTeam.Value)
+                if (Config.UseInfectedChildrenTeam.Value)
                 {
                     InfectedChildren.Metadata.StopSync();
                 }

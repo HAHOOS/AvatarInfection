@@ -39,7 +39,7 @@ namespace AvatarInfection.Settings
 
         internal LocalSetting<AvatarSelectMode> SelectMode { get; set; }
 
-        internal LocalSetting<bool> AddInfectedChildrenTeam { get; set; }
+        internal LocalSetting<bool> UseInfectedChildrenTeam { get; set; }
 
         internal LocalSetting<int> TimeLimit { get; set; }
 
@@ -90,10 +90,10 @@ namespace AvatarInfection.Settings
             NoTimeLimit = CreateLocalSetting(nameof(NoTimeLimit), Constants.Defaults.NoTimeLimit);
             SelectMode = CreateLocalSetting(nameof(SelectMode), Constants.Defaults.SelectMode);
             SuicideInfects = CreateLocalSetting(nameof(SuicideInfects), Constants.Defaults.SuicideInfects);
-            AddInfectedChildrenTeam = CreateLocalSetting(nameof(AddInfectedChildrenTeam), Constants.Defaults.AddInfectedChildrenTeam);
-            AddInfectedChildrenTeam.OnValueChanged += () =>
+            UseInfectedChildrenTeam = CreateLocalSetting(nameof(UseInfectedChildrenTeam), Constants.Defaults.AddInfectedChildrenTeam);
+            UseInfectedChildrenTeam.OnValueChanged += () =>
             {
-                if (AddInfectedChildrenTeam.Value)
+                if (UseInfectedChildrenTeam.Value)
                 {
                     Instance?.InfectedChildren?.Metadata?.StopSync();
                 }

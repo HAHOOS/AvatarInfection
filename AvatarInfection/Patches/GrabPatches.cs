@@ -44,14 +44,12 @@ namespace AvatarInfection.Patches
         public static bool GrabAttempt(Hand __instance, GameObject objectToAttach)
             => CanGrab(__instance, objectToAttach);
 
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverBegin))]
         [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverEnd))]
         [HarmonyPriority(10000)]
         public static bool InventoryGrabAttempt(InventorySlotReceiver __instance, Hand hand)
             => CanGrab(hand, __instance._weaponHost?.GetHostGameObject());
-
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandGrab))]
@@ -72,7 +70,6 @@ namespace AvatarInfection.Patches
         public static bool IconAttempt(InteractableIcon __instance, Hand hand)
             => CanGrab(hand, __instance.gameObject);
 
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.CoPull))]
         [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnStartAttach))]
@@ -84,8 +81,7 @@ namespace AvatarInfection.Patches
         public static bool ForceGrabAttempt(Hand hand, ForcePullGrip __instance)
             => CanGrab(hand, __instance?.gameObject);
 
-
-        #endregion
+        #endregion Patches
 
         private static void Grabbed(Grip grip, Hand hand)
         {
@@ -163,7 +159,7 @@ namespace AvatarInfection.Patches
             }
             else if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.InfectedChildren)
             {
-                if (!Infection.Instance.Config.AddInfectedChildrenTeam.Value)
+                if (!Infection.Instance.Config.UseInfectedChildrenTeam.Value)
                     return Infection.Instance.Infected.Metadata;
                 else
                     return Infection.Instance.InfectedChildren.Metadata;

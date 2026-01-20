@@ -26,8 +26,6 @@ namespace AvatarInfection.Managers
 
         private static readonly IReadOnlyList<float> IncrementValues = [0.2f, 0.5f, 1f, 5f];
 
-        private static string SelectedAvatarTitle;
-
         internal static GroupElementData CreateSettingsGroup()
         {
             // HACK: for some reason if i wouldn't have done this the settings wouldn't work
@@ -46,20 +44,18 @@ namespace AvatarInfection.Managers
 
             avatarGroup.AddElement("Select Mode", Instance.Config.SelectMode.Value, (val) => { Instance.Config.SelectMode.Value = (AvatarSelectMode)val; RefreshSettingsPage(); });
 
-            SelectedAvatarTitle = GetBarcodeTitle(Instance.Config.SelectedAvatar.ClientValue);
             if (Instance.Config.SelectMode.Value == AvatarSelectMode.CONFIG)
             {
-                avatarGroup.AddElement(SelectedAvatarTitle, null);
+                var title = GetBarcodeTitle(Instance.Config.SelectedAvatar.ClientValue);
+                avatarGroup.AddElement(title, null);
 
                 avatarGroup.AddElement("Select From Current Avatar", SelectNewAvatar);
             }
 
             group.AddElement(CreateElementsForTeam(Instance.Infected));
-
-            if (Instance.Config.AddInfectedChildrenTeam.Value)
-                group.AddElement(CreateElementsForTeam(Instance.InfectedChildren));
-
+            group.AddElement(CreateElementsForTeam(Instance.InfectedChildren));
             group.AddElement(CreateElementsForTeam(Instance.Survivors));
+
             GroupElementData generalGroup = group.AddGroup("General");
 
             generalGroup.AddElement("Infected Start Number", Instance.Config.InfectedCount.Value, (val) => Instance.Config.InfectedCount.Value = val, min: 1, max: 5);
@@ -153,10 +149,7 @@ namespace AvatarInfection.Managers
 
                 Instance.Config.SetAvatar(avatar, PlayerIDManager.LocalID);
 
-                string title = !string.IsNullOrWhiteSpace(rigManager.AvatarCrate?.Scannable?.Title) ? rigManager.AvatarCrate.Scannable.Title : "N/A";
-
-                Instance.ChangeElement<FunctionElement>("Avatar", SelectedAvatarTitle, (element) => element.Title = title, false);
-                SelectedAvatarTitle = title;
+                RefreshSettingsPage();
             }
         }
 
@@ -170,41 +163,38 @@ namespace AvatarInfection.Managers
                 Title = team.GetGroupName(),
             };
 
-            if (Instance.IsStarted)
-                group.AddElement(FormatApplyName(team, apply: false), () => ApplyMetadata(team));
-
-            team.Metadata._settingsList.Types(x =>
+            bool isChildren = team == Instance.InfectedChildren;
+            if (isChildren)
             {
-                if (x is ToggleServerSetting<float> toggleStat)
-                    group.CreateStatElement(team, toggleStat);
-                else if (x is ServerSetting<bool> boolStat)
-                    group.CreateStatElement(team, boolStat);
-            }, typeof(ToggleServerSetting<float>), typeof(ServerSetting<bool>));
+                group.AddElement("Use The Team", Instance.Config.UseInfectedChildrenTeam.Value, (val) =>
+                {
+                    Instance.Config.UseInfectedChildrenTeam.Value = val;
+                    RefreshSettingsPage();
+                });
+            }
 
-            group.AddElement($"Increment: {GetIncrement(team.TeamName)}", () =>
+            if (isChildren && Instance.Config.UseInfectedChildrenTeam.Value)
             {
-                if (!IncrementTeams.TryGetValue(team.TeamName, out int index))
-                    index = 0;
-
-                index++;
-                index %= IncrementValues.Count;
-                IncrementTeams[team.TeamName] = index;
-
-                const string startsWith = "Increment:";
-                Instance.ChangeElement<FunctionElement>(team.GetGroupName(), startsWith, (el) => el.Title = $"{startsWith} {GetIncrement(team.TeamName)}");
+                if (Instance.IsStarted)
+                    group.AddElement(FormatApplyName(team, apply: false), () => ApplyMetadata(team));
 
                 team.Metadata._settingsList.Types(x =>
                 {
-                    var _x = x as ToggleServerSetting<float>;
-                    Instance.ChangeElement<FloatElement>(team.GetGroupName(), _x.DisplayName, (el) => el.Increment = GetIncrement(team.TeamName));
-                }, typeof(ToggleServerSetting<float>));
-            });
+                    if (x is ToggleServerSetting<float> toggleStat)
+                        group.CreateStatElement(team, toggleStat);
+                    else if (x is ServerSetting<bool> boolStat)
+                        group.CreateStatElement(team, boolStat);
+                }, typeof(ToggleServerSetting<float>), typeof(ServerSetting<bool>));
 
-            if (team == Instance.Infected)
-            {
-                group.AddElement("Add Infected Children Team", Instance.Config.AddInfectedChildrenTeam.Value, (val) =>
+                group.AddElement($"Increment: {GetIncrement(team.TeamName)}", () =>
                 {
-                    Instance.Config.AddInfectedChildrenTeam.Value = val;
+                    if (!IncrementTeams.TryGetValue(team.TeamName, out int index))
+                        index = 0;
+
+                    index++;
+                    index %= IncrementValues.Count;
+                    IncrementTeams[team.TeamName] = index;
+
                     RefreshSettingsPage();
                 });
             }
@@ -240,22 +230,13 @@ namespace AvatarInfection.Managers
             string _name;
 
             if (!Instance.IsStarted)
-            {
                 _name = $"<color=#000000>{name} (Gamemode not started)</color>";
-            }
             else if (team.Metadata.IsApplied)
-            {
                 _name = $"<color=#00FF00>{name} (Applied)</color>";
-            }
             else if (team.Metadata.HasNoServerSettings())
-            {
-                // For some fucking reason this happens, so I am making this to be able to tell when the code stops working, again.
                 _name = $"<color=#898989>{name} (No Server Settings, fucked up code)</color>";
-            }
             else
-            {
                 _name = $"<color=#FF0000>{name} (Not Applied)</color>";
-            }
 
             if (apply)
                 Instance.ChangeElement<FunctionElement>(team.GetGroupName(), name, (el) => el.Title = _name, false);
