@@ -446,9 +446,9 @@ namespace AvatarInfection
 
             if (Config.SelectMode.Value == AvatarSelectMode.CONFIG)
             {
-                var selected = new Barcode(Config.SelectedAvatar.Value);
+                var selected = new Barcode(Config.SelectedAvatar.Value.Barcode);
 
-                if (string.IsNullOrWhiteSpace(Config.SelectedAvatar.Value))
+                if (string.IsNullOrWhiteSpace(Config.SelectedAvatar.Value.Barcode))
                 {
                     Core.Logger.Error("No avatar selected while in CONFIG mode");
                     return false;
@@ -457,6 +457,23 @@ namespace AvatarInfection
                 if (selected?.IsValid() != true || selected?.IsValidSize() != true)
                 {
                     Core.Logger.Error("Avatar selected while in CONFIG mode is not valid");
+                    return false;
+                }
+            }
+
+            if (Config.ChildrenSelectedAvatar.Enabled && Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.CONFIG)
+            {
+                var selected = new Barcode(Config.ChildrenSelectedAvatar.Value.Barcode);
+
+                if (string.IsNullOrWhiteSpace(Config.ChildrenSelectedAvatar.Value.Barcode))
+                {
+                    Core.Logger.Error("No children avatar selected while in CONFIG mode");
+                    return false;
+                }
+
+                if (selected?.IsValid() != true || selected?.IsValidSize() != true)
+                {
+                    Core.Logger.Error("Children Avatar selected while in CONFIG mode is not valid");
                     return false;
                 }
             }
