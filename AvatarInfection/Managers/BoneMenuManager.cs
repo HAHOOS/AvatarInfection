@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using AvatarInfection.Settings;
+
 using BoneLib.BoneMenu;
 
 using LabFusion.Network;
@@ -18,6 +20,8 @@ namespace AvatarInfection.Managers
     {
         public static Page AuthorPage { get; private set; }
         public static Page ModPage { get; private set; }
+
+        public static Page DebugPage { get; private set; }
 
         public static void Setup()
         {
@@ -57,6 +61,10 @@ namespace AvatarInfection.Managers
                 return;
 
             ModPage.RemoveAll();
+            DebugPage ??= ModPage.CreatePage("Debug", Color.yellow, createLink: false);
+#if DEBUG
+            ModPage.CreatePageLink(DebugPage);
+#endif
             ModPage.CreateFunction("Refresh", Color.cyan, PopulatePage);
             var seperator = ModPage.CreateFunction("[===============]", Color.magenta, null);
             seperator.SetProperty(ElementProperties.NoBorder);
@@ -77,7 +85,6 @@ namespace AvatarInfection.Managers
 
             foreach (var player in PlayerIDManager.PlayerIDs)
                 Teams.Add(player, Infection.Instance?.TeamManager?.GetPlayerTeam(player));
-
 
             List<TeamPage> teamPages = [];
 

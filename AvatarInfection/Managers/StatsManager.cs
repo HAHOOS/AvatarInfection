@@ -3,7 +3,6 @@
 using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
 
-using LabFusion.Player;
 using LabFusion.Utilities;
 
 namespace AvatarInfection.Managers
@@ -12,8 +11,8 @@ namespace AvatarInfection.Managers
     {
         public static void ClearOverrides()
         {
-            FusionPlayerExtended.ClearAllOverrides();
-            FusionPlayerExtended.ClearAvatarOverride();
+            Overrides.ClearAllOverrides();
+            Overrides.ClearAvatarOverride();
         }
 
         internal static void ApplyStats()
@@ -34,8 +33,8 @@ namespace AvatarInfection.Managers
             if (serverSetting == null)
                 return null;
 
-            if (serverSetting.ClientEnabled)
-                return serverSetting.ClientValue;
+            if (serverSetting.Enabled)
+                return serverSetting.Value;
             else
                 return null;
         }
@@ -53,7 +52,7 @@ namespace AvatarInfection.Managers
             float? strengthUpper = GetToggleValue(metadata.StrengthUpper);
             float? vitality = GetToggleValue(metadata.Vitality);
 
-            FusionPlayerExtended.SetOverrides(speed, agility, strengthUpper, vitality, metadata.Mortality.ClientValue);
+            Overrides.SetOverrides(speed, agility, strengthUpper, vitality, metadata.Mortality.Value);
         }
 
         internal static void RefreshStats(string teamName)

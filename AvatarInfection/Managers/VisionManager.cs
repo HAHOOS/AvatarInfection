@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Threading;
 
 using AvatarInfection.Helper;
 using AvatarInfection.Settings;
@@ -14,6 +15,8 @@ using MelonLoader;
 
 using UnityEngine;
 
+using static UnityEngine.GraphicsBuffer;
+
 namespace AvatarInfection.Managers
 {
     internal static class VisionManager
@@ -25,6 +28,8 @@ namespace AvatarInfection.Managers
         private static InfectionSettings Config => Infection.Instance.Config;
 
         private static Team Infected => Infection.Instance.Infected;
+
+        private static CancellationTokenSource CancellationToken { get; set; }
 
         internal static void Setup()
             => MultiplayerHooking.OnUpdate += OnUpdate;
@@ -41,10 +46,13 @@ namespace AvatarInfection.Managers
         internal static void HideVisionAndReveal(float delaySeconds = 0)
             => MelonCoroutines.Start(Internal_HideVisionAndReveal(delaySeconds));
 
-        private static IEnumerator Internal_HideVisionAndReveal(float delaySeconds = 0)
+        private static IEnumerator Internal_HideVisionAndReveal(float delaySeconds = 0, CancellationTokenSource token = null)
         {
             try
             {
+                CancellationToken cToken = HandleToken(token);
+
+                bool cancelRequested = false;
                 if (IsCountdownActive() && IsAllowed())
                 {
                     if (delaySeconds > 0)
@@ -65,8 +73,11 @@ namespace AvatarInfection.Managers
 
                     while (seconds < target)
                     {
-                        if (!Infection.Instance.IsStarted || (Infection.Instance.InfectedLooking.GetValue() && target > 5))
+                        if (IsCancelled(target, cToken))
+                        {
+                            cancelRequested = true;
                             break;
+                        }
 
                         if (TeamManager.GetLocalTeam() == Infected)
                         {
@@ -82,19 +93,33 @@ namespace AvatarInfection.Managers
                         yield return null;
                     }
 
-                    InfectedVisionEffect(false);
+                    VisionEffect(false);
 
                     TutorialRig.Instance.headTitles.CLOSEDISPLAY();
                 }
-                if (TeamManager.GetLocalTeam() == Infected)
+                if (TeamManager.GetLocalTeam() == Infected && !cancelRequested)
                     MenuHelper.ShowNotification("Countdown Over", "GO AND INFECT THEM ALL!", 3.5f);
             }
             finally
             {
                 HideVision = false;
             }
-
         }
+
+        private static CancellationToken HandleToken(CancellationTokenSource source)
+        {
+            if (CancellationToken != null)
+            {
+                CancellationToken.Cancel();
+                CancellationToken.Dispose();
+                CancellationToken = null;
+            }
+            CancellationToken = source ?? new CancellationTokenSource();
+            return CancellationToken.Token;
+        }
+
+        private static bool IsCancelled(int target, CancellationToken token)
+            => !Infection.Instance.IsStarted || (Infection.Instance.InfectedLooking.GetValue() && target > 5) || token.IsCancellationRequested;
 
         private static void DisplayCountdown(int num)
         {
@@ -113,13 +138,13 @@ namespace AvatarInfection.Managers
         }
 
         private static bool IsCountdownActive()
-            => Config.CountdownLength.ClientValue != 0
+            => Config.CountdownLength.Value != 0
                         && Infection.Instance.CountdownValue.GetValue() != 0
                         && !Infection.Instance.InfectedLooking.GetValue();
 
         private static bool IsAllowed()
             => Infection.Instance.IsStarted &&
-                ((Infection.Instance.Config.ShowCountdownToAll.ClientValue && TeamManager.GetLocalTeam() != Infected)
+                ((Infection.Instance.Config.ShowCountdownToAll.Value && TeamManager.GetLocalTeam() != Infected)
                     || TeamManager.GetLocalTeam() == Infected);
 
         private static void InfectedVisionEffect(bool active)
@@ -130,7 +155,6 @@ namespace AvatarInfection.Managers
 
         private static void HandleTime(int target, ref float elapsed, ref float totalElapsed, ref int seconds, ref bool secondPassed)
         {
-
             // Check for second counter
             if (secondPassed)
             {
@@ -164,12 +188,12 @@ namespace AvatarInfection.Managers
 
             LocalVision.BlindColor = Color.black;
             LocalVision.Blind = active;
-            FusionPlayerExtended.SetOverrides(
-                FusionPlayerExtended.SpeedOverride,
-                FusionPlayerExtended.AgilityOverride,
-                FusionPlayerExtended.StrengthUpperOverride,
-                FusionPlayerExtended.VitalityOverride,
-                !active && Infection.Instance.Infected.Metadata.Mortality.ClientValue);
+            Overrides.SetOverrides(
+                Overrides.Speed,
+                Overrides.Agility,
+                Overrides.StrengthUpper,
+                Overrides.Vitality,
+                !active && Infection.Instance.Infected.Metadata.Mortality.Value);
         }
     }
 }

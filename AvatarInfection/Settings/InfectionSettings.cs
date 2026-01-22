@@ -76,7 +76,7 @@ namespace AvatarInfection.Settings
             UseDeathmatchSpawns = CreateServerSetting(nameof(UseDeathmatchSpawns), Constants.Defaults.UseDeathMatchSpawns);
             UseDeathmatchSpawns.OnValueChanged += () =>
             {
-                if (UseDeathmatchSpawns.ClientValue)
+                if (UseDeathmatchSpawns.Value)
                     UseDeathmatchSpawns_Init(false);
                 else
                     ClearDeathmatchSpawns();
@@ -84,6 +84,7 @@ namespace AvatarInfection.Settings
 
             ShowCountdownToAll = CreateServerSetting(nameof(ShowCountdownToAll), Constants.Defaults.ShowCountdownToAll);
 
+            FriendlyFire = CreateServerSetting(nameof(FriendlyFire), Constants.Defaults.FriendlyFire);
             HoldTime = CreateLocalSetting(nameof(HoldTime), Constants.Defaults.HoldTime);
             InfectedCount = CreateLocalSetting(nameof(InfectedCount), Constants.Defaults.InfectedCount);
             InfectType = CreateLocalSetting(nameof(InfectType), Constants.Defaults._InfectType);
@@ -91,18 +92,6 @@ namespace AvatarInfection.Settings
             SelectMode = CreateLocalSetting(nameof(SelectMode), Constants.Defaults.SelectMode);
             SuicideInfects = CreateLocalSetting(nameof(SuicideInfects), Constants.Defaults.SuicideInfects);
             UseInfectedChildrenTeam = CreateLocalSetting(nameof(UseInfectedChildrenTeam), Constants.Defaults.AddInfectedChildrenTeam);
-            UseInfectedChildrenTeam.OnValueChanged += () =>
-            {
-                if (UseInfectedChildrenTeam.Value)
-                {
-                    Instance?.InfectedChildren?.Metadata?.StopSync();
-                }
-                else
-                {
-                    Instance?.InfectedChildren?.Metadata?.SyncWith(Instance.Infected.Metadata);
-                    Instance?.InfectedChildren?.Metadata?.SettingChanged();
-                }
-            };
             TeleportOnStart = CreateLocalSetting(nameof(TeleportOnStart), Constants.Defaults.TeleportOnStart);
             TimeLimit = CreateLocalSetting(nameof(TimeLimit), Constants.Defaults.TimeLimit);
         }
@@ -118,13 +107,13 @@ namespace AvatarInfection.Settings
                 return;
             }
 
-            FusionPlayerExtended.SetAvatarOverride(SelectedAvatar.ClientValue);
+            Overrides.SetAvatarOverride(SelectedAvatar.Value);
         }
 
         public void SetAvatar(string barcode, PlayerID player)
         {
-            SelectedAvatar.ClientValue = barcode;
-            SelectedAvatar_Origin.ClientValue = (long)player.PlatformID;
+            SelectedAvatar_Origin.Value = (long)player.PlatformID;
+            SelectedAvatar.Value = barcode;
         }
     }
 }

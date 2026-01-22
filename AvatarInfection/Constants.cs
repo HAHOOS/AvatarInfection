@@ -8,33 +8,35 @@ namespace AvatarInfection
 {
     internal static class Constants
     {
+        public const string Name = "AvatarInfection";
+
+        public const string Description = "An infection is spreading, turning people into a selected avatar by the host.";
+
+        public const string Author = "HAHOOS";
+
         public const string Version = "2.0.0";
 
-        public static readonly MonoDiscReference ItDoBeGroovinReference = new("SLZ.BONELAB.Content.MonoDisc.ItDoBeGroovin");
+        public const string Barcode = $"{Author}.{Name}";
 
-        public static readonly MonoDiscReference TheRecurringDreamReference = new("SLZ.BONELAB.Content.MonoDisc.TheRecurringDream");
+        public const int InfectedBitReward = 50;
 
-        public static readonly MonoDiscReference StankFaceReference = new("SLZ.BONELAB.Content.MonoDisc.StankFace");
+        public const int SurvivorsBitReward = 75;
 
-        public static readonly MonoDiscReference TakeARideReference = new("SLZ.BONELAB.Content.MonoDisc.TakeARide");
+        public static readonly MonoDiscReference[] Tracks =
+        [
+            Disk("TheRecurringDream"),
+            Disk("HeavySteps"),
+            Disk("StankFace"),
+            Disk("AlexinWonderland"),
+            Disk("ItDoBeGroovin"),
+            Disk("ConcreteCrypt"),
+        ];
 
-        public static readonly MonoDiscReference HeavyStepsReference = new("SLZ.BONELAB.Content.MonoDisc.HeavySteps");
-
-        public static readonly MonoDiscReference KnewBeforeReference = new("SLZ.BONELAB.Content.MonoDisc.KnewBefore");
-
-        public static readonly MonoDiscReference AlexInWonderlandReference = new("SLZ.BONELAB.Content.MonoDisc.AlexinWonderland");
-
-        public static readonly MonoDiscReference ConcreteCryptReference = new("SLZ.BONELAB.Content.MonoDisc.ConcreteCrypt");
+        internal static MonoDiscReference Disk(string name) => new($"SLZ.BONELAB.Content.MonoDisc.{name}");
 
         internal static class Defaults
         {
-            public const string Barcode = "HAHOOS.AvatarInfection";
-
             public const int TimeLimit = 10;
-
-            public const int InfectedBitReward = 50;
-
-            public const int SurvivorsBitReward = 75;
 
             public const bool NoTimeLimit = false;
 
@@ -103,20 +105,9 @@ namespace AvatarInfection
 
             public const bool ShowCountdownToAll = false;
 
+            public const bool FriendlyFire = true;
+
             public const AvatarSelectMode SelectMode = AvatarSelectMode.CONFIG;
-
-            // Have no idea for mono discs
-            // TODO: Add more "original" tracks and not just have the same as Hide & Seek
-            public static readonly MonoDiscReference[] Tracks =
-        [
-            TheRecurringDreamReference,
-            HeavyStepsReference,
-            StankFaceReference,
-            AlexInWonderlandReference,
-           ItDoBeGroovinReference,
-
-            ConcreteCryptReference, // concrete crypt
-        ];
         }
     }
 }

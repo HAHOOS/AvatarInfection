@@ -20,16 +20,18 @@ namespace AvatarInfection.Settings
 
         public bool AutoSync { get; set; }
 
-        private T _clientValue;
+        private T _value;
 
-        public T ClientValue
+        public T Value
         {
-            get => _clientValue;
+            get => _value;
             set
             {
-                _clientValue = value;
+                _value = value;
                 if (AutoSync)
                     Sync();
+                if (NetworkInfo.IsHost && AutoSync)
+                    OnValueChanged?.Invoke();
             }
         }
 
@@ -38,7 +40,7 @@ namespace AvatarInfection.Settings
         private MelonPreferences_Entry<T> Entry { get; set; }
 
         public bool IsSynced
-            => ClientValue.Equals(ServerValue.GetValue());
+            => Value.Equals(ServerValue.GetValue());
 
         /// <summary>
         /// This gets only triggered when the client value is set to the new server value
@@ -49,53 +51,56 @@ namespace AvatarInfection.Settings
 
         public void Sync()
         {
-            ServerValue.SetValue(_clientValue);
+            ServerValue.SetValue(_value);
+
+            if (NetworkInfo.IsHost)
+                OnValueChanged?.Invoke();
+
             OnSynced?.Invoke();
         }
 
         public void Load()
-            => ClientValue = Entry.Value;
+            => Value = Entry.Value;
 
         public void Save()
-            => Entry.Value = ClientValue;
+            => Entry.Value = Value;
 
         private void InitEvent(string name)
         {
             Name = name;
-            Entry = Core.Category.CreateEntry(name, ClientValue);
+            Entry = Core.Category.CreateEntry(name, Value);
             GamemodeManager.OnGamemodeStarted += OnGamemodeStarted;
-            MultiplayerHooking.OnJoinedServer += OnJoinedServer;
-            MultiplayerHooking.OnTargetLevelLoaded += OnTargetLevelLoaded;
+            MultiplayerHooking.OnStartedServer += Sync;
+            MultiplayerHooking.OnJoinedServer += RetrieveValues;
+            MultiplayerHooking.OnTargetLevelLoaded += RetrieveValues;
             gamemode.Metadata.OnMetadataChanged += MetadataChanged;
-
         }
 
         private void OnGamemodeStarted()
         {
-            if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsHost)
+            if (NetworkInfo.IsHost)
                 Sync();
         }
 
-        private void OnJoinedServer()
+        private void RetrieveValues()
         {
-            _clientValue = ServerValue.GetValue();
-        }
-
-        private void OnTargetLevelLoaded()
-        {
-            if (!NetworkInfo.HasServer)
+            if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
                 return;
-            _clientValue = ServerValue.GetValue();
+
+            _value = ServerValue.GetValue();
         }
 
         private void MetadataChanged(string key, string value)
         {
+            if (NetworkInfo.IsHost)
+                return;
+
             if (key == ServerValue.Key)
             {
-                var old = _clientValue;
-                _clientValue = ServerValue.GetValue();
+                var old = _value;
+                _value = ServerValue.GetValue();
 
-                if (!old.Equals(_clientValue))
+                if (!old.Equals(_value))
                     OnValueChanged?.Invoke();
             }
         }
@@ -107,7 +112,7 @@ namespace AvatarInfection.Settings
             AutoSync = autoSync;
             this.gamemode = gamemode;
             ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
-            ClientValue = default;
+            Value = default;
             InitEvent(name);
         }
 
@@ -118,12 +123,12 @@ namespace AvatarInfection.Settings
             AutoSync = autoSync;
             this.gamemode = gamemode;
             ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
-            ClientValue = value;
+            Value = value;
             InitEvent(name);
         }
     }
 
-    public class ToggleServerSetting<T> : IServerSetting where T : IEquatable<T>
+    public class ToggleServerSetting<T> : IServerSetting
     {
         private readonly Gamemode gamemode;
 
@@ -133,35 +138,35 @@ namespace AvatarInfection.Settings
 
         public string DisplayName { get; set; }
 
-        private T _clientValue;
+        private T _value;
 
-        public T ClientValue
+        public T Value
         {
-            get => _clientValue;
+            get => _value;
             set
             {
-                _clientValue = value;
+                _value = value;
                 if (AutoSync)
                     Sync();
             }
         }
 
-        private bool _clientEnabled;
+        private bool _enabled;
 
-        public bool ClientEnabled
+        public bool Enabled
         {
-            get => _clientEnabled;
+            get => _enabled;
             set
             {
-                _clientEnabled = value;
+                _enabled = value;
                 if (AutoSync)
                     Sync();
             }
         }
 
         public bool IsSynced
-            => ClientValue.Equals(ServerValue.GetValue())
-                && ClientEnabled == ServerValue.IsEnabled;
+            => Value.Equals(ServerValue.GetValue())
+                && Enabled == ServerValue.IsEnabled;
 
         private MelonPreferences_Entry<T> Entry { get; set; }
         private MelonPreferences_Entry<bool> EnabledEntry { get; set; }
@@ -177,72 +182,73 @@ namespace AvatarInfection.Settings
 
         public void Sync()
         {
-            ServerValue.SetValue(_clientValue);
-            ServerValue.SetEnabled(_clientEnabled);
+            ServerValue.SetValue(_value);
+            ServerValue.SetEnabled(_enabled);
+
+            if (NetworkInfo.IsHost)
+                OnValueChanged?.Invoke();
+
             OnSynced?.Invoke();
         }
 
         public void Load()
         {
-            ClientValue = Entry.Value;
-            ClientEnabled = EnabledEntry.Value;
+            Value = Entry.Value;
+            Enabled = EnabledEntry.Value;
         }
 
         public void Save()
         {
-            Entry.Value = ClientValue;
-            EnabledEntry.Value = ClientEnabled;
+            Entry.Value = Value;
+            EnabledEntry.Value = Enabled;
         }
 
         private void InitEvent(string name)
         {
             Name = name;
-            Entry = Core.Category.CreateEntry(name, ClientValue);
-            EnabledEntry = Core.Category.CreateEntry($"{name}_Enabled", ClientEnabled);
+            Entry = Core.Category.CreateEntry(name, Value);
+            EnabledEntry = Core.Category.CreateEntry($"{name}_Enabled", Enabled);
             GamemodeManager.OnGamemodeStarted += OnGamemodeStarted;
-            MultiplayerHooking.OnJoinedServer += OnJoinedServer;
-            MultiplayerHooking.OnTargetLevelLoaded += OnTargetLevelLoaded;
+            MultiplayerHooking.OnStartedServer += Sync;
+            MultiplayerHooking.OnJoinedServer += RetrieveValues;
+            MultiplayerHooking.OnTargetLevelLoaded += RetrieveValues;
             gamemode.Metadata.OnMetadataChanged += MetadataChanged;
-
         }
 
         private void OnGamemodeStarted()
         {
-            if (GamemodeManager.ActiveGamemode == gamemode && NetworkInfo.IsHost)
+            if (NetworkInfo.IsHost)
                 Sync();
         }
 
-        private void OnJoinedServer()
-        {
-            _clientValue = ServerValue.GetValue();
-            _clientEnabled = ServerValue.IsEnabled;
-        }
-
-        private void OnTargetLevelLoaded()
+        private void RetrieveValues()
         {
             if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
                 return;
 
-            _clientValue = ServerValue.GetValue();
-            _clientEnabled = ServerValue.IsEnabled;
+            _value = ServerValue.GetValue();
+            _enabled = ServerValue.IsEnabled;
         }
 
         private void MetadataChanged(string key, string value)
         {
+            if (NetworkInfo.IsHost)
+                return;
+
             if (key == ServerValue.Key)
             {
-                var old = _clientValue;
-                _clientValue = ServerValue.GetValue();
+                var old = _value;
+                _value = ServerValue.GetValue();
 
-                if (!old.Equals(_clientValue))
+                if (!old.Equals(_value))
                     OnValueChanged?.Invoke();
             }
             else if (key == ServerValue.ToggledKey)
             {
-                if (ClientEnabled == ServerValue.IsEnabled)
+                if (Enabled == ServerValue.IsEnabled)
                     return;
 
-                _clientEnabled = ServerValue.IsEnabled;
+                _enabled = ServerValue.IsEnabled;
 
                 OnValueChanged?.Invoke();
             }
@@ -255,8 +261,8 @@ namespace AvatarInfection.Settings
             AutoSync = autoSync;
             this.gamemode = gamemode;
             ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
-            ClientValue = default;
-            ClientEnabled = default;
+            Value = default;
+            Enabled = default;
             InitEvent(name);
         }
 
@@ -267,8 +273,8 @@ namespace AvatarInfection.Settings
             AutoSync = autoSync;
             this.gamemode = gamemode;
             ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
-            ClientValue = value;
-            ClientEnabled = default;
+            Value = value;
+            Enabled = default;
             InitEvent(name);
         }
 
@@ -279,8 +285,8 @@ namespace AvatarInfection.Settings
             AutoSync = autoSync;
             this.gamemode = gamemode;
             ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
-            ClientValue = value;
-            ClientEnabled = enabled;
+            Value = value;
+            Enabled = enabled;
             InitEvent(name);
         }
     }

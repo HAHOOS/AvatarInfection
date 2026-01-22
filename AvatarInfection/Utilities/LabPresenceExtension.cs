@@ -19,8 +19,7 @@ namespace AvatarInfection.Utilities
         }
 
         internal static void Internal_Init()
-            => LabPresence.Gamemodes.RegisterGamemode(Constants.Defaults.Barcode, CustomToolTip, CustomTimestamp);
-
+            => Gamemodes.RegisterGamemode(Constants.Barcode, CustomToolTip, CustomTimestamp);
 
         private static string CustomToolTip()
             => $"{Infection.Instance.Survivors.PlayerCount} survivors left!";

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 using BoneLib;
 
@@ -10,6 +9,7 @@ using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Data;
 using LabFusion.Downloading;
 using LabFusion.Marrow;
+using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Preferences.Client;
 using LabFusion.RPC;
@@ -18,48 +18,48 @@ using UnityEngine;
 
 namespace AvatarInfection.Utilities
 {
-    public static class FusionPlayerExtended
+    public static class Overrides
     {
-        public static float? SpeedOverride { get; private set; }
+        public static float? Speed { get; private set; }
 
-        public static float? AgilityOverride { get; private set; }
+        public static float? Agility { get; private set; }
 
-        public static float? StrengthUpperOverride { get; private set; }
+        public static float? StrengthUpper { get; private set; }
 
-        public static float? VitalityOverride { get; private set; }
+        public static float? Vitality { get; private set; }
 
-        public static bool? MortalityOverride { get; private set; }
+        public static bool? Mortality { get; private set; }
 
-        public static string AvatarOverride { get; private set; }
+        public static string Avatar { get; private set; }
 
         public static string LastAvatar { get; private set; }
 
         internal static void SetOverrides(float? speed, float? agility, float? strengthUpper, float? vitality, bool? mortality)
         {
-            SpeedOverride = speed;
-            AgilityOverride = agility;
-            StrengthUpperOverride = strengthUpper;
-            VitalityOverride = vitality;
-            MortalityOverride = mortality;
+            Speed = speed;
+            Agility = agility;
+            StrengthUpper = strengthUpper;
+            Vitality = vitality;
+            Mortality = mortality;
 
             var rm = Player.RigManager;
             var avatar = rm?._avatar;
 
             if (avatar != null)
             {
-                if (SetOverrideValue(AgilityOverride, avatar._agility, out bool changed1, out float res))
+                if (SetOverrideValue(Agility, avatar._agility, out bool changed1, out float res))
                     avatar._agility = res;
 
-                if (SetOverrideValue(SpeedOverride, avatar._speed, out bool changed2, out float res2))
+                if (SetOverrideValue(Speed, avatar._speed, out bool changed2, out float res2))
                     avatar._speed = res2;
 
-                if (SetOverrideValue(StrengthUpperOverride, avatar._strengthUpper, out bool changed3, out float res3))
+                if (SetOverrideValue(StrengthUpper, avatar._strengthUpper, out bool changed3, out float res3))
                 {
                     avatar._strengthUpper = res3;
                     avatar._strengthGrip = res3;
                 }
 
-                if (SetOverrideValue(VitalityOverride, avatar._speed, out bool changed4, out float res4))
+                if (SetOverrideValue(Vitality, avatar._speed, out bool changed4, out float res4))
                     avatar._vitality = res4;
 
                 SetMortality(mortality, out bool changed5);
@@ -72,7 +72,7 @@ namespace AvatarInfection.Utilities
         private static bool SetOverrideValue(float? _override, float? actual, out bool changed, out float res)
         {
             changed = false;
-            if (_override.HasValue && !actual.Equals(AgilityOverride.Value))
+            if (_override.HasValue && !actual.Equals(Agility.Value))
             {
                 changed = true;
                 res = _override.Value;
@@ -99,20 +99,20 @@ namespace AvatarInfection.Utilities
             // This is the worst way to do it, but I don't feel like overcomplicating this.
             // This only exists so that you don't change your avatar unnecessarily which under certain circumstances causes a lot of lags for a few seconds
             // Aka when 10 players change avatar to clear overrides
-            if (AgilityOverride == null &&
-                SpeedOverride == null &&
-                StrengthUpperOverride == null &&
-                VitalityOverride == null &&
-                MortalityOverride == null)
+            if (Agility == null &&
+                Speed == null &&
+                StrengthUpper == null &&
+                Vitality == null &&
+                Mortality == null)
             {
                 return;
             }
 
-            AgilityOverride = null;
-            SpeedOverride = null;
-            StrengthUpperOverride = null;
-            VitalityOverride = null;
-            MortalityOverride = null;
+            Agility = null;
+            Speed = null;
+            StrengthUpper = null;
+            Vitality = null;
+            Mortality = null;
             if (Player.RigManager != null)
             {
                 var rm = Player.RigManager;
@@ -123,19 +123,31 @@ namespace AvatarInfection.Utilities
 
         #region Avatar Override
 
-        public static void SetAvatarOverride(string barcode, long origin = -1)
+        public static void SetAvatarOverride(string barcode, long origin = -1, bool _override = true)
         {
-            bool wasEmpty = string.IsNullOrEmpty(AvatarOverride);
+#if DEBUG
+            var crate = new AvatarCrateReference(barcode);
+            Core.Logger.Msg($"Setting avatar override to: {crate?.Crate?.Title ?? "N/A"} ({barcode})");
+            if (origin != -1)
+            {
+                var plr = PlayerIDManager.GetPlayerID((ulong)origin);
+                if (!plr.TryGetDisplayName(out string displayName))
+                    displayName = "N/A";
+                Core.Logger.Msg($"Origin: {displayName} ({plr.PlatformID}, {plr.SmallID})");
+            }
+#endif
+
+            bool wasEmpty = string.IsNullOrEmpty(Avatar);
             if (Player.RigManager != null && AssetWarehouse.ready && wasEmpty)
                 LastAvatar = Player.RigManager.AvatarCrate.Barcode.ID ?? CommonBarcodes.Avatars.PolyBlank;
 
-            AvatarOverride = barcode;
+            Avatar = barcode;
             SwapAvatar(barcode, origin);
         }
 
         public static void ClearAvatarOverride()
         {
-            AvatarOverride = null;
+            Avatar = null;
             if (Player.RigManager != null && !string.IsNullOrWhiteSpace(LastAvatar) && AssetWarehouse.ready)
             {
                 SwapAvatar(LastAvatar);
@@ -153,7 +165,7 @@ namespace AvatarInfection.Utilities
             GameObject.Destroy(pullCord);
         }
 
-        private static void SwapAvatar(string barcode, long origin = -1, ModResult downloadResult = ModResult.SUCCEEDED)
+        private static void SwapAvatar(string barcode, long origin = -1, ModResult downloadResult = ModResult.NONE)
         {
             if (string.IsNullOrWhiteSpace(barcode) || barcode == Barcode.EMPTY)
                 return;
@@ -170,7 +182,7 @@ namespace AvatarInfection.Utilities
                 if (!ClientSettings.Downloading.DownloadAvatars.Value)
                     return;
 
-                if (downloadResult == ModResult.FAILED)
+                if (downloadResult == ModResult.FAILED || downloadResult == ModResult.CANCELED)
                 {
                     FusionModule.Logger.Error($"Download of avatar '{barcode}' has failed, not setting avatar");
                     return;
@@ -182,9 +194,13 @@ namespace AvatarInfection.Utilities
                 var id = PlayerIDManager.PlayerIDs.FirstOrDefault(x => (long)x.PlatformID == origin);
                 if (id == null)
                 {
-                    FusionModule.Logger.Error("Cannot download avatar '{barcode}', the player that has the avatar was not found");
+                    FusionModule.Logger.Error($"Cannot download avatar '{barcode}', the player that has the avatar was not found");
                     return;
                 }
+
+#if DEBUG
+                Core.Logger.Msg($"Downloading and installing avatar '{barcode}'");
+#endif
 
                 NetworkModRequester.RequestAndInstallMod(new NetworkModRequester.ModInstallInfo()
                 {

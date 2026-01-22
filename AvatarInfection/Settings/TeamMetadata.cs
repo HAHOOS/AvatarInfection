@@ -71,20 +71,20 @@ namespace AvatarInfection.Settings
 
         internal void SettingChanged()
         {
-            Mortality.ClientValue = _SyncWith.Mortality.ClientValue;
-            CanUseGuns.ClientValue = _SyncWith.CanUseGuns.ClientValue;
+            Mortality.Value = _SyncWith.Mortality.Value;
+            CanUseGuns.Value = _SyncWith.CanUseGuns.Value;
 
-            Vitality.ClientValue = _SyncWith.Vitality.ClientValue;
-            Vitality.ClientEnabled = _SyncWith.Vitality.ClientEnabled;
+            Vitality.Value = _SyncWith.Vitality.Value;
+            Vitality.Enabled = _SyncWith.Vitality.Enabled;
 
-            Speed.ClientValue = _SyncWith.Speed.ClientValue;
-            Speed.ClientEnabled = _SyncWith.Speed.ClientEnabled;
+            Speed.Value = _SyncWith.Speed.Value;
+            Speed.Enabled = _SyncWith.Speed.Enabled;
 
-            Agility.ClientValue = _SyncWith.Agility.ClientValue;
-            Agility.ClientEnabled = _SyncWith.Agility.ClientEnabled;
+            Agility.Value = _SyncWith.Agility.Value;
+            Agility.Enabled = _SyncWith.Agility.Enabled;
 
-            StrengthUpper.ClientValue = _SyncWith.StrengthUpper.ClientValue;
-            StrengthUpper.ClientEnabled = _SyncWith.StrengthUpper.ClientEnabled;
+            StrengthUpper.Value = _SyncWith.StrengthUpper.Value;
+            StrengthUpper.Enabled = _SyncWith.StrengthUpper.Enabled;
 
             UpdateMenu();
         }
@@ -148,7 +148,7 @@ namespace AvatarInfection.Settings
 
         internal void CanUseGunsChanged()
         {
-            if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.TeamManager.GetInfectionTeamFromTeam(Team) && !CanUseGuns.ClientValue)
+            if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.TeamManager.GetInfectionTeamFromTeam(Team) && !CanUseGuns.Value)
             {
                 CheckForGun(Player.LeftHand);
                 CheckForGun(Player.RightHand);

@@ -41,10 +41,10 @@ namespace AvatarInfection.Patches
                 if (Infection.Instance.TeamManager?.GetLocalTeam() == null)
                     return true;
 
-                if (string.IsNullOrWhiteSpace(Infection.Instance.Config.SelectedAvatar.ClientValue))
+                if (string.IsNullOrWhiteSpace(Infection.Instance.Config.SelectedAvatar.Value))
                     return true;
 
-                if (barcode == new Barcode(Infection.Instance.Config.SelectedAvatar.ClientValue))
+                if (barcode == new Barcode(Infection.Instance.Config.SelectedAvatar.Value))
                     return Infection.Instance.IsLocalPlayerInfected();
                 else
                     return !Infection.Instance.IsLocalPlayerInfected();

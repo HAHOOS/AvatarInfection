@@ -12,6 +12,7 @@ using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 using LabFusion.Menu.Gamemodes;
+using LabFusion.Network;
 using LabFusion.Player;
 
 using static AvatarInfection.Infection;
@@ -46,10 +47,19 @@ namespace AvatarInfection.Managers
 
             if (Instance.Config.SelectMode.Value == AvatarSelectMode.CONFIG)
             {
-                var title = GetBarcodeTitle(Instance.Config.SelectedAvatar.ClientValue);
+                var title = GetBarcodeTitle(Instance.Config.SelectedAvatar.Value);
                 avatarGroup.AddElement(title, null);
 
                 avatarGroup.AddElement("Select From Current Avatar", SelectNewAvatar);
+            }
+            else if (Instance.Config.SelectMode.Value == AvatarSelectMode.RANDOM && Instance.IsStarted)
+            {
+                avatarGroup.AddElement("Select New Random Avatar", () =>
+                {
+                    if (!Instance.IsStarted)
+                        return;
+                    Instance.SetRandomAvatar();
+                });
             }
 
             group.AddElement(CreateElementsForTeam(Instance.Infected));
@@ -78,22 +88,23 @@ namespace AvatarInfection.Managers
                 }, min: 1);
             }
 
-            generalGroup.AddElement("Friendly Fire", Instance.Config.FriendlyFire.ClientValue, (val) => Instance.Config.FriendlyFire.ClientValue = val);
+            generalGroup.AddElement("Friendly Fire", Instance.Config.FriendlyFire.Value, (val) => Instance.Config.FriendlyFire.Value = val);
 
-            generalGroup.AddElement("Disable Spawn Gun", Instance.DisableSpawnGun, (val) => Instance.Config.DisableSpawnGun.ClientValue = val);
+            generalGroup.AddElement("Disable Spawn Gun", Instance.DisableSpawnGun, (val) => Instance.Config.DisableSpawnGun.Value = val);
 
-            generalGroup.AddElement("Disable Developer Tools", Instance.DisableDevTools, (val) => Instance.Config.DisableDevTools.ClientValue = val);
+            generalGroup.AddElement("Disable Developer Tools", Instance.DisableDevTools, (val) => Instance.Config.DisableDevTools.Value = val);
 
-            generalGroup.AddElement("Allow Keep Inventory", Instance.Config.AllowKeepInventory.ClientValue, (val) => Instance.Config.AllowKeepInventory.ClientValue = val);
+            generalGroup.AddElement("Allow Keep Inventory", Instance.Config.AllowKeepInventory.Value, (val) => Instance.Config.AllowKeepInventory.Value = val);
 
-            generalGroup.AddElement("Use DeathMatch Spawns", Instance.Config.UseDeathmatchSpawns.ClientValue, (val) => Instance.Config.UseDeathmatchSpawns.ClientValue = val);
+            generalGroup.AddElement("Use DeathMatch Spawns", Instance.Config.UseDeathmatchSpawns.Value, (val) => Instance.Config.UseDeathmatchSpawns.Value = val);
 
             generalGroup.AddElement("Teleport To Host On Start", Instance.Config.TeleportOnStart.Value, (val) => Instance.Config.TeleportOnStart.Value = val);
 
-            generalGroup.AddElement("Teleport To Host On End", Instance.Config.TeleportOnEnd.ClientValue, (val) => Instance.Config.TeleportOnEnd.ClientValue = val);
+            generalGroup.AddElement("Teleport To Host On End", Instance.Config.TeleportOnEnd.Value, (val) => Instance.Config.TeleportOnEnd.Value = val);
 
-            generalGroup.AddElement("Countdown Length", Instance.Config.CountdownLength.ClientValue, (val) => Instance.Config.CountdownLength.ClientValue = val, 5, 0, 3600);
-            generalGroup.AddElement("Show Countdown to All Players", Instance.Config.ShowCountdownToAll.ClientValue, (val) => Instance.Config.ShowCountdownToAll.ClientValue = val);
+            generalGroup.AddElement("Countdown Length", Instance.Config.CountdownLength.Value, SetCountdownLength, 5, 0, 3600);
+            if (Instance.Config.CountdownLength.Value > 0)
+                generalGroup.AddElement("Show Countdown to All Players", Instance.Config.ShowCountdownToAll.Value, (val) => Instance.Config.ShowCountdownToAll.Value = val);
 
             generalGroup.AddElement("Infect Type", Instance.Config.InfectType.Value, (val) => { Instance.Config.InfectType.Value = (InfectType)val; RefreshSettingsPage(); });
 
@@ -101,37 +112,49 @@ namespace AvatarInfection.Managers
                 generalGroup.AddElement("Hold Time", Instance.Config.HoldTime.Value, (val) => Instance.Config.HoldTime.Value = val, max: 60);
 
             generalGroup.AddElement("Suicide Infects", Instance.Config.SuicideInfects.Value, (val) => Instance.Config.SuicideInfects.Value = val);
-            generalGroup.AddElement("Save Settings", () =>
-            {
-                try
-                {
-                    Instance.TeamManager.InfectedTeams.ForEach(x => x.Metadata.Save(false));
-                    Instance.Config.Save();
-                    MenuHelper.ShowNotification("Success", "Successfully saved settings!", 3.5f);
-                }
-                catch (Exception ex)
-                {
-                    Core.Logger.Error(ex);
-                    MenuHelper.ShowNotification("Fail", "Failed to save settings, check console for more details", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
-                }
-            });
-            generalGroup.AddElement("Load Settings", () =>
-            {
-                try
-                {
-                    Instance.Config.Load();
-                    Instance.TeamManager.InfectedTeams.ForEach(x => x.Metadata.Load());
-                    RefreshSettingsPage();
-                    MenuHelper.ShowNotification("Success", "Successfully loaded settings!", 3.5f);
-                }
-                catch (Exception ex)
-                {
-                    Core.Logger.Error(ex);
-                    MenuHelper.ShowNotification("Fail", "Failed to load settings, check console for more details", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
-                }
-            });
+            generalGroup.AddElement("Save Settings", SaveSettings);
+            generalGroup.AddElement("Load Settings", LoadSettings);
 
             return group;
+        }
+
+        private static void SaveSettings()
+        {
+            try
+            {
+                Instance.TeamManager.InfectedTeams.ForEach(x => x.Metadata.Save(false));
+                Instance.Config.Save();
+                MenuHelper.ShowNotification("Success", "Successfully saved settings!", 3.5f);
+            }
+            catch (Exception ex)
+            {
+                Core.Logger.Error(ex);
+                MenuHelper.ShowNotification("Fail", "Failed to save settings, check console for more details", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
+            }
+        }
+
+        private static void LoadSettings()
+        {
+            try
+            {
+                Instance.Config.Load();
+                Instance.TeamManager.InfectedTeams.ForEach(x => x.Metadata.Load());
+                RefreshSettingsPage();
+                MenuHelper.ShowNotification("Success", "Successfully loaded settings!", 3.5f);
+            }
+            catch (Exception ex)
+            {
+                Core.Logger.Error(ex);
+                MenuHelper.ShowNotification("Fail", "Failed to load settings, check console for more details", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
+            }
+        }
+
+        private static void SetCountdownLength(int val)
+        {
+            var old = Instance.Config.CountdownLength.Value;
+            Instance.Config.CountdownLength.Value = val;
+            if ((old == 0 && val > 0) || (old > 0 && val == 0))
+                RefreshSettingsPage();
         }
 
         private static void SelectNewAvatar()
@@ -154,7 +177,7 @@ namespace AvatarInfection.Managers
         }
 
         private static string GetBarcodeTitle(string barcode)
-            => !string.IsNullOrWhiteSpace(barcode) ? (new AvatarCrateReference(barcode).Crate.Title ?? "N/A") : "N/A";
+            => !string.IsNullOrWhiteSpace(barcode) ? (new AvatarCrateReference(barcode)?.Crate?.Title ?? "N/A") : "N/A";
 
         internal static GroupElementData CreateElementsForTeam(InfectionTeam team)
         {
@@ -173,12 +196,12 @@ namespace AvatarInfection.Managers
                 });
             }
 
-            if (isChildren && Instance.Config.UseInfectedChildrenTeam.Value)
+            if (!isChildren || (isChildren && Instance.Config.UseInfectedChildrenTeam.Value))
             {
                 if (Instance.IsStarted)
                     group.AddElement(FormatApplyName(team, apply: false), () => ApplyMetadata(team));
 
-                team.Metadata._settingsList.Types(x =>
+                team.StaticMetadata._settingsList.Types(x =>
                 {
                     if (x is ToggleServerSetting<float> toggleStat)
                         group.CreateStatElement(team, toggleStat);
@@ -213,14 +236,14 @@ namespace AvatarInfection.Managers
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ToggleServerSetting<float> stat)
         {
-            group.AddElement($"Override {stat.DisplayName}", stat.ClientEnabled, (val) => { stat.ClientEnabled = val; FormatApplyName(team); RefreshSettingsPage(); });
-            if (stat.ClientEnabled)
-                group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; FormatApplyName(team); }, increment: GetIncrement(team.TeamName));
+            group.AddElement($"Override {stat.DisplayName}", stat.Enabled, (val) => { stat.Enabled = val; FormatApplyName(team); RefreshSettingsPage(); });
+            if (stat.Enabled)
+                group.AddElement(stat.DisplayName, stat.Value, (val) => { stat.Value = val; FormatApplyName(team); }, increment: GetIncrement(team.TeamName));
         }
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ServerSetting<bool> stat)
         {
-            group.AddElement(stat.DisplayName, stat.ClientValue, (val) => { stat.ClientValue = val; FormatApplyName(team); });
+            group.AddElement(stat.DisplayName, stat.Value, (val) => { stat.Value = val; FormatApplyName(team); });
         }
 
         internal static string FormatApplyName(InfectionTeam team, bool apply = true)
@@ -230,13 +253,13 @@ namespace AvatarInfection.Managers
             string _name;
 
             if (!Instance.IsStarted)
-                _name = $"<color=#000000>{name} (Gamemode not started)</color>";
+                _name = $"<color=#000000>{name} (Gamemode not started)</color>"; // black color
             else if (team.Metadata.IsApplied)
-                _name = $"<color=#00FF00>{name} (Applied)</color>";
+                _name = $"<color=#00FF00>{name} (Applied)</color>"; // green color
             else if (team.Metadata.HasNoServerSettings())
-                _name = $"<color=#898989>{name} (No Server Settings, fucked up code)</color>";
+                _name = $"<color=#898989>{name} (No Server Settings, fucked up code)</color>"; // gray color
             else
-                _name = $"<color=#FF0000>{name} (Not Applied)</color>";
+                _name = $"<color=#FF0000>{name} (Not Applied)</color>"; // red color
 
             if (apply)
                 Instance.ChangeElement<FunctionElement>(team.GetGroupName(), name, (el) => el.Title = _name, false);
@@ -283,16 +306,28 @@ namespace AvatarInfection.Managers
                     openGroups.Add(group.Title);
             });
 
-            typeof(MenuGamemode)
-                .GetMethod("OverrideSettingsPage",
-                            bindingAttr: System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
-                .Invoke(null, [Instance]);
+            Internal_Refresh();
 
             MenuGamemode.SettingsPageElement.Elements.ForEach(x =>
             {
                 if (x is DropdownElement group && !group.Expanded && openGroups.Contains(group.Title))
                     group.Expand();
             });
+        }
+
+        internal static void Internal_Refresh()
+        {
+            MenuGamemode.SettingsPageElement.Clear();
+
+            MenuGamemode.SettingsGrid.SetActive(true);
+
+            if (NetworkInfo.IsHost)
+            {
+                typeof(MenuGamemode)
+                .GetMethod("ApplySettingsData",
+                            bindingAttr: System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                .Invoke(null, [Instance]);
+            }
         }
 
 #pragma warning restore S3011 // Make sure that this accessibility bypass is safe here
