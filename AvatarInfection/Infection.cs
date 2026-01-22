@@ -691,7 +691,7 @@ namespace AvatarInfection
 
                 selectedNum++;
 
-                var team = InfectedChildren;
+                var team = Infected;
                 TeamManager.TryAssignTeam(player, team);
                 bool exists = NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig;
 
