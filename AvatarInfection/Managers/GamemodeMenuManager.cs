@@ -43,11 +43,16 @@ namespace AvatarInfection.Managers
 
             GroupElementData avatarGroup = group.AddGroup("Avatar");
 
+            avatarGroup.AddElement("Separate Avatar For Infected Children", Instance.Config.ChildrenSelectedAvatar.Enabled, (val) =>
+            {
+                Instance.Config.ChildrenSelectedAvatar.Enabled = val;
+                RefreshSettingsPage();
+            });
             avatarGroup.AddElement("Select Mode", Instance.Config.SelectMode.Value, (val) => { Instance.Config.SelectMode.Value = (AvatarSelectMode)val; RefreshSettingsPage(); });
 
             if (Instance.Config.SelectMode.Value == AvatarSelectMode.CONFIG)
             {
-                var title = GetBarcodeTitle(Instance.Config.SelectedAvatar.Value);
+                var title = GetBarcodeTitle(Instance.Config.SelectedAvatar.Value?.Barcode);
                 avatarGroup.AddElement(title, null);
 
                 avatarGroup.AddElement("Select From Current Avatar", SelectNewAvatar);
@@ -60,6 +65,12 @@ namespace AvatarInfection.Managers
                         return;
                     Instance.SetRandomAvatar();
                 });
+            }
+
+            if (Instance.Config.ChildrenSelectedAvatar.Enabled)
+            {
+                GroupElementData childrenAvatarGroup = group.AddGroup("Infected Children Avatar");
+                InfectedChildrenAvatar(childrenAvatarGroup);
             }
 
             group.AddElement(CreateElementsForTeam(Instance.Infected));
@@ -79,16 +90,11 @@ namespace AvatarInfection.Managers
             });
 
             if (!Instance.Config.NoTimeLimit.Value)
-            {
-                generalGroup.AddElement("Time Limit", Instance.Config.TimeLimit.Value, (val) =>
-                {
-                    Instance.Config.TimeLimit.Value = val;
-                    if (Instance.IsStarted)
-                        Instance.EndUnix.SetValue(DateTimeOffset.FromUnixTimeMilliseconds((long)Instance.StartUnix.GetValue()).AddMinutes(val).ToUnixTimeMilliseconds());
-                }, min: 1);
-            }
+                generalGroup.AddElement("Time Limit", Instance.Config.TimeLimit.Value, SetTimeLimit, min: 1);
 
             generalGroup.AddElement("Friendly Fire", Instance.Config.FriendlyFire.Value, (val) => Instance.Config.FriendlyFire.Value = val);
+
+            generalGroup.AddElement("Dont Repeat Infected", Instance.Config.DontRepeatInfected.Value, (val) => Instance.Config.DontRepeatInfected.Value = val);
 
             generalGroup.AddElement("Disable Spawn Gun", Instance.DisableSpawnGun, (val) => Instance.Config.DisableSpawnGun.Value = val);
 
@@ -149,12 +155,39 @@ namespace AvatarInfection.Managers
             }
         }
 
+        private static void SetTimeLimit(int val)
+        {
+            Instance.Config.TimeLimit.Value = val;
+            if (Instance.IsStarted)
+                Instance.EndUnix.SetValue(DateTimeOffset.FromUnixTimeMilliseconds((long)Instance.StartUnix.GetValue()).AddMinutes(val).ToUnixTimeMilliseconds());
+        }
+
         private static void SetCountdownLength(int val)
         {
             var old = Instance.Config.CountdownLength.Value;
             Instance.Config.CountdownLength.Value = val;
             if ((old == 0 && val > 0) || (old > 0 && val == 0))
                 RefreshSettingsPage();
+        }
+
+        private static void InfectedChildrenAvatar(GroupElementData group)
+        {
+            group.AddElement("Select Mode", Instance.Config.ChildrenSelectMode.Value, (val) => { Instance.Config.ChildrenSelectMode.Value = (ChildrenAvatarSelectMode)val; RefreshSettingsPage(); });
+            if (Instance.Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.CONFIG)
+            {
+                var title = GetBarcodeTitle(Instance.Config.ChildrenSelectedAvatar.Value?.Barcode);
+                group.AddElement(title, null);
+                group.AddElement("Select From Current Avatar", SelectNewChildrenAvatar);
+            }
+            else if (Instance.Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.RANDOM && Instance.IsStarted)
+            {
+                group.AddElement("Select New Random Avatar", () =>
+                {
+                    if (!Instance.IsStarted)
+                        return;
+                    Instance.SetRandomChildrenAvatar();
+                });
+            }
         }
 
         private static void SelectNewAvatar()
@@ -176,6 +209,25 @@ namespace AvatarInfection.Managers
             }
         }
 
+        private static void SelectNewChildrenAvatar()
+        {
+            if (Instance.IsStarted)
+                return;
+
+            var rigManager = Player.RigManager;
+            if (rigManager?.AvatarCrate?.Barcode != null)
+            {
+                var avatar = rigManager.AvatarCrate.Barcode.ID;
+
+                if (string.IsNullOrWhiteSpace(avatar))
+                    return;
+
+                Instance.Config.SetChildrenAvatar(avatar, PlayerIDManager.LocalID);
+
+                RefreshSettingsPage();
+            }
+        }
+
         private static string GetBarcodeTitle(string barcode)
             => !string.IsNullOrWhiteSpace(barcode) ? (new AvatarCrateReference(barcode)?.Crate?.Title ?? "N/A") : "N/A";
 
@@ -189,14 +241,14 @@ namespace AvatarInfection.Managers
             bool isChildren = team == Instance.InfectedChildren;
             if (isChildren)
             {
-                group.AddElement("Use The Team", Instance.Config.UseInfectedChildrenTeam.Value, (val) =>
+                group.AddElement("Sync With Infected", Instance.Config.SyncWithInfected.Value, (val) =>
                 {
-                    Instance.Config.UseInfectedChildrenTeam.Value = val;
+                    Instance.Config.SyncWithInfected.Value = val;
                     RefreshSettingsPage();
                 });
             }
 
-            if (!isChildren || (isChildren && Instance.Config.UseInfectedChildrenTeam.Value))
+            if (!isChildren || (isChildren && !Instance.Config.SyncWithInfected.Value))
             {
                 if (Instance.IsStarted)
                     group.AddElement(FormatApplyName(team, apply: false), () => ApplyMetadata(team));

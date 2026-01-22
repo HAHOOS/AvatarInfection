@@ -41,19 +41,36 @@ namespace AvatarInfection.Patches
                 if (Infection.Instance.TeamManager?.GetLocalTeam() == null)
                     return true;
 
-                if (string.IsNullOrWhiteSpace(Infection.Instance.Config.SelectedAvatar.Value))
+                if (string.IsNullOrWhiteSpace(Infection.Instance.Config.SelectedAvatar.Value?.Barcode))
                     return true;
 
-                if (barcode == new Barcode(Infection.Instance.Config.SelectedAvatar.Value))
-                    return Infection.Instance.IsLocalPlayerInfected();
-                else
-                    return !Infection.Instance.IsLocalPlayerInfected();
+                if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Survivors)
+                {
+                    return barcode != new Barcode(Infection.Instance.Config.SelectedAvatar.Value?.Barcode)
+                        && barcode != new Barcode(Infection.Instance.Config.ChildrenSelectedAvatar.Value?.Barcode);
+                }
+
+                return (IsPrimary() && barcode == new Barcode(Infection.Instance.Config.SelectedAvatar.Value?.Barcode))
+                    || (!IsPrimary() && barcode == new Barcode(Infection.Instance.Config.ChildrenSelectedAvatar.Value?.Barcode))
+                    ? Infection.Instance.IsLocalPlayerInfected()
+                    : !Infection.Instance.IsLocalPlayerInfected();
             }
             catch (Exception e)
             {
                 FusionModule.Logger.Error($"An unexpected error has occurred while handing SwapAvatarCrate in RigManager, exception:\n{e}");
                 return true;
             }
+        }
+
+        private static bool IsPrimary()
+        {
+            var team = Infection.Instance.TeamManager.GetLocalTeam();
+            if (team == Infection.Instance.Infected)
+                return true;
+            else if (team == Infection.Instance.InfectedChildren && Infection.Instance.Config.ChildrenSelectedAvatar.Enabled)
+                return false;
+            else
+                return true;
         }
 
         private static bool IsBarcodeEmpty(Barcode barcode) => barcode == null || string.IsNullOrWhiteSpace(barcode.ID) || barcode.ID == Barcode.EMPTY;

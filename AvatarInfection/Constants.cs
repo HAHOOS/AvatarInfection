@@ -101,11 +101,13 @@ namespace AvatarInfection
 
             public const bool UseDeathMatchSpawns = true;
 
-            public const bool AddInfectedChildrenTeam = true;
+            public const bool SyncWithInfected = false;
 
             public const bool ShowCountdownToAll = false;
 
             public const bool FriendlyFire = true;
+
+            public const bool DontRepeatInfected = true;
 
             public const AvatarSelectMode SelectMode = AvatarSelectMode.CONFIG;
         }

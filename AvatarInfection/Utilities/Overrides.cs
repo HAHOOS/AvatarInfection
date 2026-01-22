@@ -123,7 +123,7 @@ namespace AvatarInfection.Utilities
 
         #region Avatar Override
 
-        public static void SetAvatarOverride(string barcode, long origin = -1, bool _override = true)
+        public static void SetAvatarOverride(string barcode, long origin = -1)
         {
 #if DEBUG
             var crate = new AvatarCrateReference(barcode);

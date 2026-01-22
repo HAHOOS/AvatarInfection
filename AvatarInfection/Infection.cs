@@ -111,6 +111,8 @@ namespace AvatarInfection
 
         public const string HAS_AVATAR_INFECTED_KEY = "DoYouHaveAvatarInfection";
 
+        private List<ulong> LastInfected { get; } = [];
+
         public override GroupElementData CreateSettingsGroup()
             => GamemodeMenuManager.CreateSettingsGroup();
 
@@ -164,7 +166,7 @@ namespace AvatarInfection
 
         private TeamMetadata GetInfectedChildrenMetadata()
         {
-            if (Config.UseInfectedChildrenTeam.Value)
+            if (!Config.SyncWithInfected.Value)
                 return InfectedChildren.StaticMetadata;
             else
                 return Infected.Metadata;
@@ -307,19 +309,8 @@ namespace AvatarInfection
                 else
                 {
                     TeamManager.TryAssignTeam(playerId, InfectedChildren);
-                    EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(playerId.PlatformID, Config.SelectedAvatar.Value, Config.SelectedAvatar_Origin.Value));
+                    SetAvatar(playerId, true);
                 }
-            }
-
-            if (playerId.IsMe && !HasBeenInfected)
-            {
-                MenuHelper.ShowNotification("Infected", "Oh no, you got infected! Now you have to infect others...", 4f);
-
-                HasBeenInfected = true;
-            }
-            else if (!playerId.IsMe)
-            {
-                SurvivorNotification(playerId);
             }
 
             BoneMenuManager.PopulatePage();
@@ -364,13 +355,30 @@ namespace AvatarInfection
             if (team == null || player?.IsValid != true)
                 return;
 
-            if (!player.IsMe)
-                return;
+            if (player.IsMe)
+            {
+                StatsManager.ApplyStats();
+                team?.Metadata.CanUseGunsChanged();
+            }
 
-            StatsManager.ApplyStats();
+            if (InitialTeam)
+            {
+                if (!player.IsMe)
+                    return;
 
-            team?.Metadata.CanUseGunsChanged();
+                HandleInitialTeam(team);
+            }
+            else if (team == InfectedChildren)
+            {
+                if (player.IsMe)
+                    MenuHelper.ShowNotification("Infected", "Oh no, you got infected! Now you have to infect others...", 4f);
+                else if (!player.IsMe)
+                    SurvivorNotification(player);
+            }
+        }
 
+        private void HandleInitialTeam(InfectionTeam team)
+        {
             if (!InitialTeam)
                 return;
 
@@ -383,7 +391,7 @@ namespace AvatarInfection
                 VisionManager.HideVisionAndReveal(team != Infected ? 3 : 0);
         }
 
-        private float _elapsedTimeMenu = 0f;
+        private float _elapsedTimeMenu;
 
         protected override void OnUpdate()
         {
@@ -494,10 +502,20 @@ namespace AvatarInfection
             Config.SetAvatar(avatars.Random().Barcode.ID, PlayerIDManager.LocalID);
         }
 
+        internal void SetRandomChildrenAvatar()
+        {
+            var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
+            avatars.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
+            Config.SetChildrenAvatar(avatars.Random().Barcode.ID, PlayerIDManager.LocalID);
+        }
+
         private void ApplyGamemodeSettings()
         {
             if (Config.SelectMode.Value == AvatarSelectMode.RANDOM)
                 SetRandomAvatar();
+
+            if (Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.RANDOM)
+                SetRandomChildrenAvatar();
 
             CountdownValue.SetValue(Config.CountdownLength.Value);
 
@@ -645,12 +663,22 @@ namespace AvatarInfection
 
         private void AssignTeams()
         {
+            var last = new List<ulong>(LastInfected);
+            LastInfected.Clear();
             var players = new List<PlayerID>(PlayerIDManager.PlayerIDs);
             players.Shuffle();
 
             bool selected = false;
             int selectedNum = 0;
             int failSafe = 0;
+
+            var _last = new List<PlayerID>(players);
+            _last.RemoveAll(x => last.Contains(x.PlatformID));
+            if (_last.Count < Config.InfectedCount.Value)
+                last.Clear();
+            else
+                players.RemoveAll(x => last.Contains(x.PlatformID));
+
             while (failSafe < 1000)
             {
                 failSafe++;
@@ -663,7 +691,8 @@ namespace AvatarInfection
 
                 selectedNum++;
 
-                TeamManager.TryAssignTeam(player, Infected);
+                var team = InfectedChildren;
+                TeamManager.TryAssignTeam(player, team);
                 bool exists = NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig;
 
                 if (Config.SelectMode.Value == AvatarSelectMode.FIRST_INFECTED && !selected && exists)
@@ -676,12 +705,20 @@ namespace AvatarInfection
                     }
                 }
 
-                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.PlatformID, Config.SelectedAvatar.Value, Config.SelectedAvatar_Origin.Value));
-
+                SetAvatar(player, team == InfectedChildren);
                 players.Remove(player);
+                LastInfected.Add(player.PlatformID);
             }
 
             players.ForEach(x => TeamManager.TryAssignTeam(x, Survivors));
+        }
+
+        private void SetAvatar(PlayerID player, bool isChildren)
+        {
+            if (!isChildren || (isChildren && !Config.ChildrenSelectedAvatar.Enabled))
+                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.PlatformID, Config.SelectedAvatar.Value?.Barcode, Config.SelectedAvatar.Value?.Origin ?? -1));
+            else
+                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.PlatformID, Config.ChildrenSelectedAvatar.Value?.Barcode, Config.ChildrenSelectedAvatar.Value?.Origin ?? -1));
         }
 
         protected void OnPlayerAction(PlayerID player, PlayerActionType type, PlayerID otherPlayer = null)
@@ -726,9 +763,15 @@ namespace AvatarInfection
 
         public enum AvatarSelectMode
         {
-            CONFIG,
-            FIRST_INFECTED,
-            RANDOM
+            CONFIG = 0,
+            FIRST_INFECTED = 1,
+            RANDOM = 2
+        }
+
+        public enum ChildrenAvatarSelectMode
+        {
+            CONFIG = 0,
+            RANDOM = 2
         }
 
         public enum EventType
