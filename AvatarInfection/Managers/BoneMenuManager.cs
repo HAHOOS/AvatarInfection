@@ -62,6 +62,7 @@ namespace AvatarInfection.Managers
             DebugPage ??= ModPage.CreatePage("Debug", Color.yellow, createLink: false);
 #if DEBUG || SOLOTESTING
             ModPage.CreatePageLink(DebugPage);
+            CreateDebugPage();
 #endif
             ModPage.CreateFunction("Refresh", Color.cyan, PopulatePage);
             var seperator = ModPage.CreateFunction("[===============]", Color.magenta, null);
@@ -106,6 +107,18 @@ namespace AvatarInfection.Managers
                 team.Page.CreateFunction(displayName, Color.white, null);
             }
         }
+
+#if DEBUG || SOLOTESTING
+
+        private static void CreateDebugPage()
+        {
+            if (DebugPage == null)
+                return;
+
+            DebugPage.CreateFunction("Nothing here yet", Color.white, null).SetProperty(ElementProperties.NoBorder);
+        }
+
+#endif
 
         private static TeamPage CreateTeamPage(Team team)
         {
