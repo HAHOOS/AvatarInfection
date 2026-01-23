@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-#if !DEBUG
+#if !DEBUG && !SOLOTESTING
 
 using System.Linq;
 
@@ -179,7 +179,7 @@ namespace AvatarInfection
         => player.Metadata.Metadata.TryGetMetadata(HAS_AVATAR_INFECTED_KEY, out string val)
             && !string.IsNullOrWhiteSpace(val) && bool.TryParse(val, out bool res) && res;
 
-#if !DEBUG
+#if !DEBUG && !SOLOTESTING
 
         private static int CountPlayersThatHaveAvatarInfection()
             => PlayerIDManager.PlayerIDs.Count(x => x.Metadata.Metadata.TryGetMetadata(HAS_AVATAR_INFECTED_KEY, out string val)
@@ -437,7 +437,7 @@ namespace AvatarInfection
 
         public override bool CheckReadyConditions()
         {
-#if !DEBUG
+#if !DEBUG && !SOLOTESTING
             if (NetworkPlayer.Players.Count < 2)
             {
                 Core.Logger.Error("There must be at least 2 players to start");
@@ -708,7 +708,11 @@ namespace AvatarInfection
 
                 selectedNum++;
 
+#if SOLOTESTING
+                var team = InfectedChildren;
+#else
                 var team = Infected;
+#endif
                 TeamManager.TryAssignTeam(player, team);
                 bool exists = NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig;
 

@@ -125,7 +125,7 @@ namespace AvatarInfection.Utilities
 
         public static void SetAvatarOverride(string barcode, long origin = -1)
         {
-#if DEBUG
+#if DEBUG || SOLOTESTING
             var crate = new AvatarCrateReference(barcode);
             Core.Logger.Msg($"Setting avatar override to: {crate?.Crate?.Title ?? "N/A"} ({barcode})");
             if (origin != -1)
@@ -198,7 +198,7 @@ namespace AvatarInfection.Utilities
                     return;
                 }
 
-#if DEBUG
+#if DEBUG || SOLOTESTING
                 Core.Logger.Msg($"Downloading and installing avatar '{barcode}'");
 #endif
 

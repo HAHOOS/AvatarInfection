@@ -60,7 +60,7 @@ namespace AvatarInfection.Managers
 
             ModPage.RemoveAll();
             DebugPage ??= ModPage.CreatePage("Debug", Color.yellow, createLink: false);
-#if DEBUG
+#if DEBUG || SOLOTESTING
             ModPage.CreatePageLink(DebugPage);
 #endif
             ModPage.CreateFunction("Refresh", Color.cyan, PopulatePage);

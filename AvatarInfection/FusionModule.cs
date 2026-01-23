@@ -27,7 +27,7 @@ namespace AvatarInfection
         {
             base.OnModuleRegistered();
             Logger = LoggerInstance;
-#if DEBUG
+#if DEBUG || SOLOTESTING
             LoggerInstance.Warn("This is a debug build, which is made in a way to make debugging a bit easier. Please make sure to set the configuration to 'Release' before releasing it to the public.");
             LoggerInstance.Warn("If you have downloaded the mod from Thunderstore / Github and you are receiving this warning, please contact the mod author. You can do that by DMing @hahoos on Discord or creating an issue on Github.");
             LoggerInstance.Warn("Debug builds may have some features disabled or altered for testing purposes.");
