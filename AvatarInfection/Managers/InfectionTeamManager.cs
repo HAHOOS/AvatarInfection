@@ -39,33 +39,25 @@ namespace AvatarInfection.Managers
         {
             // Check if this is a team key
             if (!KeyHelper.KeyMatchesVariable(key, CommonKeys.TeamKey))
-            {
                 return;
-            }
 
             var player = KeyHelper.GetPlayerFromKey(key);
 
             var playerID = PlayerIDManager.GetPlayerID(player);
 
-            var teamVariable = new MetadataVariable(key, Gamemode.Metadata);
-
-            _playersToInfectedTeam[player] = teamVariable;
+            _playersToInfectedTeam[player] = new MetadataVariable(key, Gamemode.Metadata);
 
             // Remove from existing teams
             foreach (var existingTeam in InfectedTeams)
             {
                 if (!existingTeam.HasPlayer(player))
-                {
                     continue;
-                }
 
                 if (existingTeam.HasPlayer(player))
                     existingTeam.ForceRemovePlayer(player);
 
                 if (playerID != null)
-                {
                     OnRemovedFromInfectedTeam?.Invoke(playerID, existingTeam);
-                }
             }
 
             // Invoke team change event
@@ -73,14 +65,11 @@ namespace AvatarInfection.Managers
 
             if (team != null)
             {
-
                 if (!team.HasPlayer(player))
                     team.ForceAddPlayer(player);
 
                 if (playerID != null)
-                {
                     OnAssignedToInfectedTeam?.Invoke(playerID, team);
-                }
             }
         }
 
@@ -88,9 +77,7 @@ namespace AvatarInfection.Managers
         {
             // Check if this is a team key
             if (!KeyHelper.KeyMatchesVariable(key, CommonKeys.TeamKey))
-            {
                 return;
-            }
 
             var player = KeyHelper.GetPlayerFromKey(key);
 
@@ -103,14 +90,11 @@ namespace AvatarInfection.Managers
 
             if (team != null)
             {
-
                 if (team.HasPlayer(player))
                     team.ForceRemovePlayer(player);
 
                 if (playerID != null)
-                {
                     OnRemovedFromInfectedTeam?.Invoke(playerID, team);
-                }
             }
         }
 
@@ -139,9 +123,7 @@ namespace AvatarInfection.Managers
             foreach (var team in InfectedTeams)
             {
                 if (team.TeamName == name)
-                {
                     return team;
-                }
             }
 
             return null;
@@ -150,16 +132,11 @@ namespace AvatarInfection.Managers
         public new InfectionTeam GetPlayerTeam(PlayerID player)
             => InfectedTeams.FirstOrDefault(x => x.HasPlayer(player));
 
-
         public new InfectionTeam GetLocalTeam()
-        {
-            return GetPlayerTeam(PlayerIDManager.LocalID);
-        }
+            => GetPlayerTeam(PlayerIDManager.LocalID);
 
         public new InfectionTeam GetRandomTeam()
-        {
-            return InfectedTeams.Random();
-        }
+            => InfectedTeams.Random();
 
         public new InfectionTeam GetTeamWithFewestPlayers()
         {
@@ -177,7 +154,6 @@ namespace AvatarInfection.Managers
 
             return lowestTeam;
         }
-
 
         public InfectionTeam GetInfectionTeamFromTeam(Team team)
             => InfectedTeams.FirstOrDefault(x => x == team);

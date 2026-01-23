@@ -16,4 +16,12 @@ A Fusion gamemode where a virus is released, but it's rather special... It turns
 
 **Lakatrazz** - This gamemode is a heavily modified version of the included in Fusion gamemode Hide & Seek which was made by Lakatrazz.
 
-**Breadskate, MrRandom & others** - Thank you for helping me test AvatarInfection to make it work as good as possible. Without your help this wouldn't be possible!
+<h3 align="center">Thank You To Testers</h3>
+
+- Breadskate
+- MrRandom
+- Whaley
+- Tλ²rek
+- And to all of the other people that helped during testing or reported bugs!
+
+Thank you for helping me test AvatarInfection to make it work as good as possible. Without your help this wouldn't be possible!
