@@ -1,5 +1,7 @@
-<p align="center"><img src="https://github.com/HAHOOS/AvatarInfection/blob/master/AvatarInfection/Media/Icon.png?raw=true" width=64px height=64px></p>
-<h1 align="center">AvatarInfection</h1>
+<div align="center">
+    <img src="https://github.com/HAHOOS/AvatarInfection/blob/master/AvatarInfection/Media/Icon.png?raw=true" width=64px height=64px>
+    <h1>AvatarInfection</h1>
+</div>
 
 A Fusion gamemode where a virus is released, but it's rather special... It turns the infected people into a selected avatar! This gamemode offers a lot of customazibility compared to other gamemodes.
 
@@ -16,12 +18,12 @@ A Fusion gamemode where a virus is released, but it's rather special... It turns
 
 **Lakatrazz** - This gamemode is a heavily modified version of the included in Fusion gamemode Hide & Seek which was made by Lakatrazz.
 
-<h3 align="center">Thank You To Testers</h3>
+### Thank You To Testers
 
+- [Tλ²rek](https://github.com/TarekLP)
+- [Whaley](https://mod.io/g/bonelab/u/googleuser2t9wsr)
 - Breadskate
 - MrRandom
-- Whaley
-- Tλ²rek
 - And to all of the other people that helped during testing or reported bugs!
 
 Thank you for helping me test AvatarInfection to make it work as good as possible. Without your help this wouldn't be possible!
