@@ -10,6 +10,7 @@ using BoneLib;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Warehouse;
 
+using LabFusion.Marrow;
 using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 using LabFusion.Menu.Gamemodes;
@@ -212,6 +213,12 @@ namespace AvatarInfection.Managers
                 if (string.IsNullOrWhiteSpace(avatar))
                     return;
 
+                if (CrateFilterer.GetModID(rigManager.AvatarCrate.Crate.Pallet) == -1)
+                {
+                    MenuHelper.ShowNotification("Error", "The avatar does not have an associated Mod ID, which is required! That means it must be installed through mod.io in-game", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
+                    return;
+                }
+
                 Instance.Config.SetAvatar(avatar, PlayerIDManager.LocalID);
 
                 RefreshSettingsPage();
@@ -230,6 +237,12 @@ namespace AvatarInfection.Managers
 
                 if (string.IsNullOrWhiteSpace(avatar))
                     return;
+
+                if (CrateFilterer.GetModID(rigManager.AvatarCrate.Crate.Pallet) == -1)
+                {
+                    MenuHelper.ShowNotification("Error", "The avatar does not have an associated Mod ID, which is required! That means it must be installed through mod.io in-game", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
+                    return;
+                }
 
                 Instance.Config.SetChildrenAvatar(avatar, PlayerIDManager.LocalID);
 
