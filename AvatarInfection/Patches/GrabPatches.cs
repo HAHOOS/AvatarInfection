@@ -183,7 +183,7 @@ namespace AvatarInfection.Patches
                     if (Infection.Instance.IsPlayerInfected(player.PlayerID))
                         continue;
 
-                    HoldTime.RemoveAll(x => x.Grip = hold.Grip);
+                    HoldTime.RemoveAll(x => x.Grip == hold.Grip);
                     EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, new PlayerInfectedData(player.PlayerID.PlatformID, (long)hold.By));
                 }
             }

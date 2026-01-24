@@ -7,6 +7,7 @@ using AvatarInfection.Settings;
 
 using BoneLib;
 
+using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Warehouse;
 
 using LabFusion.Marrow.Proxies;
@@ -57,14 +58,18 @@ namespace AvatarInfection.Managers
 
                 avatarGroup.AddElement("Select From Current Avatar", SelectNewAvatar);
             }
-            else if (Instance.Config.SelectMode.Value == AvatarSelectMode.RANDOM && Instance.IsStarted)
+            else if (Instance.Config.SelectMode.Value == AvatarSelectMode.RANDOM)
             {
-                avatarGroup.AddElement("Select New Random Avatar", () =>
+                avatarGroup.AddElement($"Chosen from {GetAvatars().Length} Avatars", null);
+                if (Instance.IsStarted)
                 {
-                    if (!Instance.IsStarted)
-                        return;
-                    Instance.SetRandomAvatar();
-                });
+                    avatarGroup.AddElement("Select New Random Avatar", () =>
+                    {
+                        if (!Instance.IsStarted)
+                            return;
+                        Instance.SetRandomAvatar();
+                    });
+                }
             }
 
             if (Instance.Config.ChildrenSelectedAvatar.Enabled)
@@ -179,14 +184,18 @@ namespace AvatarInfection.Managers
                 group.AddElement(title, null);
                 group.AddElement("Select From Current Avatar", SelectNewChildrenAvatar);
             }
-            else if (Instance.Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.RANDOM && Instance.IsStarted)
+            else if (Instance.Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.RANDOM)
             {
-                group.AddElement("Select New Random Avatar", () =>
+                group.AddElement($"Chosen from {GetAvatars().Length} Avatars", null);
+                if (Instance.IsStarted)
                 {
-                    if (!Instance.IsStarted)
-                        return;
-                    Instance.SetRandomChildrenAvatar();
-                });
+                    group.AddElement("Select New Random Avatar", () =>
+                    {
+                        if (!Instance.IsStarted)
+                            return;
+                        Instance.SetRandomChildrenAvatar();
+                    });
+                }
             }
         }
 

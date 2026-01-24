@@ -3,12 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-
-#if !DEBUG && !SOLOTESTING
-
 using System.Linq;
-
-#endif
 
 using AvatarInfection.Helper;
 using AvatarInfection.Managers;
@@ -513,17 +508,22 @@ namespace AvatarInfection
         }
 
         internal void SetRandomAvatar()
-        {
-            var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
-            avatars.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
-            Config.SetAvatar(avatars.Random().Barcode.ID, PlayerIDManager.LocalID);
-        }
+            => Config.SetAvatar(GetRandomAvatar(), PlayerIDManager.LocalID);
 
         internal void SetRandomChildrenAvatar()
+            => Config.SetChildrenAvatar(GetRandomAvatar(), PlayerIDManager.LocalID);
+
+        internal static string GetRandomAvatar()
+            => GetAvatars().Random();
+
+        internal static string[] GetAvatars()
         {
             var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
-            avatars.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
-            Config.SetChildrenAvatar(avatars.Random().Barcode.ID, PlayerIDManager.LocalID);
+            avatars.RemoveAll(
+                (Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
+            avatars.RemoveAll(
+                (Il2CppSystem.Predicate<AvatarCrate>)(x => CrateFilterer.GetModID(x.Pallet) == -1));
+            return [.. avatars.ToArray().Select(x => x.Barcode.ID)];
         }
 
         private void ApplyGamemodeSettings()

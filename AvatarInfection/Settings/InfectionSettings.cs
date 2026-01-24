@@ -14,7 +14,9 @@ namespace AvatarInfection.Settings
 
         internal ServerSetting<SelectedAvatarData> SelectedAvatar { get; set; }
 
+        // TODO: simplify creating multiple SelectedAvatar settings
         internal ToggleServerSetting<SelectedAvatarData> ChildrenSelectedAvatar { get; set; }
+
         internal ServerSetting<bool> SyncWithInfected { get; set; }
 
         internal ServerSetting<bool> DisableSpawnGun { get; set; }
