@@ -678,6 +678,7 @@ namespace AvatarInfection
             return playerTeam == localTeam || (IsInfected(playerTeam) && IsInfected(localTeam));
         }
 
+        // TODO: Ensure first infected avatar is installable
         private void AssignTeams()
         {
             var last = new List<ulong>(LastInfected);
