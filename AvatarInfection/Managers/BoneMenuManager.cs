@@ -65,8 +65,8 @@ namespace AvatarInfection.Managers
             CreateDebugPage();
 #endif
             ModPage.CreateFunction("Refresh", Color.cyan, PopulatePage);
-            var seperator = ModPage.CreateFunction("[===============]", Color.magenta, null);
-            seperator.SetProperty(ElementProperties.NoBorder);
+            Core.Thunderstore.BL_CreateMenuLabel(ModPage, false);
+            ModPage.CreateFunction("[===============]", Color.magenta, null).SetProperty(ElementProperties.NoBorder);
 
             if (!NetworkInfo.HasServer)
             {

@@ -5,6 +5,8 @@ using AvatarInfection.Helper;
 using AvatarInfection.Patches;
 using AvatarInfection.Utilities;
 
+using BoneLib;
+
 using LabFusion.SDK.Modules;
 
 using MelonLoader;
@@ -21,6 +23,10 @@ namespace AvatarInfection
         public static Texture2D Icon { get; private set; }
 
         public static MelonPreferences_Category Category { get; private set; }
+
+        public static Thunderstore Thunderstore { get; private set; }
+
+        private static bool FirstLoad { get; set; } = true;
 
         public override void OnInitializeMelon()
         {
@@ -52,9 +58,22 @@ namespace AvatarInfection
                 return;
             }
 
+            Thunderstore = new Thunderstore($"{Constants.Name} / {Constants.Version} A BONELAB Mod");
+            Thunderstore.BL_FetchPackage(Constants.Name, Constants.Author, Constants.Version, LoggerInstance);
+            BoneLib.Hooking.OnLevelLoaded += OnLevelLoaded;
+
             LoggerInstance.Msg("Registering module");
             ModuleManager.RegisterModule<FusionModule>();
             LoggerInstance.Msg("Initialized.");
+        }
+
+        private static void OnLevelLoaded(LevelInfo info)
+        {
+            if (FirstLoad)
+            {
+                FirstLoad = false;
+                Thunderstore.BL_SendNotification();
+            }
         }
 
         public override void OnFixedUpdate()

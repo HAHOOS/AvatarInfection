@@ -41,6 +41,9 @@
 		<Reference Include="MelonLoader">
 			<HintPath>$(BONELAB_DIR)\MelonLoader\net6\MelonLoader.dll</HintPath>
 		</Reference>
+		<Reference Include="Newtonsoft.Json">
+			<HintPath>$(BONELAB_DIR)\MelonLoader\net6\Newtonsoft.Json.dll</HintPath>
+		</Reference>
 		<Reference Include="Tomlet">
 			<HintPath>$(BONELAB_DIR)\MelonLoader\net6\Tomlet.dll</HintPath>
 		</Reference>
