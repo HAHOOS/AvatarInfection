@@ -770,7 +770,7 @@ namespace AvatarInfection
 
         private void KilledEvent(PlayerID player, PlayerID killer)
         {
-            if (killer == null || Config.InfectType.Value != InfectType.DEATH)
+            if (killer?.IsValid != true || Config.InfectType.Value != InfectType.DEATH)
                 return;
 
             if (TeamManager.GetPlayerTeam(player) == Survivors && IsPlayerInfected(killer))
