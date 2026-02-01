@@ -1,22 +1,22 @@
 ﻿using System;
 
-using Il2CppSLZ.Marrow.Warehouse;
-using Il2CppSLZ.Marrow;
+using AvatarInfection.Managers;
+
+using HarmonyLib;
 
 using Il2CppCysharp.Threading.Tasks;
 
+using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Warehouse;
+
 using LabFusion.Network;
 using LabFusion.Utilities;
-
-using HarmonyLib;
 
 namespace AvatarInfection.Patches
 {
     [HarmonyPatch(typeof(RigManager))]
     public static class RigManagerPatches
     {
-        internal static bool Ignore { get; set; } = false;
-
         [HarmonyPrefix]
         [HarmonyPriority(int.MaxValue)]
         [HarmonyPatch(nameof(RigManager.SwapAvatarCrate))]
@@ -62,17 +62,27 @@ namespace AvatarInfection.Patches
             }
         }
 
-        private static bool IsPrimary()
+        [HarmonyPostfix]
+        [HarmonyPriority(int.MaxValue)]
+        [HarmonyPatch(nameof(RigManager.SwapAvatarCrate))]
+        public static void AvatarChangePostfix(RigManager __instance)
         {
-            var team = Infection.Instance.TeamManager.GetLocalTeam();
-            if (team == Infection.Instance.Infected)
-                return true;
-            else if (team == Infection.Instance.InfectedChildren && Infection.Instance.Config.ChildrenSelectedAvatar.Enabled)
-                return false;
-            else
-                return true;
+            if (!NetworkInfo.HasServer)
+                return;
+
+            if (__instance?.IsLocalPlayer() != true)
+                return;
+
+            if (!Infection.Instance.IsStarted)
+                return;
+
+            MetadataManager.SetAvatarModId();
         }
 
-        private static bool IsBarcodeEmpty(Barcode barcode) => barcode == null || string.IsNullOrWhiteSpace(barcode.ID) || barcode.ID == Barcode.EMPTY;
+        private static bool IsPrimary()
+            => Infection.Instance.TeamManager.GetLocalTeam() != Infection.Instance.InfectedChildren || !Infection.Instance.Config.ChildrenSelectedAvatar.Enabled;
+
+        private static bool IsBarcodeEmpty(Barcode barcode)
+            => barcode == null || string.IsNullOrWhiteSpace(barcode.ID) || barcode.ID == Barcode.EMPTY;
     }
 }

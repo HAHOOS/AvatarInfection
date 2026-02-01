@@ -18,6 +18,12 @@ namespace AvatarInfection.Settings
                 Core.Category.SaveToFile();
         }
 
+        public ISetting this[string name]
+            => _settingsList.Find(x => x.Name == name);
+
+        public ISetting this[int index]
+            => _settingsList[index];
+
         public void Load()
             => _settingsList.ForEach(x => x.Load());
 

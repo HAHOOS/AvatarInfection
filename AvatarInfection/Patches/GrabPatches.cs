@@ -125,10 +125,10 @@ namespace AvatarInfection.Patches
                 RegisterTouch(grip, otherPlayer.PlayerID.PlatformID, player.PlayerID.PlatformID);
         }
 
-        private static void RegisterTouch(Grip grip, ulong longId, ulong by)
+        private static void RegisterTouch(Grip grip, ulong platformId, ulong by)
         {
             if (Infection.Instance.Config.HoldTime.Value == 0)
-                EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, longId);
+                EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, platformId);
             else
                 HoldTime.Add(new(grip, by));
         }
@@ -158,10 +158,7 @@ namespace AvatarInfection.Patches
         }
 
         private static bool IsSpawnGun(GameObject gameObject)
-        {
-            var spawnGun = gameObject.GetComponent<SpawnGun>() ?? gameObject.GetComponentInParent<SpawnGun>();
-            return spawnGun != null;
-        }
+            => (gameObject.GetComponent<SpawnGun>() ?? gameObject.GetComponentInParent<SpawnGun>()) != null;
 
         internal static void Update()
         {

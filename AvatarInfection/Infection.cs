@@ -104,8 +104,6 @@ namespace AvatarInfection
 
         private bool WasStarted;
 
-        public const string HAS_AVATAR_INFECTED_KEY = "DoYouHaveAvatarInfection";
-
         private List<ulong> LastInfected { get; } = [];
 
         public override GroupElementData CreateSettingsGroup()
@@ -122,8 +120,8 @@ namespace AvatarInfection
             MultiplayerHooking.OnPlayerAction += OnPlayerAction;
             MultiplayerHooking.OnPlayerJoined += OnPlayerJoin;
             MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
-            MultiplayerHooking.OnStartedServer += IHaveAvatarInfection;
-            MultiplayerHooking.OnJoinedServer += IHaveAvatarInfection;
+            MultiplayerHooking.OnStartedServer += MetadataManager.SetAllMetadata;
+            MultiplayerHooking.OnJoinedServer += MetadataManager.SetAllMetadata;
             MultiplayerHooking.OnDisconnected += Cleanup;
 
             Infected = new("Infected", Color.green, this, new(Constants.Defaults.InfectedStats));
@@ -167,21 +165,6 @@ namespace AvatarInfection
                 return Infected.Metadata;
         }
 
-        private static void IHaveAvatarInfection()
-            => LocalPlayer.Metadata.Metadata.TrySetMetadata(HAS_AVATAR_INFECTED_KEY, bool.TrueString);
-
-        private static bool DoYouHaveAvatarInfection(PlayerID player)
-        => player.Metadata.Metadata.TryGetMetadata(HAS_AVATAR_INFECTED_KEY, out string val)
-            && !string.IsNullOrWhiteSpace(val) && bool.TryParse(val, out bool res) && res;
-
-#if !DEBUG && !SOLOTESTING
-
-        private static int CountPlayersThatHaveAvatarInfection()
-            => PlayerIDManager.PlayerIDs.Count(x => x.Metadata.Metadata.TryGetMetadata(HAS_AVATAR_INFECTED_KEY, out string val)
-                && !string.IsNullOrWhiteSpace(val) && bool.TryParse(val, out bool res) && res);
-
-#endif
-
         private void OneMinuteLeftEvent()
         {
             MenuHelper.ShowNotification("Avatar Infection", "One minute left!", 3.5f);
@@ -206,13 +189,8 @@ namespace AvatarInfection
             if (!IsStarted)
                 return;
 
-            switch (key)
-            {
-                case nameof(InfectedLooking):
-                    if (InfectedLooking.GetValue())
-                        InfectedLookingEvent();
-                    break;
-            }
+            if (key == nameof(InfectedLooking) && InfectedLooking.GetValue())
+                InfectedLookingEvent();
         }
 
         public override void OnGamemodeUnregistered()
@@ -473,15 +451,9 @@ namespace AvatarInfection
                 }
             }
 
-            if (NetworkPlayer.Players.Count > Config.InfectedCount.Value)
+            if (MetadataManager.CountPlayersWithAvatarInfection() > Config.InfectedCount.Value)
             {
-                Core.Logger.Error("There must be at least one survivor");
-                return false;
-            }
-
-            if (CountPlayersThatHaveAvatarInfection() > Config.InfectedCount.Value)
-            {
-                Core.Logger.Error($"There must be at least {Config.InfectedCount.Value} people with AvatarInfection");
+                Core.Logger.Error($"There must be at least {Config.InfectedCount.Value} players with AvatarInfection installed");
                 return false;
             }
 #endif
@@ -489,10 +461,10 @@ namespace AvatarInfection
         }
 
         public override void OnGamemodeReady()
-            => IHaveAvatarInfection();
+            => MetadataManager.SetAllMetadata();
 
         public override void OnGamemodeSelected()
-            => IHaveAvatarInfection();
+            => MetadataManager.SetAllMetadata();
 
         public override bool CanAttack(PlayerID player)
         {
@@ -639,20 +611,20 @@ namespace AvatarInfection
 
         private void Cleanup()
         {
-            if (WasStarted)
-            {
-                BoneMenuManager.PopulatePage();
+            if (!WasStarted)
+                return;
 
-                RevertToDefault(false);
+            BoneMenuManager.PopulatePage();
 
-                PlayList.StopPlaylist();
+            RevertToDefault(false);
 
-                ClearDeathmatchSpawns();
+            PlayList.StopPlaylist();
 
-                StatsManager.ClearOverrides();
+            ClearDeathmatchSpawns();
 
-                FusionOverrides.ForceUpdateOverrides();
-            }
+            StatsManager.ClearOverrides();
+
+            FusionOverrides.ForceUpdateOverrides();
         }
 
         private static void TeleportToHost()
@@ -678,7 +650,6 @@ namespace AvatarInfection
             return playerTeam == localTeam || (IsInfected(playerTeam) && IsInfected(localTeam));
         }
 
-        // TODO: Ensure first infected avatar is installable
         private void AssignTeams()
         {
             var last = new List<ulong>(LastInfected);
@@ -704,7 +675,9 @@ namespace AvatarInfection
                     break;
 
                 var player = players.Random();
-                if (!DoYouHaveAvatarInfection(player))
+                // This could be easily exploited to avoid being the infected by using a modified version of the mod
+                // If such issues will occur, this will be changed
+                if (!MetadataManager.DoYouHaveAvatarInfection(player))
                     continue;
 
                 selectedNum++;
@@ -715,24 +688,34 @@ namespace AvatarInfection
                 var team = Infected;
 #endif
                 TeamManager.TryAssignTeam(player, team);
-                bool exists = NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig;
-
-                if (Config.SelectMode.Value == AvatarSelectMode.FIRST_INFECTED && !selected && exists)
-                {
-                    var avatar = plr.RigRefs?.RigManager?.AvatarCrate?.Barcode?.ID;
-                    if (!string.IsNullOrWhiteSpace(avatar))
-                    {
-                        selected = true;
-                        Config.SetAvatar(avatar, plr.PlayerID);
-                    }
-                }
+                if (!selected)
+                    selected = TrySetFirstInfected(player);
 
                 SetAvatar(player, team == InfectedChildren);
                 players.Remove(player);
                 LastInfected.Add(player.PlatformID);
             }
 
+            if (Config.SelectMode.Value == AvatarSelectMode.FIRST_INFECTED && !selected)
+                Config.SetAvatar(GetRandomAvatar(), PlayerIDManager.LocalID);
+
             players.ForEach(x => TeamManager.TryAssignTeam(x, Survivors));
+        }
+
+        private bool TrySetFirstInfected(PlayerID player)
+        {
+            bool exists = NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig;
+
+            if (Config.SelectMode.Value == AvatarSelectMode.FIRST_INFECTED && exists)
+            {
+                var avatar = plr.RigRefs?.RigManager?.AvatarCrate?.Barcode?.ID;
+                if (!string.IsNullOrWhiteSpace(avatar) && MetadataManager.IsAvatarDownloadable(player))
+                {
+                    Config.SetAvatar(avatar, plr.PlayerID);
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void SetAvatar(PlayerID player, bool isChildren)
@@ -779,8 +762,8 @@ namespace AvatarInfection
 
         public enum InfectType
         {
-            TOUCH,
-            DEATH
+            TOUCH = 0,
+            DEATH = 1
         }
 
         public enum AvatarSelectMode

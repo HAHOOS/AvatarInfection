@@ -30,8 +30,6 @@ namespace AvatarInfection.Settings
 
         public ToggleServerSetting<float> StrengthUpper { get; set; }
 
-        private TeamMetadata _SyncWith;
-
         public TeamMetadata(Team team, Gamemode gamemode, TeamSettings? config = null)
         {
             Gamemode = gamemode;
@@ -49,43 +47,6 @@ namespace AvatarInfection.Settings
         public new void Sync()
         {
             base.Sync();
-            UpdateMenu();
-        }
-
-        public void SyncWith(TeamMetadata other)
-        {
-            _SyncWith = other;
-            _SyncWith.OnSettingChanged += SettingChanged;
-            _SyncWith.OnSettingSynced += ApplyConfig;
-        }
-
-        public void StopSync()
-        {
-            if (_SyncWith != null)
-            {
-                _SyncWith.OnSettingChanged -= SettingChanged;
-                _SyncWith.OnSettingSynced -= ApplyConfig;
-                _SyncWith = null;
-            }
-        }
-
-        internal void SettingChanged()
-        {
-            Mortality.Value = _SyncWith.Mortality.Value;
-            CanUseGuns.Value = _SyncWith.CanUseGuns.Value;
-
-            Vitality.Value = _SyncWith.Vitality.Value;
-            Vitality.Enabled = _SyncWith.Vitality.Enabled;
-
-            Speed.Value = _SyncWith.Speed.Value;
-            Speed.Enabled = _SyncWith.Speed.Enabled;
-
-            Agility.Value = _SyncWith.Agility.Value;
-            Agility.Enabled = _SyncWith.Agility.Enabled;
-
-            StrengthUpper.Value = _SyncWith.StrengthUpper.Value;
-            StrengthUpper.Enabled = _SyncWith.StrengthUpper.Enabled;
-
             UpdateMenu();
         }
 
@@ -121,11 +82,7 @@ namespace AvatarInfection.Settings
             if (!NetworkInfo.IsHost)
                 return;
 
-            _settingsList.ForEach(setting =>
-            {
-                if (setting.IsServerSetting())
-                    ((IServerSetting)setting).Sync();
-            });
+            Sync();
         }
 
         public bool IsApplied

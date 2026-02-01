@@ -212,16 +212,13 @@ namespace AvatarInfection.Utilities
         public bool IsLatestVersion(string @namespace, string name, string currentVersion)
         {
             if (SemVersion.TryParse(currentVersion, out var version))
-            {
                 return IsLatestVersion(@namespace, name, version);
-            }
+
             return false;
         }
 
         public bool IsLatestVersion(string @namespace, string name, Version currentVersion)
-        {
-            return IsLatestVersion(@namespace, name, new SemVersion(currentVersion));
-        }
+            => IsLatestVersion(@namespace, name, new SemVersion(currentVersion));
 
         public bool IsLatestVersion(string @namespace, string name, SemVersion currentVersion)
         {

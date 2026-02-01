@@ -20,7 +20,6 @@ namespace AvatarInfection.Managers
             if (!Infection.Instance.IsStarted)
                 return;
 
-            // why the fuck does this return null
             var team = Infection.Instance.TeamManager.GetLocalTeam();
             if (team == null)
                 ClearOverrides();

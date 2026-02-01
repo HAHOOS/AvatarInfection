@@ -6,19 +6,19 @@ namespace AvatarInfection.Utilities;
 internal static class TimeUtilities
 {
     public static float DeltaTime
-    { get { return _deltaTime; } }
+    { get => _deltaTime; }
 
     public static float FixedDeltaTime
-    { get { return _fixedDeltaTime; } }
+    { get => _fixedDeltaTime; }
 
     public static float TimeSinceStartup
-    { get { return _timeSinceStartup; } }
+    { get => _timeSinceStartup; }
 
     public static float TimeScale
-    { get { return _timeScale; } }
+    { get => _timeScale; }
 
     public static int FrameCount
-    { get { return _frameCount; } }
+    { get => _frameCount; }
 
     private static float _deltaTime = 1f;
     private static float _fixedDeltaTime = 0.02f;
@@ -39,17 +39,11 @@ internal static class TimeUtilities
     }
 
     internal static void OnEarlyFixedUpdate()
-    {
-        _fixedDeltaTime = Time.fixedDeltaTime;
-    }
+        => _fixedDeltaTime = Time.fixedDeltaTime;
 
     public static bool IsMatchingFrame(int interval)
-    {
-        return FrameCount % interval == 0;
-    }
+        => FrameCount % interval == 0;
 
     public static bool IsMatchingFrame(int interval, int offset)
-    {
-        return (FrameCount + offset) % interval == 0;
-    }
+        => (FrameCount + offset) % interval == 0;
 }

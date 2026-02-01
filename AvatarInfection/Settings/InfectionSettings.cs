@@ -1,5 +1,6 @@
 using System;
 
+using AvatarInfection.Managers;
 using AvatarInfection.Utilities;
 
 using LabFusion.Player;
@@ -43,9 +44,13 @@ namespace AvatarInfection.Settings
 
         internal LocalSetting<ChildrenAvatarSelectMode> ChildrenSelectMode { get; set; }
 
+        internal LocalSetting<InfectType> InfectType { get; set; }
+
         internal LocalSetting<int> TimeLimit { get; set; }
 
         internal LocalSetting<int> InfectedCount { get; set; }
+
+        internal LocalSetting<int> HoldTime { get; set; }
 
         internal LocalSetting<bool> NoTimeLimit { get; set; }
 
@@ -53,11 +58,7 @@ namespace AvatarInfection.Settings
 
         internal LocalSetting<bool> TeleportOnStart { get; set; }
 
-        internal LocalSetting<InfectType> InfectType { get; set; }
-
         internal LocalSetting<bool> SuicideInfects { get; set; }
-
-        internal LocalSetting<int> HoldTime { get; set; }
 
         #endregion Local
 
@@ -73,6 +74,7 @@ namespace AvatarInfection.Settings
             ChildrenSelectedAvatar.OnValueChanged += ChildrenSelectedPlayerOverride;
 
             SyncWithInfected = CreateServerSetting(nameof(SyncWithInfected), Constants.Defaults.SyncWithInfected);
+            SyncWithInfected.OnValueChanged += SyncWithInfectedUpdated;
 
             CountdownLength = CreateServerSetting(nameof(CountdownLength), Constants.Defaults.CountdownLength);
 
@@ -81,13 +83,7 @@ namespace AvatarInfection.Settings
             TeleportOnEnd = CreateServerSetting(nameof(TeleportOnEnd), Constants.Defaults.TeleportOnEnd);
 
             UseDeathmatchSpawns = CreateServerSetting(nameof(UseDeathmatchSpawns), Constants.Defaults.UseDeathMatchSpawns);
-            UseDeathmatchSpawns.OnValueChanged += () =>
-            {
-                if (UseDeathmatchSpawns.Value)
-                    UseDeathmatchSpawns_Init(false);
-                else
-                    ClearDeathmatchSpawns();
-            };
+            UseDeathmatchSpawns.OnValueChanged += DeathmathUpdated;
 
             ShowCountdownToAll = CreateServerSetting(nameof(ShowCountdownToAll), Constants.Defaults.ShowCountdownToAll);
 
@@ -103,6 +99,26 @@ namespace AvatarInfection.Settings
             SuicideInfects = CreateLocalSetting(nameof(SuicideInfects), Constants.Defaults.SuicideInfects);
             TeleportOnStart = CreateLocalSetting(nameof(TeleportOnStart), Constants.Defaults.TeleportOnStart);
             TimeLimit = CreateLocalSetting(nameof(TimeLimit), Constants.Defaults.TimeLimit);
+        }
+
+        private static void SyncWithInfectedUpdated()
+        {
+            if (!Instance.IsStarted)
+                return;
+
+            if (Instance.TeamManager.GetLocalTeam() == Instance.InfectedChildren)
+                StatsManager.ApplyStats();
+        }
+
+        private void DeathmathUpdated()
+        {
+            if (!Instance.IsStarted)
+                return;
+
+            if (UseDeathmatchSpawns.Value)
+                UseDeathmatchSpawns_Init(false);
+            else
+                ClearDeathmatchSpawns();
         }
 
         internal void SelectedPlayerOverride()

@@ -7,7 +7,6 @@ using AvatarInfection.Settings;
 
 using BoneLib;
 
-using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Warehouse;
 
 using LabFusion.Marrow;
@@ -316,9 +315,7 @@ namespace AvatarInfection.Managers
         }
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ServerSetting<bool> stat)
-        {
-            group.AddElement(stat.DisplayName, stat.Value, (val) => { stat.Value = val; FormatApplyName(team); });
-        }
+            => group.AddElement(stat.DisplayName, stat.Value, (val) => { stat.Value = val; FormatApplyName(team); });
 
         internal static string FormatApplyName(InfectionTeam team, bool apply = true)
         {
@@ -356,9 +353,7 @@ namespace AvatarInfection.Managers
         }
 
         private static bool HasNoServerSettings(this TeamMetadata metadata)
-        {
-            return !metadata._settingsList.Any(setting => setting is IServerSetting);
-        }
+            => !metadata._settingsList.Any(setting => setting is IServerSetting);
 
         private static string GetGroupName(this InfectionTeam team)
             => string.Format(TeamConfigName, team.DisplayName);
