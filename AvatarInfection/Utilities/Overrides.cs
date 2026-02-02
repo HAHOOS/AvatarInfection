@@ -9,7 +9,6 @@ using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Data;
 using LabFusion.Downloading;
 using LabFusion.Marrow;
-using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Preferences.Client;
 using LabFusion.RPC;

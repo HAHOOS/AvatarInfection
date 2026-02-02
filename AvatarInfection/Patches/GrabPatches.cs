@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using AvatarInfection.Managers;
@@ -16,7 +15,6 @@ using Il2CppSLZ.Marrow;
 
 using LabFusion.Entities;
 using LabFusion.Network;
-using LabFusion.Player;
 
 using UnityEngine;
 
