@@ -382,18 +382,21 @@ namespace AvatarInfection
                 }
             }
 
-            if (TeamManager.GetLocalTeam() == Survivors)
-                SurvivorsUpdate();
-
-            if (!Config.NoTimeLimit.Value && NetworkInfo.IsHost)
+            if (Instance.IsStarted)
             {
-                if (!OneMinuteLeft && Config.TimeLimit.Value - ElapsedMinutes == 1)
-                    EventManager.TryInvokeEvent(EventType.OneMinuteLeft);
+                if (TeamManager.GetLocalTeam() == Survivors)
+                    SurvivorsUpdate();
 
-                if (ElapsedMinutes >= Config.TimeLimit.Value)
+                if (!Config.NoTimeLimit.Value && NetworkInfo.IsHost)
                 {
-                    EventManager.TryInvokeEvent(EventType.SurvivorsVictory);
-                    GamemodeManager.StopGamemode();
+                    if (!OneMinuteLeft && Config.TimeLimit.Value - ElapsedMinutes == 1)
+                        EventManager.TryInvokeEvent(EventType.OneMinuteLeft);
+
+                    if (ElapsedMinutes >= Config.TimeLimit.Value)
+                    {
+                        EventManager.TryInvokeEvent(EventType.SurvivorsVictory);
+                        GamemodeManager.StopGamemode();
+                    }
                 }
             }
         }
@@ -451,7 +454,7 @@ namespace AvatarInfection
                 }
             }
 
-            if (MetadataManager.CountPlayersWithAvatarInfection() > Config.InfectedCount.Value)
+            if (MetadataManager.CountPlayersWithAvatarInfection() >= Config.InfectedCount.Value)
             {
                 Core.Logger.Error($"There must be at least {Config.InfectedCount.Value} players with AvatarInfection installed");
                 return false;
