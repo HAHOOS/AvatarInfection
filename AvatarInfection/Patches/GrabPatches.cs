@@ -126,7 +126,7 @@ namespace AvatarInfection.Patches
         private static void RegisterTouch(Grip grip, ulong platformId, ulong by)
         {
             if (Infection.Instance.Config.HoldTime.Value == 0)
-                EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, platformId);
+                EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, new PlayerInfectedData(platformId, (long)by));
             else
                 HoldTime.Add(new(grip, by));
         }

@@ -122,6 +122,7 @@ namespace AvatarInfection
             MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
             MultiplayerHooking.OnStartedServer += MetadataManager.SetAllMetadata;
             MultiplayerHooking.OnJoinedServer += MetadataManager.SetAllMetadata;
+            MultiplayerHooking.OnTargetLevelLoaded += MetadataManager.SetAllMetadata;
             MultiplayerHooking.OnDisconnected += Cleanup;
 
             Infected = new("Infected", Color.green, this, new(Constants.Defaults.InfectedStats));
@@ -422,9 +423,9 @@ namespace AvatarInfection
 
             if (Config.SelectMode.Value == AvatarSelectMode.CONFIG)
             {
-                var selected = new Barcode(Config.SelectedAvatar.Value.Barcode);
+                var selected = new Barcode(Config.SelectedAvatar?.Value?.Barcode);
 
-                if (string.IsNullOrWhiteSpace(Config.SelectedAvatar.Value.Barcode))
+                if (string.IsNullOrWhiteSpace(Config.SelectedAvatar?.Value?.Barcode))
                 {
                     Core.Logger.Error("No avatar selected while in CONFIG mode");
                     return false;
@@ -439,9 +440,9 @@ namespace AvatarInfection
 
             if (Config.ChildrenSelectedAvatar.Enabled && Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.CONFIG)
             {
-                var selected = new Barcode(Config.ChildrenSelectedAvatar.Value.Barcode);
+                var selected = new Barcode(Config.ChildrenSelectedAvatar?.Value?.Barcode);
 
-                if (string.IsNullOrWhiteSpace(Config.ChildrenSelectedAvatar.Value.Barcode))
+                if (string.IsNullOrWhiteSpace(Config.ChildrenSelectedAvatar?.Value?.Barcode))
                 {
                     Core.Logger.Error("No children avatar selected while in CONFIG mode");
                     return false;
@@ -454,9 +455,15 @@ namespace AvatarInfection
                 }
             }
 
-            if (MetadataManager.CountPlayersWithAvatarInfection() >= Config.InfectedCount.Value)
+            if (NetworkPlayer.Players.Count <= Config.InfectedCount.Value)
             {
-                Core.Logger.Error($"There must be at least {Config.InfectedCount.Value} players with AvatarInfection installed");
+                Core.Logger.Error($"There must be at least {Config.InfectedCount.Value + 1} player(s) to start");
+                return false;
+            }
+
+            if (MetadataManager.CountPlayersWithAvatarInfection() <= Config.InfectedCount.Value)
+            {
+                Core.Logger.Error($"There must be at least {Config.InfectedCount.Value + 1} player(s) with AvatarInfection installed");
                 return false;
             }
 #endif
