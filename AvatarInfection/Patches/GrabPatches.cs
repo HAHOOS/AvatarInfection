@@ -50,16 +50,16 @@ namespace AvatarInfection.Patches
         [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverEnd))]
         [HarmonyPriority(10000)]
         public static bool InventoryGrabAttempt(InventorySlotReceiver __instance, Hand hand)
-            => CanGrab(hand, __instance._weaponHost?.GetHostGameObject());
+            => CanGrab(hand, __instance?._weaponHost?.GetHostGameObject());
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandGrab))]
         [HarmonyPriority(10000)]
         public static bool InventoryGrabAttempt2(InventorySlotReceiver __instance, Hand hand)
         {
-            bool res = CanGrab(hand, __instance._weaponHost?.GetHostGameObject());
+            bool res = CanGrab(hand, __instance?._weaponHost?.GetHostGameObject());
             if (!res)
-                __instance.DropWeapon();
+                __instance?.DropWeapon();
 
             return res;
         }
@@ -69,7 +69,7 @@ namespace AvatarInfection.Patches
         [HarmonyPatch(typeof(InteractableIcon), nameof(InteractableIcon.MyHandHoverBegin))]
         [HarmonyPriority(10000)]
         public static bool IconAttempt(InteractableIcon __instance, Hand hand)
-            => CanGrab(hand, __instance.gameObject);
+            => CanGrab(hand, __instance?.gameObject);
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.CoPull))]

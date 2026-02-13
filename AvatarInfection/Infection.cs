@@ -381,14 +381,8 @@ namespace AvatarInfection
                     _elapsedTimeMenu = 0f;
                     TeamManager.InfectedTeams.ForEach(x => GamemodeMenuManager.FormatApplyName(x, true));
                 }
-            }
 
-            if (Instance.IsStarted)
-            {
-                if (TeamManager.GetLocalTeam() == Survivors)
-                    SurvivorsUpdate();
-
-                if (!Config.NoTimeLimit.Value && NetworkInfo.IsHost)
+                if (!Config.NoTimeLimit.Value)
                 {
                     if (!OneMinuteLeft && Config.TimeLimit.Value - ElapsedMinutes == 1)
                         EventManager.TryInvokeEvent(EventType.OneMinuteLeft);
@@ -400,6 +394,9 @@ namespace AvatarInfection
                     }
                 }
             }
+
+            if (Instance.IsStarted && TeamManager.GetLocalTeam() == Survivors)
+                SurvivorsUpdate();
         }
 
         private void SurvivorsUpdate()
@@ -421,38 +418,14 @@ namespace AvatarInfection
                 return false;
             }
 
-            if (Config.SelectMode.Value == AvatarSelectMode.CONFIG)
+            if (Config.SelectMode.Value == AvatarSelectMode.CONFIG && !AvatarConditions(Config.SelectedAvatar?.Value?.Barcode, "children"))
+                return false;
+
+            if (Config.ChildrenSelectedAvatar.Enabled
+                && Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.CONFIG
+                && !AvatarConditions(Config.ChildrenSelectedAvatar?.Value?.Barcode, "children"))
             {
-                var selected = new Barcode(Config.SelectedAvatar?.Value?.Barcode);
-
-                if (string.IsNullOrWhiteSpace(Config.SelectedAvatar?.Value?.Barcode))
-                {
-                    Core.Logger.Error("No avatar selected while in CONFIG mode");
-                    return false;
-                }
-
-                if (selected?.IsValid() != true || selected?.IsValidSize() != true)
-                {
-                    Core.Logger.Error("Avatar selected while in CONFIG mode is not valid");
-                    return false;
-                }
-            }
-
-            if (Config.ChildrenSelectedAvatar.Enabled && Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.CONFIG)
-            {
-                var selected = new Barcode(Config.ChildrenSelectedAvatar?.Value?.Barcode);
-
-                if (string.IsNullOrWhiteSpace(Config.ChildrenSelectedAvatar?.Value?.Barcode))
-                {
-                    Core.Logger.Error("No children avatar selected while in CONFIG mode");
-                    return false;
-                }
-
-                if (selected?.IsValid() != true || selected?.IsValidSize() != true)
-                {
-                    Core.Logger.Error("Children Avatar selected while in CONFIG mode is not valid");
-                    return false;
-                }
+                return false;
             }
 
             if (NetworkPlayer.Players.Count <= Config.InfectedCount.Value)
@@ -468,6 +441,33 @@ namespace AvatarInfection
             }
 #endif
             return true;
+        }
+
+        private static bool AvatarConditions(string barcode, string prefix = "")
+        {
+            var selected = new Barcode(barcode);
+
+            if (string.IsNullOrWhiteSpace(barcode))
+            {
+                Core.Logger.Error($"No{(!string.IsNullOrWhiteSpace(prefix) ? $" {prefix} " : string.Empty)}avatar selected while in CONFIG mode");
+                return false;
+            }
+
+            if (selected?.IsValid() != true || selected?.IsValidSize() != true)
+            {
+                Core.Logger.Error($"{(!string.IsNullOrWhiteSpace(prefix) ? $"{FirstCharToUpper(prefix)} " : string.Empty)}Avatar selected while in CONFIG mode is not valid");
+                return false;
+            }
+            return true;
+        }
+
+        private static string FirstCharToUpper(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
+            return $"{char.ToUpper(input[0])}{input[1..]}";
         }
 
         public override void OnGamemodeReady()
@@ -504,7 +504,7 @@ namespace AvatarInfection
             avatars.RemoveAll(
                 (Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
             avatars.RemoveAll(
-                (Il2CppSystem.Predicate<AvatarCrate>)(x => CrateFilterer.GetModID(x.Pallet) == -1));
+                (Il2CppSystem.Predicate<AvatarCrate>)(x => CrateFilterer.GetModID(x.Pallet) == -1 && !AssetWarehouse.Instance.gamePallets.Contains(x.Pallet.Barcode)));
             return [.. avatars.ToArray().Select(x => x.Barcode.ID)];
         }
 
@@ -791,13 +791,13 @@ namespace AvatarInfection
 
         public enum EventType
         {
-            PlayerInfected,
-            SwapAvatar,
-            RefreshStats,
-            TeleportToHost,
-            OneMinuteLeft,
-            InfectedVictory,
-            SurvivorsVictory
+            PlayerInfected = 0,
+            SwapAvatar = 1,
+            RefreshStats = 2,
+            TeleportToHost = 3,
+            OneMinuteLeft = 4,
+            InfectedVictory = 5,
+            SurvivorsVictory = 6
         }
     }
 
