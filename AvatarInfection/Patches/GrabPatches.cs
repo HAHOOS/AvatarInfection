@@ -22,7 +22,7 @@ namespace AvatarInfection.Patches
 {
     public static class GrabPatches
     {
-        internal readonly static List<GripData> HoldTime = [];
+        internal readonly static Dictionary<Grip, GripData> HoldTime = [];
 
         #region Patches
 
@@ -36,7 +36,7 @@ namespace AvatarInfection.Patches
         public static void Postfix2(Grip __instance)
         {
             if (Has(__instance))
-                HoldTime.RemoveAll(x => x.Grip == __instance);
+                HoldTime.Remove(__instance);
         }
 
         [HarmonyPrefix]
@@ -85,7 +85,7 @@ namespace AvatarInfection.Patches
         #endregion Patches
 
         private static bool Has(Grip grip)
-            => HoldTime.Any(x => x.Grip == grip);
+            => HoldTime.Any(x => x.Key == grip);
 
         private static void Grabbed(Grip grip, Hand hand)
         {
@@ -128,7 +128,7 @@ namespace AvatarInfection.Patches
             if (Infection.Instance.Config.HoldTime.Value == 0)
                 EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, new PlayerInfectedData(platformId, (long)by));
             else
-                HoldTime.Add(new(grip, by));
+                HoldTime.Add(grip, new(by));
         }
 
         private static bool CanGrab(Hand hand, GameObject gameObject)
@@ -162,24 +162,23 @@ namespace AvatarInfection.Patches
         {
             ClearHoldIfNecessary();
 
-            List<GripData> list = [.. HoldTime];
-            for (int i = 0; i < list.Count; i++)
+            foreach (var hold in new Dictionary<Grip, GripData>(HoldTime))
             {
-                GripData hold = list[i];
-                hold.Time += TimeUtilities.DeltaTime;
-                if (hold.Time >= Infection.Instance.Config.HoldTime.Value)
+                hold.Value.Time += TimeUtilities.DeltaTime;
+                HoldTime[hold.Key] = hold.Value;
+                if (hold.Value.Time >= Infection.Instance.Config.HoldTime.Value)
                 {
-                    if (!hold.Grip._marrowEntity)
+                    if (!hold.Key._marrowEntity)
                         continue;
 
-                    if (!NetworkPlayerManager.TryGetPlayer(hold.Grip._marrowEntity, out var player))
+                    if (!NetworkPlayerManager.TryGetPlayer(hold.Key._marrowEntity, out var player))
                         continue;
 
                     if (Infection.Instance.IsPlayerInfected(player.PlayerID))
                         continue;
 
-                    HoldTime.RemoveAll(x => x.Grip == hold.Grip);
-                    EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, new PlayerInfectedData(player.PlayerID.PlatformID, (long)hold.By));
+                    HoldTime.Remove(hold.Key);
+                    EventManager.TryInvokeEvent(Infection.EventType.PlayerInfected, new PlayerInfectedData(player.PlayerID.PlatformID, (long)hold.Value.By));
                 }
             }
         }
@@ -202,10 +201,8 @@ namespace AvatarInfection.Patches
         }
     }
 
-    public class GripData(Grip grip, ulong by, float time = 0)
+    public class GripData(ulong by, float time = 0)
     {
-        public Grip Grip { get; set; } = grip;
-
         public ulong By { get; set; } = by;
 
         public float Time { get; set; } = time;
