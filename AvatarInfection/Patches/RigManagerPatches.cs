@@ -65,6 +65,8 @@ namespace AvatarInfection.Patches
         [HarmonyPostfix]
         [HarmonyPriority(int.MaxValue)]
         [HarmonyPatch(nameof(RigManager.SwapAvatarCrate))]
+        [HarmonyPatch(nameof(RigManager.SwapAvatar))]
+        [HarmonyPatch(nameof(RigManager.SwitchAvatar))]
         public static void AvatarChangePostfix(RigManager __instance)
         {
             if (!NetworkInfo.HasServer)
