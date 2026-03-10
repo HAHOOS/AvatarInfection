@@ -27,7 +27,7 @@ namespace AvatarInfection.Settings
             var avatarGroup = new GroupElementData(GroupName);
             if (Optional)
             {
-                avatarGroup.AddElement("Separate Avatar From Main", Enabled, (val) =>
+                avatarGroup.AddElement("Separate From Main", Enabled, (val) =>
                 {
                     Enabled = val;
                     GamemodeMenuManager.RefreshSettingsPage();
