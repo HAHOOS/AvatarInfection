@@ -42,41 +42,13 @@ namespace AvatarInfection.Managers
                 return null;
             }
 
-            GroupElementData avatarGroup = group.AddGroup("Avatar");
-
-            avatarGroup.AddElement("Separate Avatar For Infected Children", Instance.Config.ChildrenSelectedAvatar.Enabled, (val) =>
+            Instance.Config._settingsList.ForEach(x =>
             {
-                Instance.Config.ChildrenSelectedAvatar.Enabled = val;
-                RefreshSettingsPage();
-            });
-            avatarGroup.AddElement("Select Mode", Instance.Config.SelectMode.Value, (val) => { Instance.Config.SelectMode.Value = (AvatarSelectMode)val; RefreshSettingsPage(); });
-
-            if (Instance.Config.SelectMode.Value == AvatarSelectMode.CONFIG)
-            {
-                var title = GetBarcodeTitle(Instance.Config.SelectedAvatar.Value?.Barcode);
-                avatarGroup.AddElement(title, null);
-
-                avatarGroup.AddElement("Select From Current Avatar", SelectNewAvatar);
-            }
-            else if (Instance.Config.SelectMode.Value == AvatarSelectMode.RANDOM)
-            {
-                avatarGroup.AddElement($"Chosen from {GetAvatars().Length} Avatars", null);
-                if (Instance.IsStarted)
+                if (x is AvatarSetting avSetting)
                 {
-                    avatarGroup.AddElement("Select New Random Avatar", () =>
-                    {
-                        if (!Instance.IsStarted)
-                            return;
-                        Instance.SetRandomAvatar();
-                    });
+                    group.AddElement(avSetting.CreateGroup());
                 }
-            }
-
-            if (Instance.Config.ChildrenSelectedAvatar.Enabled)
-            {
-                GroupElementData childrenAvatarGroup = group.AddGroup("Infected Children Avatar");
-                InfectedChildrenAvatar(childrenAvatarGroup);
-            }
+            });
 
             group.AddElement(CreateElementsForTeam(Instance.Infected));
             group.AddElement(CreateElementsForTeam(Instance.InfectedChildren));
@@ -174,83 +146,6 @@ namespace AvatarInfection.Managers
             if ((old == 0 && val > 0) || (old > 0 && val == 0))
                 RefreshSettingsPage();
         }
-
-        private static void InfectedChildrenAvatar(GroupElementData group)
-        {
-            group.AddElement("Select Mode", Instance.Config.ChildrenSelectMode.Value, (val) => { Instance.Config.ChildrenSelectMode.Value = (ChildrenAvatarSelectMode)val; RefreshSettingsPage(); });
-            if (Instance.Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.CONFIG)
-            {
-                var title = GetBarcodeTitle(Instance.Config.ChildrenSelectedAvatar.Value?.Barcode);
-                group.AddElement(title, null);
-                group.AddElement("Select From Current Avatar", SelectNewChildrenAvatar);
-            }
-            else if (Instance.Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.RANDOM)
-            {
-                group.AddElement($"Chosen from {GetAvatars().Length} Avatars", null);
-                if (Instance.IsStarted)
-                {
-                    group.AddElement("Select New Random Avatar", () =>
-                    {
-                        if (!Instance.IsStarted)
-                            return;
-                        Instance.SetRandomChildrenAvatar();
-                    });
-                }
-            }
-        }
-
-        private static void SelectNewAvatar()
-        {
-            if (Instance.IsStarted)
-                return;
-
-            var rigManager = Player.RigManager;
-            if (rigManager?.AvatarCrate?.Barcode != null)
-            {
-                var avatar = rigManager.AvatarCrate.Barcode.ID;
-
-                if (string.IsNullOrWhiteSpace(avatar))
-                    return;
-
-                if (CrateFilterer.GetModID(rigManager.AvatarCrate.Crate.Pallet) == -1)
-                {
-                    MenuHelper.ShowNotification("Error", "The avatar does not have an associated Mod ID, which is required! That means it must be installed through mod.io in-game", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
-                    return;
-                }
-
-                Instance.Config.SetAvatar(avatar, PlayerIDManager.LocalID);
-
-                RefreshSettingsPage();
-            }
-        }
-
-        private static void SelectNewChildrenAvatar()
-        {
-            if (Instance.IsStarted)
-                return;
-
-            var rigManager = Player.RigManager;
-            if (rigManager?.AvatarCrate?.Barcode != null)
-            {
-                var avatar = rigManager.AvatarCrate.Barcode.ID;
-
-                if (string.IsNullOrWhiteSpace(avatar))
-                    return;
-
-                if (CrateFilterer.GetModID(rigManager.AvatarCrate.Crate.Pallet) == -1)
-                {
-                    MenuHelper.ShowNotification("Error", "The avatar does not have an associated Mod ID, which is required! That means it must be installed through mod.io in-game", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
-                    return;
-                }
-
-                Instance.Config.SetChildrenAvatar(avatar, PlayerIDManager.LocalID);
-
-                RefreshSettingsPage();
-            }
-        }
-
-        private static string GetBarcodeTitle(string barcode)
-            => !string.IsNullOrWhiteSpace(barcode) ? (new AvatarCrateReference(barcode)?.Crate?.Title ?? "N/A") : "N/A";
 
         internal static GroupElementData CreateElementsForTeam(InfectionTeam team)
         {

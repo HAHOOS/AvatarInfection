@@ -59,6 +59,15 @@ namespace AvatarInfection.Settings
             _settingsList.Add(setting);
             return setting;
         }
+
+        internal AvatarSetting CreateAvatarSetting(string name, SelectedAvatarData value, bool enabled, string displayName = null, bool autoSync = true)
+        {
+            var setting = new AvatarSetting(Infection.Instance, name, value, enabled, displayName, autoSync);
+            setting.OnValueChanged += () => OnSettingChanged?.Invoke();
+            setting.OnSynced += () => OnSettingSynced?.Invoke();
+            _settingsList.Add(setting);
+            return setting;
+        }
     }
 
     public static class SettingsHelper

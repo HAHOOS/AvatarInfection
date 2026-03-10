@@ -418,11 +418,11 @@ namespace AvatarInfection
                 return false;
             }
 
-            if (Config.SelectMode.Value == AvatarSelectMode.CONFIG && !AvatarConditions(Config.SelectedAvatar?.Value?.Barcode, "children"))
+            if (Config.SelectedAvatar.Value?.SelectMode == AvatarSelectMode.CONFIG && !AvatarConditions(Config.SelectedAvatar?.Value?.Barcode, "children"))
                 return false;
 
             if (Config.ChildrenSelectedAvatar.Enabled
-                && Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.CONFIG
+                && Config.ChildrenSelectedAvatar.Value?.SelectMode == AvatarSelectMode.CONFIG
                 && !AvatarConditions(Config.ChildrenSelectedAvatar?.Value?.Barcode, "children"))
             {
                 return false;
@@ -489,32 +489,9 @@ namespace AvatarInfection
             return playerTeam != localTeam && (!IsInfected(playerTeam) || !IsInfected(TeamManager.GetLocalTeam()));
         }
 
-        internal void SetRandomAvatar()
-            => Config.SetAvatar(GetRandomAvatar(), PlayerIDManager.LocalID);
-
-        internal void SetRandomChildrenAvatar()
-            => Config.SetChildrenAvatar(GetRandomAvatar(), PlayerIDManager.LocalID);
-
-        internal static string GetRandomAvatar()
-            => GetAvatars().Random();
-
-        internal static string[] GetAvatars()
-        {
-            var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
-            avatars.RemoveAll(
-                (Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
-            avatars.RemoveAll(
-                (Il2CppSystem.Predicate<AvatarCrate>)(x => CrateFilterer.GetModID(x.Pallet) == -1 && !AssetWarehouse.Instance.gamePallets.Contains(x.Pallet.Barcode)));
-            return [.. avatars.ToArray().Select(x => x.Barcode.ID)];
-        }
-
         private void ApplyGamemodeSettings()
         {
-            if (Config.SelectMode.Value == AvatarSelectMode.RANDOM)
-                SetRandomAvatar();
-
-            if (Config.ChildrenSelectMode.Value == ChildrenAvatarSelectMode.RANDOM)
-                SetRandomChildrenAvatar();
+            AvatarSetting(AvatarSelectMode.RANDOM, (setting) => setting.SetRandomAvatar());
 
             CountdownValue.SetValue(Config.CountdownLength.Value);
 
@@ -706,8 +683,8 @@ namespace AvatarInfection
                 LastInfected.Add(player.PlatformID);
             }
 
-            if (Config.SelectMode.Value == AvatarSelectMode.FIRST_INFECTED && !selected)
-                Config.SetAvatar(GetRandomAvatar(), PlayerIDManager.LocalID);
+            if (!selected)
+                AvatarSetting(AvatarSelectMode.FIRST_INFECTED, (setting) => setting.SetRandomAvatar());
 
             players.ForEach(x => TeamManager.TryAssignTeam(x, Survivors));
         }
@@ -716,16 +693,25 @@ namespace AvatarInfection
         {
             bool exists = NetworkPlayerManager.TryGetPlayer(player.SmallID, out NetworkPlayer plr) && plr.HasRig;
 
-            if (Config.SelectMode.Value == AvatarSelectMode.FIRST_INFECTED && exists)
+            if (exists)
             {
                 var avatar = plr.RigRefs?.RigManager?.AvatarCrate?.Barcode?.ID;
                 if (!string.IsNullOrWhiteSpace(avatar) && MetadataManager.IsAvatarDownloadable(player))
                 {
-                    Config.SetAvatar(avatar, plr.PlayerID);
+                    AvatarSetting(AvatarSelectMode.FIRST_INFECTED, (setting) => setting.SetAvatar(avatar, player));
                     return true;
                 }
             }
             return false;
+        }
+
+        private void AvatarSetting(AvatarSelectMode target, Action<AvatarSetting> callback)
+        {
+            foreach (var setting in Config._settingsList)
+            {
+                if (setting is AvatarSetting avatarSetting && avatarSetting.Value?.SelectMode == target)
+                    callback?.Invoke(avatarSetting);
+            }
         }
 
         private void SetAvatar(PlayerID player, bool isChildren)
@@ -774,19 +760,6 @@ namespace AvatarInfection
         {
             TOUCH = 0,
             DEATH = 1
-        }
-
-        public enum AvatarSelectMode
-        {
-            CONFIG = 0,
-            FIRST_INFECTED = 1,
-            RANDOM = 2
-        }
-
-        public enum ChildrenAvatarSelectMode
-        {
-            CONFIG = 0,
-            RANDOM = 2
         }
 
         public enum EventType

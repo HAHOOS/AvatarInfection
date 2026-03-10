@@ -1,5 +1,3 @@
-using System;
-
 using AvatarInfection.Managers;
 using AvatarInfection.Utilities;
 
@@ -13,10 +11,9 @@ namespace AvatarInfection.Settings
     {
         #region Server
 
-        internal ServerSetting<SelectedAvatarData> SelectedAvatar { get; set; }
+        internal AvatarSetting SelectedAvatar { get; set; }
 
-        // TODO: simplify creating multiple SelectedAvatar settings
-        internal ToggleServerSetting<SelectedAvatarData> ChildrenSelectedAvatar { get; set; }
+        internal AvatarSetting ChildrenSelectedAvatar { get; set; }
 
         internal ServerSetting<bool> SyncWithInfected { get; set; }
 
@@ -39,10 +36,6 @@ namespace AvatarInfection.Settings
         #endregion Server
 
         #region Local
-
-        internal LocalSetting<AvatarSelectMode> SelectMode { get; set; }
-
-        internal LocalSetting<ChildrenAvatarSelectMode> ChildrenSelectMode { get; set; }
 
         internal LocalSetting<InfectType> InfectType { get; set; }
 
@@ -67,10 +60,10 @@ namespace AvatarInfection.Settings
             DisableDevTools = CreateServerSetting(nameof(DisableDevTools), Constants.Defaults.DisableDeveloperTools);
             DisableSpawnGun = CreateServerSetting(nameof(DisableSpawnGun), Constants.Defaults.DisableSpawnGun);
 
-            SelectedAvatar = CreateServerSetting<SelectedAvatarData>(nameof(SelectedAvatar), null);
+            SelectedAvatar = CreateAvatarSetting(nameof(SelectedAvatar), new(null, Constants.Defaults.SelectMode), true);
             SelectedAvatar.OnValueChanged += SelectedPlayerOverride;
 
-            ChildrenSelectedAvatar = CreateToggleServerSetting<SelectedAvatarData>(nameof(ChildrenSelectedAvatar), null, false);
+            ChildrenSelectedAvatar = CreateAvatarSetting(nameof(ChildrenSelectedAvatar), new(null, Constants.Defaults.SelectMode), false);
             ChildrenSelectedAvatar.OnValueChanged += ChildrenSelectedPlayerOverride;
 
             SyncWithInfected = CreateServerSetting(nameof(SyncWithInfected), Constants.Defaults.SyncWithInfected);
@@ -94,8 +87,6 @@ namespace AvatarInfection.Settings
             InfectedCount = CreateLocalSetting(nameof(InfectedCount), Constants.Defaults.InfectedCount);
             InfectType = CreateLocalSetting(nameof(InfectType), Constants.Defaults._InfectType);
             NoTimeLimit = CreateLocalSetting(nameof(NoTimeLimit), Constants.Defaults.NoTimeLimit);
-            SelectMode = CreateLocalSetting(nameof(SelectMode), Constants.Defaults.SelectMode);
-            ChildrenSelectMode = CreateLocalSetting(nameof(ChildrenSelectMode), (ChildrenAvatarSelectMode)Constants.Defaults.SelectMode);
             SuicideInfects = CreateLocalSetting(nameof(SuicideInfects), Constants.Defaults.SuicideInfects);
             TeleportOnStart = CreateLocalSetting(nameof(TeleportOnStart), Constants.Defaults.TeleportOnStart);
             TimeLimit = CreateLocalSetting(nameof(TimeLimit), Constants.Defaults.TimeLimit);
@@ -145,25 +136,9 @@ namespace AvatarInfection.Settings
         }
 
         public void SetAvatar(string barcode, PlayerID player)
-            => SelectedAvatar.Value = new(barcode, (long)player.PlatformID);
+            => SelectedAvatar.SetAvatar(barcode, player);
 
         public void SetChildrenAvatar(string barcode, PlayerID player)
-            => ChildrenSelectedAvatar.Value = new(barcode, (long)player.PlatformID);
-    }
-
-    internal class SelectedAvatarData(string barcode, long origin = -1) : IEquatable<SelectedAvatarData>
-    {
-        public string Barcode { get; set; } = barcode;
-
-        public long Origin { get; set; } = origin;
-
-        public override bool Equals(object obj)
-            => obj is SelectedAvatarData data && data.Barcode == Barcode && data.Origin == Origin;
-
-        public bool Equals(SelectedAvatarData other)
-            => other is not null && other.Barcode == Barcode && other.Origin == Origin;
-
-        public override int GetHashCode()
-            => Barcode.GetHashCode() + Origin.GetHashCode();
+            => ChildrenSelectedAvatar.SetAvatar(barcode, player);
     }
 }
