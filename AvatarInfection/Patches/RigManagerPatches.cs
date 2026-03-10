@@ -12,6 +12,8 @@ using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Network;
 using LabFusion.Utilities;
 
+using static AvatarInfection.Infection;
+
 namespace AvatarInfection.Patches
 {
     [HarmonyPatch(typeof(RigManager))]
@@ -35,31 +37,33 @@ namespace AvatarInfection.Patches
                 if (__instance?.IsLocalPlayer() != true)
                     return true;
 
-                if (!Infection.Instance.IsStarted)
+                if (!Instance.IsStarted)
                     return true;
 
-                if (Infection.Instance.TeamManager?.GetLocalTeam() == null)
+                if (Instance.TeamManager?.GetLocalTeam() == null)
                     return true;
 
-                if (string.IsNullOrWhiteSpace(Infection.Instance.Config.SelectedAvatar.Value?.Barcode))
+                if (string.IsNullOrWhiteSpace(Instance.Config.SelectedAvatar.Value?.Barcode))
                     return true;
 
-                if (Infection.Instance.TeamManager.GetLocalTeam() == Infection.Instance.Survivors)
-                {
-                    return barcode != new Barcode(Infection.Instance.Config.SelectedAvatar.Value?.Barcode)
-                        && barcode != new Barcode(Infection.Instance.Config.ChildrenSelectedAvatar.Value?.Barcode);
-                }
+                if (Instance.TeamManager.GetLocalTeam() == Instance.Survivors)
+                    return barcode != Instance.Config.SelectedAvatar.AsBarcode() && barcode != Instance.Config.ChildrenSelectedAvatar.AsBarcode();
 
-                return (IsPrimary() && barcode == new Barcode(Infection.Instance.Config.SelectedAvatar.Value?.Barcode))
-                    || (!IsPrimary() && barcode == new Barcode(Infection.Instance.Config.ChildrenSelectedAvatar.Value?.Barcode))
-                    ? Infection.Instance.IsLocalPlayerInfected()
-                    : !Infection.Instance.IsLocalPlayerInfected();
+                return barcode?.ID == GetOverrideBarcode() ? Instance.IsLocalPlayerInfected() : !Instance.IsLocalPlayerInfected();
             }
             catch (Exception e)
             {
                 FusionModule.Logger.Error($"An unexpected error has occurred while handing SwapAvatarCrate in RigManager, exception:\n{e}");
                 return true;
             }
+        }
+
+        private static string GetOverrideBarcode()
+        {
+            if (IsPrimary())
+                return Instance.Config.SelectedAvatar.Value?.Barcode;
+            else
+                return Instance.Config.ChildrenSelectedAvatar.Value?.Barcode;
         }
 
         [HarmonyPostfix]
@@ -75,14 +79,14 @@ namespace AvatarInfection.Patches
             if (__instance?.IsLocalPlayer() != true)
                 return;
 
-            if (!Infection.Instance.IsStarted)
+            if (!Instance.IsStarted)
                 return;
 
             MetadataManager.SetAvatarModId();
         }
 
         private static bool IsPrimary()
-            => Infection.Instance.TeamManager.GetLocalTeam() != Infection.Instance.InfectedChildren || !Infection.Instance.Config.ChildrenSelectedAvatar.Enabled;
+            => Instance.TeamManager.GetLocalTeam() != Instance.InfectedChildren || !Instance.Config.ChildrenSelectedAvatar.Enabled;
 
         private static bool IsBarcodeEmpty(Barcode barcode)
             => barcode == null || string.IsNullOrWhiteSpace(barcode.ID) || barcode.ID == Barcode.EMPTY;

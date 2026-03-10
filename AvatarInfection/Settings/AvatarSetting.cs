@@ -8,7 +8,6 @@ using BoneLib;
 
 using Il2CppSLZ.Marrow.Warehouse;
 
-using LabFusion.Marrow;
 using LabFusion.Menu.Data;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
@@ -61,6 +60,14 @@ namespace AvatarInfection.Settings
             }
 
             return avatarGroup;
+        }
+
+        public Barcode AsBarcode()
+        {
+            if (Value == null)
+                return null;
+
+            return new Barcode(Value.Barcode);
         }
 
         public void SetRandomAvatar()
