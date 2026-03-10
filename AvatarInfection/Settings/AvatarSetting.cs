@@ -76,10 +76,8 @@ namespace AvatarInfection.Settings
         internal static string[] GetAvatars()
         {
             var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
-            avatars.RemoveAll(
-                (Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
-            avatars.RemoveAll(
-                (Il2CppSystem.Predicate<AvatarCrate>)(x => CrateFilterer.GetModID(x.Pallet) == -1 && !AssetWarehouse.Instance.gamePallets.Contains(x.Pallet.Barcode)));
+            avatars.ExcludeRedacted();
+            avatars.ExcludeNonPublic();
             return [.. avatars.ToArray().Select(x => x.Barcode.ID)];
         }
 
@@ -125,9 +123,9 @@ namespace AvatarInfection.Settings
                 if (string.IsNullOrWhiteSpace(avatar))
                     return;
 
-                if (CrateFilterer.GetModID(rigManager.AvatarCrate.Crate.Pallet) == -1)
+                if (!rigManager.AvatarCrate.Crate.IsPublicAvatar())
                 {
-                    MenuHelper.ShowNotification("Error", "The avatar does not have an associated Mod ID, which is required! That means it must be installed through mod.io in-game", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
+                    MenuHelper.ShowNotification("Error", "The modded avatar does not have an associated Mod ID, which is required! That means it must be installed through mod.io in-game", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
                     return;
                 }
 
