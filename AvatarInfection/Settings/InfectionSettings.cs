@@ -61,9 +61,13 @@ namespace AvatarInfection.Settings
             DisableSpawnGun = CreateServerSetting(nameof(DisableSpawnGun), Constants.Defaults.DisableSpawnGun);
 
             SelectedAvatar = CreateAvatarSetting(nameof(SelectedAvatar), new(null, Constants.Defaults.SelectMode), true);
+            SelectedAvatar.Optional = false;
+            SelectedAvatar.GroupName = "Infected Avatar";
             SelectedAvatar.OnValueChanged += SelectedPlayerOverride;
 
             ChildrenSelectedAvatar = CreateAvatarSetting(nameof(ChildrenSelectedAvatar), new(null, Constants.Defaults.SelectMode), false);
+            ChildrenSelectedAvatar.Optional = true;
+            ChildrenSelectedAvatar.GroupName = "Infected Children Avatar";
             ChildrenSelectedAvatar.OnValueChanged += ChildrenSelectedPlayerOverride;
 
             SyncWithInfected = CreateServerSetting(nameof(SyncWithInfected), Constants.Defaults.SyncWithInfected);
