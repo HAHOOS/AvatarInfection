@@ -12,6 +12,8 @@ using LabFusion.Menu.Data;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 
+using Tomlet.Attributes;
+
 using static AvatarInfection.Infection;
 
 namespace AvatarInfection.Settings
@@ -130,7 +132,7 @@ namespace AvatarInfection.Settings
                 if (string.IsNullOrWhiteSpace(avatar))
                     return;
 
-                if (!rigManager.AvatarCrate.Crate.IsPublicAvatar())
+                if (!rigManager.AvatarCrate.Crate.IsPublic())
                 {
                     MenuHelper.ShowNotification("Error", "The modded avatar does not have an associated Mod ID, which is required! That means it must be installed through mod.io in-game", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
                     return;
@@ -139,6 +141,28 @@ namespace AvatarInfection.Settings
                 SetAvatar(avatar, PlayerIDManager.LocalID);
 
                 GamemodeMenuManager.RefreshSettingsPage();
+            }
+        }
+
+        public new void Load()
+        {
+            base.Load();
+            if (Value == null)
+                return;
+
+            if (string.IsNullOrWhiteSpace(Value.Barcode))
+                return;
+
+            if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(Value.Barcode), out Crate crate) || !crate.IsPublic())
+            {
+                MenuHelper.ShowNotification("Error", $"The loaded avatar with barcode '{Value.Barcode}' could not be found, or is not public! It will be reset to default.", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
+                FusionModule.Logger.Error($"The loaded avatar with barcode '{Value.Barcode}' could not be found, or is not public! It will be reset to default.");
+                Value = new(null, AvatarSelectMode.CONFIG);
+                Save();
+            }
+            else
+            {
+                Value.Origin = (long)PlayerIDManager.LocalPlatformID;
             }
         }
 
@@ -163,6 +187,7 @@ namespace AvatarInfection.Settings
     {
         public string Barcode { get; set; } = barcode;
 
+        [TomlNonSerialized]
         public long Origin { get; set; } = origin;
 
         public AvatarSelectMode SelectMode { get; set; } = selectMode;
