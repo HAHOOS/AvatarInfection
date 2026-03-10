@@ -12,7 +12,7 @@ namespace AvatarInfection.Helper
             => list.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => x.Redacted));
 
         /// <summary>
-        /// Excludes all mods that are not downloadable (and aren't in base game pallets)
+        /// Excludes all avatars that are not downloadable (and aren't in base game pallets)
         /// </summary>
         public static void ExcludeNonPublic(this List<AvatarCrate> list)
             => list.RemoveAll((Il2CppSystem.Predicate<AvatarCrate>)(x => !x.IsPublicAvatar()));
