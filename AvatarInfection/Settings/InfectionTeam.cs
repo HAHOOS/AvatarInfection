@@ -16,7 +16,7 @@ namespace AvatarInfection.Settings
             set
             {
                 StaticMetadata = value;
-                Func = () => value;
+                Func = null;
             }
         }
 
