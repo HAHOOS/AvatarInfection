@@ -24,12 +24,14 @@ namespace AvatarInfection.Settings
 
         public bool Optional { get; set; }
 
+        public string OptionalToggle { get; set; } = "Seperate From Main";
+
         public GroupElementData CreateGroup()
         {
             var avatarGroup = new GroupElementData(GroupName);
             if (Optional)
             {
-                avatarGroup.AddElement("Separate From Main", Enabled, (val) =>
+                avatarGroup.AddElement(OptionalToggle, Enabled, (val) =>
                 {
                     Enabled = val;
                     GamemodeMenuManager.RefreshSettingsPage();
