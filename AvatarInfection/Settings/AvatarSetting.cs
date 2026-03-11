@@ -146,6 +146,7 @@ namespace AvatarInfection.Settings
             }
         }
 
+        // TODO: make this actually do anything
         public new void Load()
         {
             base.Load();
