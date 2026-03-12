@@ -59,10 +59,10 @@ namespace AvatarInfection.Settings
             OnSynced?.Invoke();
         }
 
-        public void Load()
+        public virtual void Load()
             => Value = Entry.Value;
 
-        public void Save()
+        public virtual void Save()
             => Entry.Value = Value;
 
         private void InitEvent(string name)
@@ -191,13 +191,13 @@ namespace AvatarInfection.Settings
             OnSynced?.Invoke();
         }
 
-        public void Load()
+        public virtual void Load()
         {
             Value = Entry.Value;
             Enabled = EnabledEntry.Value;
         }
 
-        public void Save()
+        public virtual void Save()
         {
             Entry.Value = Value;
             EnabledEntry.Value = Enabled;

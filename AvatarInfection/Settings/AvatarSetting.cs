@@ -146,8 +146,7 @@ namespace AvatarInfection.Settings
             }
         }
 
-        // TODO: make this actually do anything
-        public new void Load()
+        public override void Load()
         {
             base.Load();
             if (Value == null)
