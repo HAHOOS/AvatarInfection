@@ -474,7 +474,6 @@ namespace AvatarInfection
             }
             return true;
         }
-#endif
 
         private static string FirstCharToUpper(string input)
         {
@@ -484,6 +483,7 @@ namespace AvatarInfection
             }
             return $"{char.ToUpper(input[0])}{input[1..]}";
         }
+#endif
 
         public override void OnGamemodeReady()
             => MetadataManager.SetAllMetadata();
