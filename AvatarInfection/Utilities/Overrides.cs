@@ -13,6 +13,12 @@ using LabFusion.Player;
 using LabFusion.Preferences.Client;
 using LabFusion.RPC;
 
+#if SOLOTESTING || DEBUG
+
+using LabFusion.Network;
+
+#endif
+
 using UnityEngine;
 
 namespace AvatarInfection.Utilities
