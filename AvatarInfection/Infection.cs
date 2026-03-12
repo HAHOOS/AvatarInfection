@@ -30,6 +30,8 @@ using MelonLoader;
 
 using UnityEngine;
 
+using static Il2CppSystem.Linq.Expressions.Interpreter.CastInstruction.CastInstructionNoT;
+
 namespace AvatarInfection
 {
     public class Infection : Gamemode
@@ -442,6 +444,7 @@ namespace AvatarInfection
             return true;
         }
 
+#if !DEBUG && !SOLOTESTING
         private static bool AvatarConditions(string barcode, string prefix = "")
         {
             var selected = new Barcode(barcode);
@@ -457,8 +460,21 @@ namespace AvatarInfection
                 Core.Logger.Error($"{(!string.IsNullOrWhiteSpace(prefix) ? $"{FirstCharToUpper(prefix)} " : string.Empty)}Avatar selected while in CONFIG mode is not valid");
                 return false;
             }
+
+            if (!AssetWarehouse.Instance.TryGetCrate(selected, out Crate crate))
+            {
+                Core.Logger.Error($"{(!string.IsNullOrWhiteSpace(prefix) ? $"{FirstCharToUpper(prefix)} " : string.Empty)}Avatar selected while in CONFIG mode is not installed");
+                return false;
+            }
+
+            if (!crate.IsPublic())
+            {
+                Core.Logger.Error($"{(!string.IsNullOrWhiteSpace(prefix) ? $"{FirstCharToUpper(prefix)} " : string.Empty)}Modded avatar selected while in CONFIG mode is not public");
+                return false;
+            }
             return true;
         }
+#endif
 
         private static string FirstCharToUpper(string input)
         {
