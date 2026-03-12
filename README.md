@@ -14,6 +14,16 @@ A Fusion gamemode where a virus is released, but it's rather special... It turns
 - Two types of infection: TOUCH and DEATH
 - **and much, much more**
 
+<h2 align="center">FAQ</h2>
+
+### Q: What is Infected Children?
+
+**A:** Infected Children is a team that can be disabled. If enabled, the people in the team are those who got infected by others, while the people randomly selected at the start of the gamemode are in the Infected team, not Infected Children. Infected Children can have separate stats and avatar from Infected.
+
+### Q: What does it mean that "Avatar is not public"?
+
+**A:** For LabFusion to be able to download avatars of other players, the avatar must have a Mod ID assigned to it. That gets assigned **only** when installing the avatar through the in-game mod.io installer. Manually installing mods by dragging files does not associate the avatar with a Mod ID. To resolve the issue with the avatar not being public, simply download it through the in-game installer. 
+
 <h2 align="center">Credits</h2>
 
 **Lakatrazz** - This gamemode is a heavily modified version of the included in Fusion gamemode Hide & Seek which was made by Lakatrazz.
