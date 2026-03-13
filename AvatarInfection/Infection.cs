@@ -9,8 +9,6 @@ using AvatarInfection.Managers;
 using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
 
-using Il2CppSLZ.Marrow.Warehouse;
-
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Marrow;
@@ -29,8 +27,6 @@ using LabFusion.Utilities;
 using MelonLoader;
 
 using UnityEngine;
-
-using static Il2CppSystem.Linq.Expressions.Interpreter.CastInstruction.CastInstructionNoT;
 
 namespace AvatarInfection
 {

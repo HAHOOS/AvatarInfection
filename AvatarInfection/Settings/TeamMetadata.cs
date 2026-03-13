@@ -6,8 +6,8 @@ using BoneLib;
 
 using Il2CppSLZ.Marrow;
 
-using LabFusion.Extensions;
 using LabFusion.Network;
+using LabFusion.Extensions;
 using LabFusion.SDK.Gamemodes;
 
 namespace AvatarInfection.Settings

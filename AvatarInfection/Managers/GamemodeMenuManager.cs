@@ -5,16 +5,10 @@ using System.Linq;
 using AvatarInfection.Helper;
 using AvatarInfection.Settings;
 
-using BoneLib;
-
-using Il2CppSLZ.Marrow.Warehouse;
-
-using LabFusion.Marrow;
 using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 using LabFusion.Menu.Gamemodes;
 using LabFusion.Network;
-using LabFusion.Player;
 
 using static AvatarInfection.Infection;
 

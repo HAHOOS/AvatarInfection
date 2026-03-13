@@ -1,11 +1,12 @@
 ﻿using System;
 
-using LabFusion.SDK.Gamemodes;
-using LabFusion.SDK.Metadata;
-
-using AvatarInfection.Utilities;
 using LabFusion.Network;
 using LabFusion.Utilities;
+using LabFusion.SDK.Metadata;
+using LabFusion.SDK.Gamemodes;
+
+using AvatarInfection.Utilities;
+
 using MelonLoader;
 
 namespace AvatarInfection.Settings
