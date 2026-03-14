@@ -708,7 +708,7 @@ namespace AvatarInfection
             if (exists)
             {
                 var avatar = plr.RigRefs?.RigManager?.AvatarCrate?.Barcode?.ID;
-                if (!string.IsNullOrWhiteSpace(avatar) && MetadataManager.IsAvatarDownloadable(player))
+                if (!string.IsNullOrWhiteSpace(avatar) && player.IsAvatarDownloadable())
                 {
                     AvatarSetting(AvatarSelectMode.FIRST_INFECTED, (setting) => setting.SetAvatar(avatar, player));
                     return true;

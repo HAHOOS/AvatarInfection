@@ -62,7 +62,7 @@ namespace AvatarInfection.Managers
             LocalPlayer.Metadata.Metadata.TrySetMetadata(AVATAR_MOD_ID, modId.ToString());
         }
 
-        public static bool IsAvatarDownloadable(PlayerID player)
+        public static bool IsAvatarDownloadable(this PlayerID player)
             => player.Metadata.Metadata.TryGetMetadata(AVATAR_MOD_ID, out string val)
             && !string.IsNullOrWhiteSpace(val) && int.TryParse(val, out int res) && res != -1;
     }

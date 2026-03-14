@@ -9,6 +9,7 @@ using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 using LabFusion.Menu.Gamemodes;
 using LabFusion.Network;
+using LabFusion.SDK.Gamemodes;
 
 using static AvatarInfection.Infection;
 
@@ -164,6 +165,9 @@ namespace AvatarInfection.Managers
                 if (Instance.IsStarted)
                     group.AddElement(FormatApplyName(team, apply: false), () => ApplyMetadata(team));
 
+                var incrementElem = IncrementElem(team.TeamName);
+                group.AddElement(incrementElem);
+
                 team.StaticMetadata._settingsList.Types(x =>
                 {
                     if (x is ToggleServerSetting<float> toggleStat)
@@ -172,20 +176,29 @@ namespace AvatarInfection.Managers
                         group.CreateStatElement(team, boolStat);
                 }, typeof(ToggleServerSetting<float>), typeof(ServerSetting<bool>));
 
-                group.AddElement($"Increment: {GetIncrement(team.TeamName)}", () =>
-                {
-                    if (!IncrementTeams.TryGetValue(team.TeamName, out int index))
-                        index = 0;
-
-                    index++;
-                    index %= IncrementValues.Count;
-                    IncrementTeams[team.TeamName] = index;
-
-                    RefreshSettingsPage();
-                });
+                group.AddElement(incrementElem);
             }
 
             return group;
+        }
+
+        private static FunctionElementData IncrementElem(string teamName)
+        {
+            return new FunctionElementData()
+            {
+                Title = $"Increment: {GetIncrement(teamName)}",
+                OnPressed = () =>
+            {
+                if (!IncrementTeams.TryGetValue(teamName, out int index))
+                    index = 0;
+
+                index++;
+                index %= IncrementValues.Count;
+                IncrementTeams[teamName] = index;
+
+                RefreshSettingsPage();
+            }
+            };
         }
 
         private static float GetIncrement(string teamName)
