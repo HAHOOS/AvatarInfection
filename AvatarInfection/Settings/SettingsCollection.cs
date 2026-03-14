@@ -7,6 +7,8 @@ namespace AvatarInfection.Settings
     {
         internal readonly List<ISetting> _settingsList = [];
 
+        public IReadOnlyCollection<ISetting> Settings => _settingsList.AsReadOnly();
+
         public event Action OnSettingChanged;
 
         public event Action OnSettingSynced;
@@ -15,7 +17,7 @@ namespace AvatarInfection.Settings
         {
             _settingsList.ForEach(x => x.Save());
             if (toFile)
-                Core.Category.SaveToFile();
+                Core.Category.SaveToFile(false);
         }
 
         public ISetting this[string name]
