@@ -8,7 +8,7 @@ namespace AvatarInfection
 {
     internal static class Constants
     {
-        public const string Name = "AvatarInfection";
+        public const string Name = "Avatar Infection";
 
         // This probably needs to ACTUALLY explain how the gamemode works, but with all the settings its hard to explain everything.
         public const string Description = "An infection is spreading, turning people into a selected avatar by the host.";
