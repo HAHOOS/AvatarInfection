@@ -133,6 +133,7 @@ namespace AvatarInfection
             TeamManager.AddTeam(Infected);
             TeamManager.AddTeam(Survivors);
             TeamManager.AddTeam(InfectedChildren);
+            // Fired after team is assigned, not before
             TeamManager.OnAssignedToInfectedTeam += OnAssignedToTeam;
 
             InfectedLooking = new MetadataBool(nameof(InfectedLooking), Metadata);
