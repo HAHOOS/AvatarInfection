@@ -26,7 +26,9 @@ A Fusion gamemode where a virus is released, but it's rather special... It turns
 
 <h2 align="center">Credits</h2>
 
-**Lakatrazz** - This gamemode is a heavily modified version of the included in Fusion gamemode Hide & Seek which was made by Lakatrazz.
+[**Lakatrazz**](https://github.com/Lakatrazz) - This gamemode is a heavily modified version of the included in Fusion gamemode Hide & Seek which was made by Lakatrazz. Also LabFusion, which the gamemode is for, was created by Lakatrazz!
+
+[**MashedRam (or just Mash)**](https://github.com/mashedram) - After the release of v1.0.0 of the mod, MashedRam provided me with tips on how to improve the code for my mods (for example not having ALL the code in one file, i think it was like 2200 lines in `Infection.cs` at the time). I'm really thankful that you told me that, all of my code now is much more maintainable!!!
 
 ### Thank You To Testers
 
