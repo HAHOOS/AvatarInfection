@@ -60,18 +60,23 @@ namespace AvatarInfection.Settings
             DisableDevTools = CreateServerSetting(nameof(DisableDevTools), Constants.Defaults.DisableDeveloperTools);
             DisableSpawnGun = CreateServerSetting(nameof(DisableSpawnGun), Constants.Defaults.DisableSpawnGun);
 
-            SelectedAvatar = CreateAvatarSetting(nameof(SelectedAvatar), new(null, Constants.Defaults.SelectMode), true);
-            SelectedAvatar.Optional = false;
-            SelectedAvatar.GroupName = "Infected Avatar";
-            SelectedAvatar.OnValueChanged += SelectedPlayerOverride;
+            SelectedAvatar = CreateAvatarSetting(
+                name: nameof(SelectedAvatar),
+                value: Constants.Defaults.SelectMode,
+                enabled: true,
+                optional: false,
+                groupName: "Infected Avatar",
+                onValueChanged: SelectedPlayerOverride);
 
-            ChildrenSelectedAvatar = CreateAvatarSetting(nameof(ChildrenSelectedAvatar), new(null, Constants.Defaults.SelectMode), false);
-            ChildrenSelectedAvatar.Optional = true;
-            ChildrenSelectedAvatar.GroupName = "Infected Children Avatar";
-            ChildrenSelectedAvatar.OnValueChanged += ChildrenSelectedPlayerOverride;
+            ChildrenSelectedAvatar = CreateAvatarSetting(
+                name: nameof(ChildrenSelectedAvatar),
+                value: Constants.Defaults.SelectMode,
+                enabled: false,
+                optional: true,
+                groupName: "Infected Children Avatar",
+                onValueChanged: ChildrenSelectedPlayerOverride);
 
-            SyncWithInfected = CreateServerSetting(nameof(SyncWithInfected), Constants.Defaults.SyncWithInfected);
-            SyncWithInfected.OnValueChanged += SyncWithInfectedUpdated;
+            SyncWithInfected = CreateServerSetting(nameof(SyncWithInfected), Constants.Defaults.SyncWithInfected, onValueChanged: SyncWithInfectedUpdated);
 
             CountdownLength = CreateServerSetting(nameof(CountdownLength), Constants.Defaults.CountdownLength);
 
@@ -79,8 +84,7 @@ namespace AvatarInfection.Settings
 
             TeleportOnEnd = CreateServerSetting(nameof(TeleportOnEnd), Constants.Defaults.TeleportOnEnd);
 
-            UseDeathmatchSpawns = CreateServerSetting(nameof(UseDeathmatchSpawns), Constants.Defaults.UseDeathMatchSpawns);
-            UseDeathmatchSpawns.OnValueChanged += DeathmathUpdated;
+            UseDeathmatchSpawns = CreateServerSetting(nameof(UseDeathmatchSpawns), Constants.Defaults.UseDeathMatchSpawns, onValueChanged: DeathmathUpdated);
 
             ShowCountdownToAll = CreateServerSetting(nameof(ShowCountdownToAll), Constants.Defaults.ShowCountdownToAll);
 
