@@ -23,7 +23,6 @@ namespace AvatarInfection.Managers
         => player.Metadata.Metadata.TryGetMetadata(HAS_AVATAR_INFECTION_KEY, out string val)
             && !string.IsNullOrWhiteSpace(val) && bool.TryParse(val, out bool res) && res;
 
-        // TODO: fix this shit not working
         public static int CountPlayersWithAvatarInfection()
         {
             int plrs = 0;
