@@ -136,9 +136,16 @@ namespace AvatarInfection.Utilities
             if (origin != -1)
             {
                 var plr = PlayerIDManager.GetPlayerID((ulong)origin);
-                if (!plr.TryGetDisplayName(out string displayName))
-                    displayName = "N/A";
-                Core.Logger.Msg($"Origin: {displayName} ({plr.PlatformID}, {plr.SmallID})");
+                if (plr != null)
+                {
+                    if (!plr.TryGetDisplayName(out string displayName))
+                        displayName = "N/A";
+                    Core.Logger.Msg($"Origin: {displayName} ({plr.PlatformID}, {plr.SmallID})");
+                }
+                else
+                {
+                    Core.Logger.Warning("Origin player is null");
+                }
             }
 #endif
 

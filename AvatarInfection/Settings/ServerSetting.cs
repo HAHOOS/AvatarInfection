@@ -38,7 +38,7 @@ namespace AvatarInfection.Settings
 
         public MetadataVariableT<T> ServerValue { get; }
 
-        private MelonPreferences_Entry<T> Entry { get; set; }
+        public MelonPreferences_Entry<T> Entry { get; set; }
 
         public bool IsSynced
             => Value.Equals(ServerValue.GetValue());
@@ -169,8 +169,8 @@ namespace AvatarInfection.Settings
             => Value.Equals(ServerValue.GetValue())
                 && Enabled == ServerValue.IsEnabled;
 
-        private MelonPreferences_Entry<T> Entry { get; set; }
-        private MelonPreferences_Entry<bool> EnabledEntry { get; set; }
+        public MelonPreferences_Entry<T> Entry { get; set; }
+        public MelonPreferences_Entry<bool> EnabledEntry { get; set; }
 
         public ToggleMetadataVariableT<T> ServerValue { get; }
 

@@ -81,10 +81,10 @@ namespace AvatarInfection.Settings
             SetAvatar(avatar, PlayerIDManager.LocalID);
         }
 
-        internal static string GetRandomAvatar()
+        public static string GetRandomAvatar()
             => GetAvatars().Random();
 
-        internal static string[] GetAvatars()
+        public static string[] GetAvatars()
         {
             var avatars = AssetWarehouse.Instance.GetCrates<AvatarCrate>();
             avatars.ExcludeRedacted();
@@ -111,7 +111,7 @@ namespace AvatarInfection.Settings
             if (Value != null)
             {
                 Value.Barcode = barcode;
-                Value.Origin = player;
+                Value.Origin = (long)player.PlatformID;
                 if (AutoSync)
                     Sync();
             }
@@ -155,16 +155,37 @@ namespace AvatarInfection.Settings
             if (string.IsNullOrWhiteSpace(Value.Barcode))
                 return;
 
-            if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(Value.Barcode), out Crate crate) || !crate.IsPublic())
+            if (Value.SelectMode == AvatarSelectMode.RANDOM || Value.SelectMode == AvatarSelectMode.FIRST_INFECTED)
             {
-                MenuHelper.ShowNotification("Error", $"The loaded avatar with barcode '{Value.Barcode}' could not be found, or is not public! It will be reset to default.", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
-                FusionModule.Logger.Error($"The loaded avatar with barcode '{Value.Barcode}' could not be found, or is not public! It will be reset to default.");
-                Value = new(null, AvatarSelectMode.CONFIG);
-                Save();
+                Value.Barcode = null;
+                Value.Origin = -1;
             }
             else
             {
-                Value.Origin = (long)PlayerIDManager.LocalPlatformID;
+                if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(Value.Barcode), out Crate crate) || !crate.IsPublic())
+                {
+                    MenuHelper.ShowNotification("Error", $"The loaded avatar with barcode '{Value.Barcode}' could not be found, or is not public! It will be reset to default.", 5f, type: LabFusion.UI.Popups.NotificationType.ERROR);
+                    FusionModule.Logger.Error($"The loaded avatar with barcode '{Value.Barcode}' could not be found, or is not public! It will be reset to default.");
+                    Value = new(null, AvatarSelectMode.CONFIG);
+                    Save();
+                }
+                else
+                {
+                    Value.Origin = (long)PlayerIDManager.LocalPlatformID;
+                }
+            }
+        }
+
+        public override void Save()
+        {
+            if (Value.SelectMode != AvatarSelectMode.CONFIG)
+            {
+                Entry.Value = new(null, Value.SelectMode);
+                EnabledEntry.Value = Enabled;
+            }
+            else
+            {
+                base.Save();
             }
         }
 

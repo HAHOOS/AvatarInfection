@@ -20,14 +20,14 @@ namespace AvatarInfection.Settings
 
         public event Action OnValueChanged;
 
-        private MelonPreferences_Entry<T> Entry { get; }
+        public MelonPreferences_Entry<T> Entry { get; }
 
         public string Name { get; }
 
-        public void Load()
+        public virtual void Load()
             => Value = Entry.Value;
 
-        public void Save()
+        public virtual void Save()
             => Entry.Value = Value;
 
         public LocalSetting(string name)
