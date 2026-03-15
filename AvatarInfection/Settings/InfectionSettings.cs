@@ -75,6 +75,7 @@ namespace AvatarInfection.Settings
                 optional: true,
                 groupName: "Infected Children Avatar",
                 onValueChanged: ChildrenSelectedPlayerOverride);
+            ChildrenSelectedAvatar.DisallowedSelectModes = [AvatarSelectMode.FIRST_INFECTED];
 
             SyncWithInfected = CreateServerSetting(nameof(SyncWithInfected), Constants.Defaults.SyncWithInfected, onValueChanged: SyncWithInfectedUpdated);
 

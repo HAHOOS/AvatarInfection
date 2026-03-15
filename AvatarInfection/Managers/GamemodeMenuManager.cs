@@ -23,7 +23,6 @@ namespace AvatarInfection.Managers
 
         private static readonly IReadOnlyList<float> IncrementValues = [0.2f, 0.5f, 1f, 5f];
 
-        // TODO: dont hard-code settings creation, dynamically generate from config for simplicity (probably add more lines than remove but will be somewhat easier to work with)
         internal static GroupElementData CreateSettingsGroup()
         {
             // HACK: for some reason if i wouldn't have done this the settings wouldn't work

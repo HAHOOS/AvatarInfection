@@ -24,6 +24,8 @@ namespace AvatarInfection.Settings
 
         public bool Optional { get; set; }
 
+        public AvatarSelectMode[] DisallowedSelectModes { get; set; } = [];
+
         public string OptionalToggle { get; set; } = "Seperate From Main";
 
         public GroupElementData CreateGroup()
@@ -40,7 +42,7 @@ namespace AvatarInfection.Settings
             if (Optional && !Enabled)
                 return avatarGroup;
 
-            avatarGroup.AddElement("Select Mode", Value?.SelectMode ?? AvatarSelectMode.CONFIG, (val) => { SetSelectMode((AvatarSelectMode)val); GamemodeMenuManager.RefreshSettingsPage(); });
+            avatarGroup.AddElement($"Select Mode: {Value?.SelectMode ?? AvatarSelectMode.CONFIG}", SelectModeElement);
 
             if (Value?.SelectMode == AvatarSelectMode.CONFIG)
             {
@@ -64,6 +66,33 @@ namespace AvatarInfection.Settings
             }
 
             return avatarGroup;
+        }
+
+        private void SelectModeElement()
+        {
+            var values = Enum.GetValues(typeof(AvatarSelectMode));
+            int index = 0;
+            for (int i = 0; i < values.Length; i++)
+            {
+                if ((AvatarSelectMode)values.GetValue(i) == Value?.SelectMode)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (values.Cast<AvatarSelectMode>().All(x => DisallowedSelectModes.Contains(x)))
+                return;
+
+            do
+            {
+                index++;
+                index %= values.Length;
+            }
+            while (DisallowedSelectModes.Contains((AvatarSelectMode)values.GetValue(index)));
+
+            SetSelectMode((AvatarSelectMode)values.GetValue(index));
+            GamemodeMenuManager.RefreshSettingsPage();
         }
 
         public Barcode AsBarcode()
