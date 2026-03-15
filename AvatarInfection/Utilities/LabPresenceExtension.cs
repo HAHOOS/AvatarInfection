@@ -15,7 +15,7 @@ namespace AvatarInfection.Utilities
             if (LabPresenceMelon != null && LabPresenceMelon.Info?.SemanticVersion > new Semver.SemVersion(1, 0, 0))
                 Internal_Init();
             else
-                FusionModule.Logger.Warn("Could not find LabPresence");
+                FusionModule.Logger.Warn("Could not find LabPresence (minimum version required: v1.1.0)");
         }
 
         internal static void Internal_Init()
