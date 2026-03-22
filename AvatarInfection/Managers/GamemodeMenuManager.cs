@@ -57,7 +57,7 @@ namespace AvatarInfection.Managers
             {
                 Instance.Config.NoTimeLimit.Value = val;
                 if (Instance.IsStarted)
-                    Instance.EndUnix.SetValue(-1);
+                    Instance.Config.EndUnix.Value = -1;
                 RefreshSettingsPage();
             });
 
@@ -131,7 +131,7 @@ namespace AvatarInfection.Managers
         {
             Instance.Config.TimeLimit.Value = val;
             if (Instance.IsStarted)
-                Instance.EndUnix.SetValue(DateTimeOffset.FromUnixTimeMilliseconds((long)Instance.StartUnix.GetValue()).AddMinutes(val).ToUnixTimeMilliseconds());
+                Instance.Config.EndUnix.Value = DateTimeOffset.FromUnixTimeMilliseconds(Instance.Config.StartUnix.Value).AddMinutes(val).ToUnixTimeMilliseconds();
         }
 
         private static void SetCountdownLength(int val)

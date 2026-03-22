@@ -33,6 +33,10 @@ namespace AvatarInfection.Settings
 
         internal ServerSetting<int> CountdownLength { get; set; }
 
+        internal ServerSetting<long> StartUnix { get; set; }
+
+        internal ServerSetting<long> EndUnix { get; set; }
+
         #endregion Server
 
         #region Local
@@ -90,6 +94,9 @@ namespace AvatarInfection.Settings
             ShowCountdownToAll = CreateServerSetting(nameof(ShowCountdownToAll), Constants.Defaults.ShowCountdownToAll);
 
             FriendlyFire = CreateServerSetting(nameof(FriendlyFire), Constants.Defaults.FriendlyFire);
+
+            StartUnix = CreateServerSetting<long>(nameof(StartUnix), -1);
+            EndUnix = CreateServerSetting<long>(nameof(EndUnix), -1);
 
             DontRepeatInfected = CreateLocalSetting(nameof(DontRepeatInfected), Constants.Defaults.DontRepeatInfected);
             HoldTime = CreateLocalSetting(nameof(HoldTime), Constants.Defaults.HoldTime);

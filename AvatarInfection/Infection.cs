@@ -9,6 +9,10 @@ using AvatarInfection.Managers;
 using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
 
+#if RELEASE
+using Il2CppSLZ.Marrow.Warehouse;
+#endif
+
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Marrow;
@@ -85,10 +89,6 @@ namespace AvatarInfection
 
         internal MetadataInt CountdownValue { get; private set; }
 
-        internal MetadataVariableT<long?> StartUnix { get; private set; }
-
-        internal MetadataVariableT<long?> EndUnix { get; private set; }
-
         internal InfectionSettings Config { get; set; }
 
         public bool OneMinuteLeft { get; private set; }
@@ -138,8 +138,6 @@ namespace AvatarInfection
 
             InfectedLooking = new MetadataBool(nameof(InfectedLooking), Metadata);
             CountdownValue = new MetadataInt(nameof(CountdownValue), Metadata);
-            StartUnix = new MetadataVariableT<long?>(nameof(StartUnix), Metadata);
-            EndUnix = new MetadataVariableT<long?>(nameof(EndUnix), Metadata);
             Metadata.OnMetadataChanged += OnMetadataChanged;
 
             EventManager.RegisterEvent<string>(EventType.RefreshStats, StatsManager.RefreshStats, true);
@@ -510,11 +508,11 @@ namespace AvatarInfection
             TeamManager.InfectedTeams.ForEach(x => x.Metadata.ApplyConfig());
 
             var now = DateTimeOffset.Now;
-            StartUnix.SetValue(now.ToUnixTimeMilliseconds());
+            Config.StartUnix.Value = now.ToUnixTimeMilliseconds();
             if (!Config.NoTimeLimit.Value)
-                EndUnix.SetValue(now.AddMinutes(Config.TimeLimit.Value).ToUnixTimeMilliseconds());
+                Config.EndUnix.Value = now.AddMinutes(Config.TimeLimit.Value).ToUnixTimeMilliseconds();
             else
-                EndUnix.SetValue(-1);
+                Config.EndUnix.Value = -1;
 
             InfectedLooking.SetValue(false);
         }
