@@ -18,7 +18,7 @@ A Fusion gamemode where a virus is released, but it's rather special... It turns
 
 ### Q: What is Infected Children?
 
-**A:** Infected Children is a team that can be disabled. If enabled, the people in the team are those who got infected by others, while the people randomly selected at the start of the gamemode are in the Infected team, not Infected Children. Infected Children can have separate stats and avatar from Infected.
+**A:** Infected Children is a team (cool, right, that's the only thing u need to know). The people assigned to the team are those who got infected by others, while the people randomly selected at the start of the gamemode are in the Infected team, not Infected Children. Infected Children can have separate stats and avatar from Infected. You can "disable" the team by enabling "Sync With Infected" in `Infected Children Stats` and disabling the option "Separate From Main" in the `Infected Children Avatar` section
 
 ### Q: What does it mean that "Avatar is not public"?
 
