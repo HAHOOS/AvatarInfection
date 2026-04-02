@@ -40,9 +40,7 @@ namespace AvatarInfection.Managers
             Instance.Config._settingsList.ForEach(x =>
             {
                 if (x is AvatarSetting avSetting)
-                {
                     group.AddElement(avSetting.CreateGroup());
-                }
             });
 
             group.AddElement(CreateElementsForTeam(Instance.Infected));

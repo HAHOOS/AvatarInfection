@@ -473,9 +473,8 @@ namespace AvatarInfection
         private static string FirstCharToUpper(string input)
         {
             if (string.IsNullOrEmpty(input))
-            {
                 return string.Empty;
-            }
+
             return $"{char.ToUpper(input[0])}{input[1..]}";
         }
 #endif
@@ -728,9 +727,9 @@ namespace AvatarInfection
         private void SetAvatar(PlayerID player, bool isChildren)
         {
             if (!isChildren || (isChildren && !Config.ChildrenSelectedAvatar.Enabled))
-                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.PlatformID, Config.SelectedAvatar.Value?.Barcode, Config.SelectedAvatar.Value?.Origin ?? -1));
+                EventManager.TryInvokeEvent(EventType.SwapAvatar, SwapAvatarData.Create(player, Config.SelectedAvatar));
             else
-                EventManager.TryInvokeEvent(EventType.SwapAvatar, new SwapAvatarData(player.PlatformID, Config.ChildrenSelectedAvatar.Value?.Barcode, Config.ChildrenSelectedAvatar.Value?.Origin ?? -1));
+                EventManager.TryInvokeEvent(EventType.SwapAvatar, SwapAvatarData.Create(player, Config.ChildrenSelectedAvatar));
         }
 
         protected void OnPlayerAction(PlayerID player, PlayerActionType type, PlayerID otherPlayer = null)
@@ -792,6 +791,9 @@ namespace AvatarInfection
         public string Barcode { get; set; } = barcode;
 
         public long Origin { get; set; } = origin;
+
+        public static SwapAvatarData Create(PlayerID player, AvatarSetting setting)
+            => new(player.PlatformID, setting.Value?.Barcode, setting.Value?.Origin ?? -1);
     }
 
     internal class PlayerInfectedData(ulong userId, long by)

@@ -1,9 +1,5 @@
 ﻿using System.Reflection;
 
-using AvatarInfection.Utilities;
-
-using BoneLib;
-
 using HarmonyLib;
 
 using LabFusion.Network;
