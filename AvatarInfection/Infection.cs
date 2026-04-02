@@ -275,7 +275,7 @@ namespace AvatarInfection
 
             if (NetworkInfo.IsHost && Survivors.HasPlayer(playerId))
             {
-                if (Survivors.PlayerCount <= 1)
+                if (Survivors.PlayerCount < 1)
                 {
                     EventManager.TryInvokeEvent(EventType.InfectedVictory);
                     GamemodeManager.StopGamemode();
@@ -297,7 +297,7 @@ namespace AvatarInfection
             string _displayName = string.IsNullOrWhiteSpace(displayName) ? "N/A" : displayName;
             string last = "look out for them...";
 
-            if (Survivors.PlayerCount <= 1)
+            if (Survivors.PlayerCount < 1)
                 last = "the last survivor has fallen...";
 
             MenuHelper.ShowNotification(
