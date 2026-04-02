@@ -3,7 +3,6 @@ using System.Linq;
 
 using AvatarInfection.Managers;
 using AvatarInfection.Settings;
-using AvatarInfection.Utilities;
 
 using BoneLib;
 
@@ -164,7 +163,7 @@ namespace AvatarInfection.Patches
 
             foreach (var hold in new Dictionary<Grip, GripData>(HoldTime))
             {
-                hold.Value.Time += TimeUtilities.DeltaTime;
+                hold.Value.Time += Managers.TimeManager.DeltaTime;
                 HoldTime[hold.Key] = hold.Value;
                 if (hold.Value.Time >= Infection.Instance.Config.HoldTime.Value)
                 {

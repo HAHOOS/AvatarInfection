@@ -29,13 +29,7 @@ namespace AvatarInfection.Managers
 
         private static CancellationTokenSource CancellationToken { get; set; }
 
-        internal static void Setup()
-            => MultiplayerHooking.OnUpdate += OnUpdate;
-
-        internal static void Destroy()
-            => MultiplayerHooking.OnUpdate -= OnUpdate;
-
-        private static void OnUpdate()
+        internal static void OnUpdate()
         {
             if (HideVision && !LocalVision.Blind)
                 LocalVision.Blind = true;
@@ -164,8 +158,8 @@ namespace AvatarInfection.Managers
             }
 
             // Tick timer
-            elapsed += TimeUtilities.DeltaTime;
-            totalElapsed += TimeUtilities.DeltaTime;
+            elapsed += TimeManager.DeltaTime;
+            totalElapsed += TimeManager.DeltaTime;
 
             // If a second passed, send the notification next frame
             if (elapsed >= 1f)

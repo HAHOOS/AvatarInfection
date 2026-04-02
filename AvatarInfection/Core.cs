@@ -2,6 +2,7 @@
 using System.IO;
 
 using AvatarInfection.Helper;
+using AvatarInfection.Managers;
 using AvatarInfection.Patches;
 using AvatarInfection.Utilities;
 
@@ -78,13 +79,13 @@ namespace AvatarInfection
 
         public override void OnFixedUpdate()
         {
-            TimeUtilities.OnEarlyFixedUpdate();
+            TimeManager.OnEarlyFixedUpdate();
         }
 
         public override void OnUpdate()
         {
-            TimeUtilities.OnEarlyUpdate();
-            GrabPatches.Update();
+            TimeManager.OnEarlyUpdate();
+            TimeManager.OnUpdate();
         }
     }
 }

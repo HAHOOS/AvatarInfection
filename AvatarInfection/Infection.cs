@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 using AvatarInfection.Helper;
 using AvatarInfection.Managers;
+using AvatarInfection.Patches;
 using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
 
@@ -122,6 +123,11 @@ namespace AvatarInfection
             MultiplayerHooking.OnTargetLevelLoaded += MetadataManager.SetAllMetadata;
             MultiplayerHooking.OnDisconnected += Cleanup;
 
+            TimeManager.Repeat(Timer);
+            TimeManager.Repeat(GrabPatches.Update);
+            TimeManager.Repeat(VisionManager.OnUpdate);
+            TimeManager.Repeat(SurvivorsUpdate);
+
             Infected = new("Infected", Color.green, this, new(Constants.Defaults.InfectedStats));
             Survivors = new("Survivors", Color.cyan, this, new(Constants.Defaults.SurvivorsStats));
             InfectedChildren = new("InfectedChildren", new Color(0, 1, 0), this, new(Constants.Defaults.InfectedChildrenStats), GetInfectedChildrenMetadata)
@@ -151,7 +157,6 @@ namespace AvatarInfection
             EventManager.RegisterNotification(EventType.SurvivorsVictory, "Survivors Won", "There were people not infected in time!");
 
             BoneMenuManager.Setup();
-            VisionManager.Setup();
         }
 
         private TeamMetadata GetInfectedChildrenMetadata()
@@ -207,7 +212,6 @@ namespace AvatarInfection
             EventManager.OnUnregistered();
 
             BoneMenuManager.Destroy();
-            VisionManager.Destroy();
         }
 
         private void OnPlayerLeave(PlayerID id)
@@ -361,9 +365,12 @@ namespace AvatarInfection
                 VisionManager.HideVisionAndReveal(team != Infected ? 3 : 0);
         }
 
-        protected override void OnUpdate()
+        private void Timer()
         {
-            _elapsedTime += TimeUtilities.DeltaTime;
+            if (!IsStarted)
+                return;
+
+            _elapsedTime += TimeManager.DeltaTime;
             if (NetworkInfo.IsHost && !Config.NoTimeLimit.Value)
             {
                 if (!OneMinuteLeft && Config.TimeLimit.Value - ElapsedMinutes == 1)
@@ -375,19 +382,19 @@ namespace AvatarInfection
                     GamemodeManager.StopGamemode();
                 }
             }
-
-            if (Instance.IsStarted && TeamManager.GetLocalTeam() == Survivors)
-                SurvivorsUpdate();
         }
 
         private void SurvivorsUpdate()
         {
-            if (_surivorsLastCheckedMinutes != ElapsedMinutes)
-            {
-                _surivorsLastCheckedMinutes = ElapsedMinutes;
+            if (!Instance.IsStarted || TeamManager.GetLocalTeam() != Survivors)
+                return;
 
-                PointItemManager.RewardBits(Constants.SurvivorsBitReward);
-            }
+            if (_surivorsLastCheckedMinutes == ElapsedMinutes)
+                return;
+
+            _surivorsLastCheckedMinutes = ElapsedMinutes;
+
+            PointItemManager.RewardBits(Constants.SurvivorsBitReward);
         }
 
         public override bool CheckReadyConditions()
