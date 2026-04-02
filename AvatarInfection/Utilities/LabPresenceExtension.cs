@@ -6,6 +6,8 @@ namespace AvatarInfection.Utilities
 {
     internal static class LabPresenceExtension
     {
+        public const string SmallImage = "hahoos_avatarinfection";
+
         public static MelonBase LabPresenceMelon => Core.FindMelon("LabPresence", "HAHOOS");
 
         public static void Init()
@@ -17,7 +19,7 @@ namespace AvatarInfection.Utilities
         }
 
         internal static void Internal_Init()
-            => GamemodeManager.RegisterGamemode(Constants.Barcode, CustomToolTip, CustomTimestamp);
+            => GamemodeManager.RegisterGamemode(Constants.Barcode, CustomToolTip, CustomTimestamp, SmallImage);
 
         private static string CustomToolTip()
             => $"{Infection.Instance.Survivors.PlayerCount} survivors left!";

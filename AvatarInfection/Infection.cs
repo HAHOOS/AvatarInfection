@@ -674,6 +674,7 @@ namespace AvatarInfection
                 var player = players.Random();
                 // This could be easily exploited to avoid being the infected by using a modified version of the mod
                 // If such issues will occur, this will be changed
+                // If you are reading, please don't do that, this does not intend to bring ideas :(
                 if (!MetadataManager.DoYouHaveAvatarInfection(player))
                     continue;
 
