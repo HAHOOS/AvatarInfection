@@ -362,4 +362,3 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /key.snk
-/AvatarInfection/Properties/launchSettings.json

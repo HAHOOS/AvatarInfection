@@ -42,6 +42,9 @@ namespace AvatarInfection.Settings
             Speed = CreateSetting(nameof(Speed), config?.Speed, nameof(Speed));
             Agility = CreateSetting(nameof(Agility), config?.Agility, nameof(Agility));
             StrengthUpper = CreateSetting(nameof(StrengthUpper), config?.StrengthUpper, "Strength Upper");
+
+            this.OnSettingChanged += UpdateMenu;
+            this.OnSettingSynced += UpdateMenu;
         }
 
         public new void Sync()
@@ -50,7 +53,7 @@ namespace AvatarInfection.Settings
             UpdateMenu();
         }
 
-        private void UpdateMenu()
+        public void UpdateMenu()
         {
             if (!Gamemode.IsStarted)
                 return;

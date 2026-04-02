@@ -31,7 +31,7 @@ namespace AvatarInfection.Settings
                 _value = value;
                 if (AutoSync)
                     Sync();
-                if (NetworkInfo.IsHost && AutoSync)
+                else
                     OnValueChanged?.Invoke();
             }
         }
@@ -53,11 +53,6 @@ namespace AvatarInfection.Settings
         public void Sync()
         {
             ServerValue.SetValue(_value);
-
-            if (NetworkInfo.IsHost)
-                OnValueChanged?.Invoke();
-
-            OnSynced?.Invoke();
         }
 
         public virtual void Load()
@@ -93,16 +88,19 @@ namespace AvatarInfection.Settings
 
         private void MetadataChanged(string key, string value)
         {
-            if (NetworkInfo.IsHost)
-                return;
-
             if (key == ServerValue.Key)
             {
-                var old = _value;
-                _value = ServerValue.GetValue();
+                if (_value.Equals(ServerValue.GetValue()))
+                {
+                    OnSynced?.Invoke();
+                }
+                else
+                {
+                    if (!NetworkInfo.IsHost)
+                        _value = ServerValue.GetValue();
 
-                if (!old.Equals(_value))
                     OnValueChanged?.Invoke();
+                }
             }
         }
 
@@ -149,6 +147,8 @@ namespace AvatarInfection.Settings
                 _value = value;
                 if (AutoSync)
                     Sync();
+                else
+                    OnValueChanged?.Invoke();
             }
         }
 
@@ -162,6 +162,8 @@ namespace AvatarInfection.Settings
                 _enabled = value;
                 if (AutoSync)
                     Sync();
+                else
+                    OnValueChanged?.Invoke();
             }
         }
 
@@ -185,11 +187,6 @@ namespace AvatarInfection.Settings
         {
             ServerValue.SetValue(_value);
             ServerValue.SetEnabled(_enabled);
-
-            if (NetworkInfo.IsHost)
-                OnValueChanged?.Invoke();
-
-            OnSynced?.Invoke();
         }
 
         public virtual void Load()
@@ -233,25 +230,33 @@ namespace AvatarInfection.Settings
 
         private void MetadataChanged(string key, string value)
         {
-            if (NetworkInfo.IsHost)
-                return;
-
             if (key == ServerValue.Key)
             {
-                var old = _value;
-                _value = ServerValue.GetValue();
+                if (_value.Equals(ServerValue.GetValue()))
+                {
+                    OnSynced?.Invoke();
+                }
+                else
+                {
+                    if (!NetworkInfo.IsHost)
+                        _value = ServerValue.GetValue();
 
-                if (!old.Equals(_value))
                     OnValueChanged?.Invoke();
+                }
             }
             else if (key == ServerValue.ToggledKey)
             {
                 if (Enabled == ServerValue.IsEnabled)
-                    return;
+                {
+                    OnSynced?.Invoke();
+                }
+                else
+                {
+                    if (!NetworkInfo.IsHost)
+                        _enabled = ServerValue.IsEnabled;
 
-                _enabled = ServerValue.IsEnabled;
-
-                OnValueChanged?.Invoke();
+                    OnValueChanged?.Invoke();
+                }
             }
         }
 

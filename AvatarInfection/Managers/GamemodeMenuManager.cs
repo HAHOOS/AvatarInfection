@@ -170,7 +170,7 @@ namespace AvatarInfection.Managers
                     if (x is ToggleServerSetting<float> toggleStat)
                         group.CreateStatElement(team, toggleStat);
                     else if (x is ServerSetting<bool> boolStat)
-                        group.CreateStatElement(team, boolStat);
+                        group.CreateStatElement(boolStat);
                 }, typeof(ToggleServerSetting<float>), typeof(ServerSetting<bool>));
 
                 group.AddElement(incrementElem);
@@ -209,13 +209,13 @@ namespace AvatarInfection.Managers
 
         private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ToggleServerSetting<float> stat)
         {
-            group.AddElement($"Override {stat.DisplayName}", stat.Enabled, (val) => { stat.Enabled = val; FormatApplyName(team); RefreshSettingsPage(); });
+            group.AddElement($"Override {stat.DisplayName}", stat.Enabled, (val) => { stat.Enabled = val; RefreshSettingsPage(); });
             if (stat.Enabled)
-                group.AddElement(stat.DisplayName, stat.Value, (val) => { stat.Value = val; FormatApplyName(team); }, increment: GetIncrement(team.TeamName));
+                group.AddElement(stat.DisplayName, stat.Value, (val) => stat.Value = val, increment: GetIncrement(team.TeamName));
         }
 
-        private static void CreateStatElement(this GroupElementData group, InfectionTeam team, ServerSetting<bool> stat)
-            => group.AddElement(stat.DisplayName, stat.Value, (val) => { stat.Value = val; FormatApplyName(team); });
+        private static void CreateStatElement(this GroupElementData group, ServerSetting<bool> stat)
+            => group.AddElement(stat.DisplayName, stat.Value, (val) => stat.Value = val);
 
         internal static string FormatApplyName(InfectionTeam team, bool apply = true)
         {
@@ -223,12 +223,8 @@ namespace AvatarInfection.Managers
 
             string _name;
 
-            if (!Instance.IsStarted)
-                _name = $"<color=#000000>{name} (Gamemode not started)</color>"; // black color
-            else if (team.Metadata.IsApplied)
+            if (team.Metadata.IsApplied)
                 _name = $"<color=#00FF00>{name} (Applied)</color>"; // green color
-            else if (team.Metadata.HasNoServerSettings())
-                _name = $"<color=#898989>{name} (No Server Settings, fucked up code)</color>"; // gray color
             else
                 _name = $"<color=#FF0000>{name} (Not Applied)</color>"; // red color
 
@@ -251,9 +247,6 @@ namespace AvatarInfection.Managers
                 FormatApplyName(team);
             }
         }
-
-        private static bool HasNoServerSettings(this TeamMetadata metadata)
-            => !metadata._settingsList.Any(setting => setting is IServerSetting);
 
         private static string GetGroupName(this InfectionTeam team)
             => string.Format(TeamConfigName, team.DisplayName);

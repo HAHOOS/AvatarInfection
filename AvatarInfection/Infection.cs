@@ -361,33 +361,18 @@ namespace AvatarInfection
                 VisionManager.HideVisionAndReveal(team != Infected ? 3 : 0);
         }
 
-        private float _elapsedTimeMenu;
-
         protected override void OnUpdate()
         {
             _elapsedTime += TimeUtilities.DeltaTime;
-            // HACK: There's a better way to do this, but for some fucking reason it doesnt want to cooperate. This must do for now.
-            // TODO: Change this shit.
-            if (NetworkInfo.IsHost)
+            if (NetworkInfo.IsHost && !Config.NoTimeLimit.Value)
             {
-                _elapsedTimeMenu += TimeUtilities.DeltaTime;
+                if (!OneMinuteLeft && Config.TimeLimit.Value - ElapsedMinutes == 1)
+                    EventManager.TryInvokeEvent(EventType.OneMinuteLeft);
 
-                if (_elapsedTimeMenu >= 1f)
+                if (ElapsedMinutes >= Config.TimeLimit.Value)
                 {
-                    _elapsedTimeMenu = 0f;
-                    TeamManager.InfectedTeams.ForEach(x => GamemodeMenuManager.FormatApplyName(x, true));
-                }
-
-                if (!Config.NoTimeLimit.Value)
-                {
-                    if (!OneMinuteLeft && Config.TimeLimit.Value - ElapsedMinutes == 1)
-                        EventManager.TryInvokeEvent(EventType.OneMinuteLeft);
-
-                    if (ElapsedMinutes >= Config.TimeLimit.Value)
-                    {
-                        EventManager.TryInvokeEvent(EventType.SurvivorsVictory);
-                        GamemodeManager.StopGamemode();
-                    }
+                    EventManager.TryInvokeEvent(EventType.SurvivorsVictory);
+                    GamemodeManager.StopGamemode();
                 }
             }
 

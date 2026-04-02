@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "AvatarInfection": {
+      "commandName": "Project"
+    },
+    "BONELAB": {
+      "commandName": "Executable",
+      "executablePath": "$(BONELAB_DIR)\\BONELAB_Oculus_Windows64.exe",
+      "commandLineArgs": "--melonloader.consoleontop",
+      "workingDirectory": "$(BONELAB_DIR)"
+    }
+  }
+}
