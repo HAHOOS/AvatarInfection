@@ -38,6 +38,7 @@ using UnityEngine;
 
 namespace AvatarInfection
 {
+    // TODO: add a "suicide" button (in the quick menu)
     public class Infection : Gamemode
     {
         public override string Title => Constants.Name;
@@ -357,7 +358,6 @@ namespace AvatarInfection
         {
             InitialTeam = false;
 
-            // TODO: this doesn't appear at all
             if (team != Infected)
                 MenuHelper.ShowNotification("Survivor", "You got lucky! Make sure you don't get infected!", 3);
 
@@ -479,6 +479,7 @@ namespace AvatarInfection
         public override void OnGamemodeSelected()
             => MetadataManager.SetAllMetadata();
 
+        // TODO: check what it actually does
         public override bool CanAttack(PlayerID player)
         {
             if (!IsStarted)
@@ -745,6 +746,7 @@ namespace AvatarInfection
             LastPlayerActions[player] = type;
         }
 
+        // TODO: properly turn off knockout or account for knockout somehow
         private void DyingEvent(PlayerID player, PlayerID otherPlayer)
         {
             if (!Config.SuicideInfects.Value || otherPlayer != null)

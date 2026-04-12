@@ -15,6 +15,7 @@ namespace AvatarInfection.Patches
     public static class AvatarPatches
     {
         // TODO: account for stat overrides
+        // TODO: scale mass with strength upper
         [HarmonyPriority(int.MinValue)]
         [HarmonyPatch(nameof(Avatar.ComputeBaseStats))]
         public static void Postfix(Avatar __instance)

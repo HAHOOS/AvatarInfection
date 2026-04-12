@@ -12,7 +12,7 @@ namespace AvatarInfection.Patches
     [HarmonyPatch(typeof(PullCordDevice))]
     public static class PullCordDevicePatches
     {
-
+        // TODO: fix pull cord device not working after gamemode ends
         [HarmonyPrefix]
         [HarmonyPatch(nameof(PullCordDevice.EnableBall))]
         public static bool OnBall(PullCordDevice __instance)
