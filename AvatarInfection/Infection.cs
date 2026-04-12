@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 using AvatarInfection.Helper;
 using AvatarInfection.Managers;
@@ -11,7 +12,9 @@ using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
 
 #if RELEASE
+
 using Il2CppSLZ.Marrow.Warehouse;
+
 #endif
 
 using LabFusion.Entities;
@@ -275,7 +278,7 @@ namespace AvatarInfection
 
             if (NetworkInfo.IsHost && Survivors.HasPlayer(playerId))
             {
-                if (Survivors.PlayerCount < 1)
+                if (Survivors.PlayerCount <= 1)
                 {
                     EventManager.TryInvokeEvent(EventType.InfectedVictory);
                     GamemodeManager.StopGamemode();
@@ -290,14 +293,13 @@ namespace AvatarInfection
             BoneMenuManager.PopulatePage();
         }
 
-        // TODO: fix this showing "look out for them..." when they are the last survivor
         private void SurvivorNotification(PlayerID playerId)
         {
             playerId.TryGetDisplayName(out var displayName);
             string _displayName = string.IsNullOrWhiteSpace(displayName) ? "N/A" : displayName;
             string last = "look out for them...";
 
-            if (Survivors.PlayerCount < 1)
+            if (Survivors.PlayerCount == 0)
                 last = "the last survivor has fallen...";
 
             MenuHelper.ShowNotification(
@@ -353,11 +355,9 @@ namespace AvatarInfection
 
         private void HandleInitialTeam(InfectionTeam team)
         {
-            if (!InitialTeam)
-                return;
-
             InitialTeam = false;
 
+            // TODO: this doesn't appear at all
             if (team != Infected)
                 MenuHelper.ShowNotification("Survivor", "You got lucky! Make sure you don't get infected!", 3);
 
@@ -432,6 +432,7 @@ namespace AvatarInfection
         }
 
 #if !DEBUG && !SOLOTESTING
+
         private static bool AvatarConditions(string barcode, string prefix = "")
         {
             var selected = new Barcode(barcode);
@@ -469,6 +470,7 @@ namespace AvatarInfection
 
             return $"{char.ToUpper(input[0])}{input[1..]}";
         }
+
 #endif
 
         public override void OnGamemodeReady()
@@ -556,6 +558,8 @@ namespace AvatarInfection
             VisionManager.HideVision = false;
             InitialTeam = true;
             WasStarted = wasStarted;
+
+            InfectedLooking.SetValue(false);
         }
 
         internal static void UseDeathmatchSpawns_Init(bool teleport = true)
@@ -565,19 +569,16 @@ namespace AvatarInfection
 
             appliedDeathmatchSpawns = true;
 
-            List<Transform> transforms = [];
-            GamemodeMarker.FilterMarkers(null).ForEach(x => transforms.Add(x.transform));
+            GamemodeHelper.SetSpawnPoints(GamemodeMarker.FilterMarkers(null));
 
-            FusionPlayer.SetSpawnPoints([.. transforms]);
-
-            if (FusionPlayer.TryGetSpawnPoint(out var spawn) && teleport)
-                LocalPlayer.TeleportToPosition(spawn.position, spawn.forward);
+            if (teleport)
+                GamemodeHelper.TeleportToSpawnPoint();
         }
 
         internal static void ClearDeathmatchSpawns()
         {
             appliedDeathmatchSpawns = false;
-            FusionPlayer.ResetSpawnPoints();
+            GamemodeHelper.ResetSpawnPoints();
         }
 
         public override void OnGamemodeStopped()
@@ -651,10 +652,16 @@ namespace AvatarInfection
 
             var _last = new List<PlayerID>(players);
             _last.RemoveAll(x => last.Contains(x.PlatformID));
+            bool addBack = false;
             if (_last.Count < Config.InfectedCount.Value)
+            {
                 last.Clear();
+            }
             else
+            {
                 players.RemoveAll(x => last.Contains(x.PlatformID));
+                addBack = true;
+            }
 
             while (failSafe < 1000)
             {
@@ -688,6 +695,7 @@ namespace AvatarInfection
             if (!selected)
                 AvatarSetting(AvatarSelectMode.FIRST_INFECTED, (setting) => setting.SetRandomAvatar());
 
+            if (addBack) players.AddRange(last.Select(PlayerIDManager.GetPlayerID));
             players.ForEach(x => TeamManager.TryAssignTeam(x, Survivors));
         }
 
