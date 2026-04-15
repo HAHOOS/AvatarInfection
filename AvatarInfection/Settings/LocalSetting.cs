@@ -24,7 +24,7 @@ namespace AvatarInfection.Settings
 
         public string Name { get; }
 
-        public bool Saveable { get; } = true;
+        public bool Saveable { get; }
 
         public virtual void Load()
             => Value = Entry.Value;
