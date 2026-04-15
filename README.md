@@ -30,12 +30,14 @@ A Fusion gamemode where a virus is released, but it's rather special... It turns
 
 [**MashedRam (or just Mash)**](https://github.com/mashedram) - After the release of v1.0.0 of the mod, MashedRam provided me with tips on how to improve the code for my mods (for example not having ALL the code in one file, i think it was like 2200 lines in `Infection.cs` at the time). I'm really thankful that you told me that, all of my code now is much more maintainable!!!
 
+[**Whaley**](https://mod.io/g/bonelab/u/googleuser2t9wsr) - Provided me mathematical equations which fixed the issue with big avatars not working well with low upper strength. Thank you so much!!
+
 ### Thank You To Testers
 
 - [Tλ²rek](https://github.com/TarekLP)
-- [Whaley](https://mod.io/g/bonelab/u/googleuser2t9wsr)
 - Breadskate
 - MrRandom
+- EXAnimated
 - And to all of the other people that helped during testing or reported bugs!
 
 Thank you for helping me test AvatarInfection to make it work as good as possible. Without your help this wouldn't be possible!
