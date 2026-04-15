@@ -12,9 +12,11 @@ namespace AvatarInfection.Patches
     [HarmonyPatch(typeof(PullCordDevice))]
     public static class PullCordDevicePatches
     {
-        // TODO: fix pull cord device not working after gamemode ends
+        // HACK: this will still display the ball, but prevents anything from happening when grabbing it. Should change it later probably
         [HarmonyPrefix]
-        [HarmonyPatch(nameof(PullCordDevice.EnableBall))]
+        [HarmonyPatch(nameof(PullCordDevice.OnBallGripAttached))]
+        [HarmonyPatch(nameof(PullCordDevice.OnBallGripDetached))]
+        [HarmonyPatch(nameof(PullCordDevice.OnBallGripUpdate))]
         public static bool OnBall(PullCordDevice __instance)
         {
             if (__instance == null)

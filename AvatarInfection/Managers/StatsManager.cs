@@ -3,6 +3,7 @@
 using AvatarInfection.Settings;
 using AvatarInfection.Utilities;
 
+using LabFusion.Player;
 using LabFusion.Utilities;
 
 namespace AvatarInfection.Managers
@@ -51,6 +52,7 @@ namespace AvatarInfection.Managers
             float? strengthUpper = GetToggleValue(metadata.StrengthUpper);
             float? vitality = GetToggleValue(metadata.Vitality);
 
+            LocalAvatar.HeightOverride = GetToggleValue(metadata.Height);
             Overrides.SetOverrides(speed, agility, strengthUpper, vitality, metadata.Mortality.Value);
         }
 

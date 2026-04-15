@@ -22,6 +22,8 @@ namespace AvatarInfection.Settings
 
         public ServerSetting<bool> CanUseGuns { get; set; }
 
+        public ToggleServerSetting<float> Height { get; set; }
+
         public ToggleServerSetting<float> Vitality { get; set; }
 
         public ToggleServerSetting<float> Speed { get; set; }
@@ -38,6 +40,7 @@ namespace AvatarInfection.Settings
             Mortality = CreateSetting(nameof(Mortality), config?.Mortality ?? default, nameof(Mortality));
             CanUseGuns = CreateSetting(nameof(CanUseGuns), config?.CanUseGuns ?? default, "Can Use Guns");
 
+            Height = CreateSetting(nameof(Height), config?.Height, nameof(Height));
             Vitality = CreateSetting(nameof(Vitality), config?.Vitality, nameof(Vitality));
             Speed = CreateSetting(nameof(Speed), config?.Speed, nameof(Speed));
             Agility = CreateSetting(nameof(Agility), config?.Agility, nameof(Agility));

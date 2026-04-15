@@ -6,6 +6,8 @@
 
         public bool CanUseGuns { get; set; }
 
+        public ToggleSetting<float> Height { get; set; }
+
         public ToggleSetting<float> Vitality { get; set; }
 
         public ToggleSetting<float> Speed { get; set; }
@@ -22,6 +24,7 @@
 
         public TeamSettings(TeamSettings old)
         {
+            Height = old.Height;
             Vitality = old.Vitality;
             Speed = old.Speed;
             JumpPower = old.JumpPower;

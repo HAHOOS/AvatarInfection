@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 
 using AvatarInfection.Helper;
 using AvatarInfection.Managers;
@@ -651,6 +650,8 @@ namespace AvatarInfection
             ClearDeathmatchSpawns();
 
             StatsManager.ClearOverrides();
+
+            LocalAvatar.HeightOverride = null;
 
             FusionOverrides.ForceUpdateOverrides();
         }

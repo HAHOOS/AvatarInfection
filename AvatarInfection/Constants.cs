@@ -43,6 +43,7 @@ namespace AvatarInfection
 
             public readonly static TeamSettings InfectedStats = new()
             {
+                Height = new(1f, false),
                 Vitality = new(0.75f),
                 JumpPower = new(1.5f),
                 Speed = new(2.8f),
@@ -56,6 +57,7 @@ namespace AvatarInfection
 
             public readonly static TeamSettings InfectedChildrenStats = new()
             {
+                Height = new(1f, false),
                 Vitality = new(0.5f),
                 JumpPower = new(1.25f),
                 Speed = new(1.8f),
@@ -69,6 +71,7 @@ namespace AvatarInfection
 
             public readonly static TeamSettings SurvivorsStats = new()
             {
+                Height = new(1f, false),
                 Vitality = new(1f),
                 JumpPower = new(1f),
                 Speed = new(1.2f),

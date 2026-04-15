@@ -42,6 +42,8 @@ namespace AvatarInfection.Patches
             {
                 __instance._strengthUpper = Overrides.StrengthUpper.Value;
                 __instance._strengthGrip = Overrides.StrengthUpper.Value;
+                // Thank you Whaley for the math thingies!
+                __instance._strengthLower = (0.6628f * Overrides.StrengthUpper.Value) + 0.4095f;
             }
         }
 
@@ -58,11 +60,7 @@ namespace AvatarInfection.Patches
                 return;
 
             if (Overrides.StrengthUpper.HasValue)
-            {
-                // Thank you Whaley for the math thingies!
                 __instance._massTotal = (15.375f * Overrides.StrengthUpper.Value) + 62.438f;
-                __instance._strengthLower = (0.6628f * Overrides.StrengthUpper.Value) + 0.4095f;
-            }
         }
 
         public static void EnsureOverrides()
