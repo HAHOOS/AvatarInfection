@@ -115,6 +115,7 @@ namespace AvatarInfection.Managers
             if (DebugPage == null)
                 return;
 
+            DebugPage.RemoveAll();
             DebugPage.CreateFunction("Nothing here yet", Color.white, null).SetProperty(ElementProperties.NoBorder);
         }
 

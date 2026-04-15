@@ -17,8 +17,9 @@ namespace AvatarInfection.Patches
         // TODO: account for stat overrides
         // TODO: scale mass with strength upper
         [HarmonyPriority(int.MinValue)]
+        [HarmonyPostfix]
         [HarmonyPatch(nameof(Avatar.ComputeBaseStats))]
-        public static void Postfix(Avatar __instance)
+        public static void OverrideStats(Avatar __instance)
         {
             if (__instance == null || __instance.name == "[RealHeptaRig (Marrow1)]")
                 return;
@@ -44,6 +45,40 @@ namespace AvatarInfection.Patches
                 __instance._strengthUpper = Overrides.StrengthUpper.Value;
                 __instance._strengthGrip = Overrides.StrengthUpper.Value;
             }
+        }
+
+        [HarmonyPriority(int.MinValue)]
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(Avatar.ComputeMass))]
+        public static void OverrideMass(Avatar __instance)
+        {
+            if (__instance == null || __instance.name == "[RealHeptaRig (Marrow1)]")
+                return;
+
+            var rm = __instance.GetComponentInParent<RigManager>();
+            if (rm != Player.RigManager)
+                return;
+
+            if (Overrides.StrengthUpper.HasValue)
+            {
+                // Thank you Whaley for the math thingies!
+                __instance._massTotal = (15.375f * Overrides.StrengthUpper.Value) + 62.438f;
+                __instance._strengthLower = (0.6628f * Overrides.StrengthUpper.Value) + 0.4095f;
+            }
+        }
+
+        public static void EnsureOverrides()
+        {
+            if (Infection.Instance?.IsStarted != true)
+                return;
+
+            if (Player.RigManager == null)
+                return;
+            var avatar = Player.RigManager.avatar;
+            if (avatar == null || avatar.name == "[RealHeptaRig (Marrow1)]")
+                return;
+            OverrideStats(avatar);
+            OverrideMass(avatar);
         }
     }
 }

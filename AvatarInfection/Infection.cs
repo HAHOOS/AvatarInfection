@@ -24,6 +24,8 @@ using LabFusion.Marrow.Integration;
 using LabFusion.Menu.Data;
 using LabFusion.Network;
 using LabFusion.Player;
+using LabFusion.Preferences;
+using LabFusion.Preferences.Server;
 using LabFusion.Scene;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.SDK.Metadata;
@@ -131,6 +133,7 @@ namespace AvatarInfection
             TimeManager.Repeat(GrabPatches.Update);
             TimeManager.Repeat(VisionManager.OnUpdate);
             TimeManager.Repeat(SurvivorsUpdate);
+            TimeManager.Repeat(EnsureKnockout);
 
             Infected = new("Infected", Color.green, this, new(Constants.Defaults.InfectedStats));
             Survivors = new("Survivors", Color.cyan, this, new(Constants.Defaults.SurvivorsStats));
@@ -479,7 +482,6 @@ namespace AvatarInfection
         public override void OnGamemodeSelected()
             => MetadataManager.SetAllMetadata();
 
-        // TODO: check what it actually does
         public override bool CanAttack(PlayerID player)
         {
             if (!IsStarted)
@@ -522,9 +524,11 @@ namespace AvatarInfection
 
             if (NetworkInfo.IsHost)
             {
-                LobbyInfoManager.LobbyInfo.Knockout = false;
+                EnsureKnockout();
+
                 ApplyGamemodeSettings();
                 AssignTeams();
+
                 MelonCoroutines.Start(InfectedLookingWait());
 
                 if (Config.TeleportOnStart.Value)
@@ -548,6 +552,18 @@ namespace AvatarInfection
 
             if (NetworkInfo.IsHost)
                 GamemodeMenuManager.RefreshSettingsPage();
+        }
+
+        private void EnsureKnockout()
+        {
+            if (!NetworkInfo.IsHost)
+                return;
+
+            if (!IsStarted)
+                return;
+
+            if (CommonPreferences.Knockout)
+                SavedServerSettings.Knockout.Value = false;
         }
 
         private void RevertToDefault(bool wasStarted = true)
@@ -746,7 +762,6 @@ namespace AvatarInfection
             LastPlayerActions[player] = type;
         }
 
-        // TODO: properly turn off knockout or account for knockout somehow
         private void DyingEvent(PlayerID player, PlayerID otherPlayer)
         {
             if (!Config.SuicideInfects.Value || otherPlayer != null)
