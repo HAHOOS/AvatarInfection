@@ -14,6 +14,8 @@ namespace AvatarInfection.Patches
     [HarmonyPatch(typeof(Avatar))]
     public static class AvatarPatches
     {
+        internal static bool DontOverrideMass { get; set; }
+
         [HarmonyPriority(int.MinValue)]
         [HarmonyPostfix]
         [HarmonyPatch(nameof(Avatar.ComputeBaseStats))]
@@ -43,7 +45,8 @@ namespace AvatarInfection.Patches
                 __instance._strengthUpper = Overrides.StrengthUpper.Value;
                 __instance._strengthGrip = Overrides.StrengthUpper.Value;
                 // Thank you Whaley for the math thingies!
-                __instance._strengthLower = (0.6628f * Overrides.StrengthUpper.Value) + 0.4095f;
+                if (!DontOverrideMass)
+                    __instance._strengthLower = (0.6628f * Overrides.StrengthUpper.Value) + 0.4095f;
             }
         }
 
@@ -59,7 +62,7 @@ namespace AvatarInfection.Patches
             if (rm != Player.RigManager)
                 return;
 
-            if (Overrides.StrengthUpper.HasValue)
+            if (Overrides.StrengthUpper.HasValue && !DontOverrideMass)
                 __instance._massTotal = (15.375f * Overrides.StrengthUpper.Value) + 62.438f;
         }
 

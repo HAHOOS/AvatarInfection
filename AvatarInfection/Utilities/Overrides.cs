@@ -87,6 +87,13 @@ namespace AvatarInfection.Utilities
             return false;
         }
 
+        public static void RefreshAvatar()
+        {
+            var rm = Player.RigManager;
+            if (rm?.AvatarCrate != null)
+                rm.SwapAvatarCrate(rm.AvatarCrate.Barcode);
+        }
+
         private static void SetMortality(bool? mortality, out bool changed)
         {
             changed = false;

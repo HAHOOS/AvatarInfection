@@ -137,6 +137,7 @@ namespace AvatarInfection
             TimeManager.Repeat(VisionManager.OnUpdate);
             TimeManager.Repeat(SurvivorsUpdate);
             TimeManager.Repeat(EnsureKnockout);
+            TimeManager.Repeat(AvatarPatches.EnsureOverrides);
 
             Infected = new("Infected", Color.green, this, new(Constants.Defaults.InfectedStats));
             Survivors = new("Survivors", Color.cyan, this, new(Constants.Defaults.SurvivorsStats));

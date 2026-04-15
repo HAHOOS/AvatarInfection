@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using AvatarInfection.Patches;
+using AvatarInfection.Utilities;
+
 using BoneLib.BoneMenu;
 
 using LabFusion.Network;
@@ -116,7 +119,8 @@ namespace AvatarInfection.Managers
                 return;
 
             DebugPage.RemoveAll();
-            DebugPage.CreateFunction("Nothing here yet", Color.white, null).SetProperty(ElementProperties.NoBorder);
+            DebugPage.CreateBool("Dont Override Mass and Strength Lower", Color.white, false, (v) => AvatarPatches.DontOverrideMass = v);
+            DebugPage.CreateFunction("Refresh Avatar", Color.yellow, Overrides.RefreshAvatar);
         }
 
 #endif
