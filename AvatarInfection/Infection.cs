@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 using AvatarInfection.Helper;
 using AvatarInfection.Managers;
@@ -109,6 +110,9 @@ namespace AvatarInfection
         private bool WasStarted;
 
         private List<ulong> LastInfected { get; } = [];
+
+        private bool KnockoutRevert { get; set; }
+        private bool KnockoutFirstCheck { get; set; } = true;
 
         public override GroupElementData CreateSettingsGroup()
             => GamemodeMenuManager.CreateSettingsGroup();
@@ -560,14 +564,32 @@ namespace AvatarInfection
                 return;
 
             if (!IsStarted)
+            {
+                KnockoutFirstCheck = true;
+                if (KnockoutRevert)
+                {
+                    SavedServerSettings.Knockout.Value = true;
+                    KnockoutRevert = false;
+                }
+                return;
+            }
+
+            if (Config.InfectType?.Value != InfectType.DEATH)
                 return;
 
             if (CommonPreferences.Knockout)
+            {
+                if (KnockoutFirstCheck)
+                    KnockoutRevert = true;
                 SavedServerSettings.Knockout.Value = false;
+            }
+            KnockoutFirstCheck = false;
         }
 
         private void RevertToDefault(bool wasStarted = true)
         {
+            KnockoutRevert = false;
+            KnockoutFirstCheck = true;
             HasBeenInfected = false;
             _elapsedTime = 0f;
             _surivorsLastCheckedMinutes = 0;

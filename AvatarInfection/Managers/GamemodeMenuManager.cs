@@ -86,6 +86,8 @@ namespace AvatarInfection.Managers
 
             if (Instance.Config.InfectType.Value == InfectType.TOUCH)
                 generalGroup.AddElement("Hold Time", Instance.Config.HoldTime.Value, (val) => Instance.Config.HoldTime.Value = val, max: 60);
+            else if (Instance.Config.InfectType.Value == InfectType.DEATH)
+                generalGroup.AddElement("<color=#ff0000>Death infect type will disable Knockout</color>", null);
 
             generalGroup.AddElement("Suicide Infects", Instance.Config.SuicideInfects.Value, (val) => Instance.Config.SuicideInfects.Value = val);
             generalGroup.AddElement("Save Settings", SaveSettings);
