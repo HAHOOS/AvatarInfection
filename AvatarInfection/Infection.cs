@@ -40,7 +40,6 @@ using UnityEngine;
 
 namespace AvatarInfection
 {
-    // TODO: add a "suicide" button (in the quick menu)
     public class Infection : Gamemode
     {
         public override string Title => Constants.Name;
