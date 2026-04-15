@@ -8,7 +8,9 @@ namespace AvatarInfection
 {
     internal static class Constants
     {
-        public const string Name = "Avatar Infection";
+        public const string Name = "<color=#73FF00>A</color><color=#6BFA02>v</color><color=#64F604>a</color><color=#5DF106>t</color><color=#56ED09>a</color><color=#4FE80B>r</color> <color=#40DF10>I</color><color=#39DB12>n</color><color=#32D714>f</color><color=#2BD217>e</color><color=#23CE19>c</color><color=#1CC91B>t</color><color=#15C51E>i</color><color=#0EC020>o</color><color=#07BC22>n</color>";
+
+        public const string PlainName = "Avatar Infection";
 
         // This probably needs to ACTUALLY explain how the gamemode works, but with all the settings its hard to explain everything.
         public const string Description = "An infection is spreading, turning people into a selected avatar by the host.";
@@ -17,7 +19,7 @@ namespace AvatarInfection
 
         public const string Version = "2.0.0";
 
-        public const string Barcode = $"{Author}.{Name}";
+        public const string Barcode = $"{Author}.{PlainName}";
 
         public const int InfectedBitReward = 50;
 

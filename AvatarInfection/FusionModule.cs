@@ -10,7 +10,7 @@ namespace AvatarInfection
     public class FusionModule : Module
     {
         /// <inheritdoc cref="Module.Name"/>
-        public override string Name => Constants.Name;
+        public override string Name => Constants.PlainName;
 
         /// <inheritdoc cref="Module.Author"/>
         public override string Author => Constants.Author;

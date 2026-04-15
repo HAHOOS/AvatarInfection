@@ -59,7 +59,7 @@ namespace AvatarInfection
                 return;
             }
 
-            Thunderstore = new Thunderstore($"{Constants.Name} / {Constants.Version} A BONELAB Mod");
+            Thunderstore = new Thunderstore($"{Constants.PlainName} / {Constants.Version} A BONELAB Mod");
             Thunderstore.BL_FetchPackage(Constants.Name.Replace(" ", ""), Constants.Author, Constants.Version, LoggerInstance);
             Hooking.OnLevelLoaded += OnLevelLoaded;
 
