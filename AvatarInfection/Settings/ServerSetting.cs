@@ -63,6 +63,7 @@ namespace AvatarInfection.Settings
             Value = Entry.Value;
         }
 
+        // TODO: fix this saving all the time for absolutely no reason.
         public virtual void Save()
         {
             if (!Saveable)
