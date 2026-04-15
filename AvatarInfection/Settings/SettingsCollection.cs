@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace AvatarInfection.Settings
@@ -36,9 +37,9 @@ namespace AvatarInfection.Settings
                     ((IServerSetting)x).Sync();
             });
 
-        internal ServerSetting<T> CreateServerSetting<T>(string name, T value, string displayName = null, bool autoSync = true, Action onValueChanged = null) where T : IEquatable<T>
+        internal ServerSetting<T> CreateServerSetting<T>(string name, T value, string displayName = null, bool autoSync = true, bool saveable = true, Action onValueChanged = null) where T : IEquatable<T>
         {
-            var setting = new ServerSetting<T>(Infection.Instance, name, value, displayName, autoSync);
+            var setting = new ServerSetting<T>(Infection.Instance, name, value, displayName, autoSync, saveable);
             setting.OnValueChanged += () => OnSettingChanged?.Invoke();
             setting.OnSynced += () => OnSettingSynced?.Invoke();
             if (onValueChanged != null)
@@ -47,9 +48,9 @@ namespace AvatarInfection.Settings
             return setting;
         }
 
-        internal LocalSetting<T> CreateLocalSetting<T>(string name, T value, Action onValueChanged = null)
+        internal LocalSetting<T> CreateLocalSetting<T>(string name, T value, bool saveable = true, Action onValueChanged = null)
         {
-            var setting = new LocalSetting<T>(name, value);
+            var setting = new LocalSetting<T>(name, value, saveable);
             setting.OnValueChanged += () => OnSettingChanged?.Invoke();
             if (onValueChanged != null)
                 setting.OnValueChanged += onValueChanged;
@@ -57,9 +58,9 @@ namespace AvatarInfection.Settings
             return setting;
         }
 
-        internal ToggleServerSetting<T> CreateToggleServerSetting<T>(string name, T value, bool enabled, string displayName = null, bool autoSync = true, Action onValueChanged = null) where T : IEquatable<T>
+        internal ToggleServerSetting<T> CreateToggleServerSetting<T>(string name, T value, bool enabled, string displayName = null, bool autoSync = true, bool saveable = true, Action onValueChanged = null) where T : IEquatable<T>
         {
-            var setting = new ToggleServerSetting<T>(Infection.Instance, name, value, enabled, displayName, autoSync);
+            var setting = new ToggleServerSetting<T>(Infection.Instance, name, value, enabled, displayName, autoSync, saveable);
             setting.OnValueChanged += () => OnSettingChanged?.Invoke();
             setting.OnSynced += () => OnSettingSynced?.Invoke();
             if (onValueChanged != null)

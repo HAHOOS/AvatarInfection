@@ -17,6 +17,8 @@ namespace AvatarInfection.Settings
 
         public string Name { get; private set; }
 
+        public bool Saveable { get; }
+
         public string DisplayName { get; set; }
 
         public bool AutoSync { get; set; }
@@ -51,20 +53,29 @@ namespace AvatarInfection.Settings
         public event Action OnSynced;
 
         public void Sync()
-        {
-            ServerValue.SetValue(_value);
-        }
+            => ServerValue.SetValue(_value);
 
         public virtual void Load()
-            => Value = Entry.Value;
+        {
+            if (!Saveable)
+                return;
+
+            Value = Entry.Value;
+        }
 
         public virtual void Save()
-            => Entry.Value = Value;
+        {
+            if (!Saveable)
+                return;
+
+            Entry.Value = Value;
+        }
 
         private void InitEvent(string name)
         {
             Name = name;
-            Entry = Core.Category.CreateEntry(name, Value);
+            if (Saveable)
+                Entry = Core.Category.CreateEntry(name, Value);
             GamemodeManager.OnGamemodeStarted += OnGamemodeStarted;
             MultiplayerHooking.OnStartedServer += Sync;
             MultiplayerHooking.OnJoinedServer += RetrieveValues;
@@ -104,22 +115,24 @@ namespace AvatarInfection.Settings
             }
         }
 
-        public ServerSetting(Gamemode gamemode, string name, string displayName = null, bool autoSync = true)
+        public ServerSetting(Gamemode gamemode, string name, string displayName = null, bool autoSync = true, bool saveable = true)
         {
             displayName ??= name;
             DisplayName = displayName;
             AutoSync = autoSync;
+            Saveable = saveable;
             this.gamemode = gamemode;
             ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             Value = default;
             InitEvent(name);
         }
 
-        public ServerSetting(Gamemode gamemode, string name, T value, string displayName = null, bool autoSync = true)
+        public ServerSetting(Gamemode gamemode, string name, T value, string displayName = null, bool autoSync = true, bool saveable = true)
         {
             displayName ??= name;
             DisplayName = displayName;
             AutoSync = autoSync;
+            Saveable = saveable;
             this.gamemode = gamemode;
             ServerValue = new MetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             Value = value;
@@ -134,6 +147,8 @@ namespace AvatarInfection.Settings
         public bool AutoSync { get; set; }
 
         public string Name { get; private set; }
+
+        public bool Saveable { get; }
 
         public string DisplayName { get; set; }
 
@@ -191,12 +206,18 @@ namespace AvatarInfection.Settings
 
         public virtual void Load()
         {
+            if (!Saveable)
+                return;
+
             Value = Entry.Value;
             Enabled = EnabledEntry.Value;
         }
 
         public virtual void Save()
         {
+            if (!Saveable)
+                return;
+
             Entry.Value = Value;
             EnabledEntry.Value = Enabled;
         }
@@ -204,8 +225,11 @@ namespace AvatarInfection.Settings
         private void InitEvent(string name)
         {
             Name = name;
-            Entry = Core.Category.CreateEntry(name, Value);
-            EnabledEntry = Core.Category.CreateEntry($"{name}_Enabled", Enabled);
+            if (Saveable)
+            {
+                Entry = Core.Category.CreateEntry(name, Value);
+                EnabledEntry = Core.Category.CreateEntry($"{name}_Enabled", Enabled);
+            }
             GamemodeManager.OnGamemodeStarted += OnGamemodeStarted;
             MultiplayerHooking.OnStartedServer += Sync;
             MultiplayerHooking.OnJoinedServer += RetrieveValues;
@@ -260,11 +284,12 @@ namespace AvatarInfection.Settings
             }
         }
 
-        public ToggleServerSetting(Gamemode gamemode, string name, string displayName = null, bool autoSync = true)
+        public ToggleServerSetting(Gamemode gamemode, string name, string displayName = null, bool autoSync = true, bool saveable = true)
         {
             displayName ??= name;
             DisplayName = displayName;
             AutoSync = autoSync;
+            Saveable = saveable;
             this.gamemode = gamemode;
             ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             Value = default;
@@ -272,11 +297,12 @@ namespace AvatarInfection.Settings
             InitEvent(name);
         }
 
-        public ToggleServerSetting(Gamemode gamemode, string name, T value, string displayName = null, bool autoSync = true)
+        public ToggleServerSetting(Gamemode gamemode, string name, T value, string displayName = null, bool autoSync = true, bool saveable = true)
         {
             displayName ??= name;
             DisplayName = displayName;
             AutoSync = autoSync;
+            Saveable = saveable;
             this.gamemode = gamemode;
             ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             Value = value;
@@ -284,11 +310,12 @@ namespace AvatarInfection.Settings
             InitEvent(name);
         }
 
-        public ToggleServerSetting(Gamemode gamemode, string name, T value, bool enabled, string displayName = null, bool autoSync = true)
+        public ToggleServerSetting(Gamemode gamemode, string name, T value, bool enabled, string displayName = null, bool autoSync = true, bool saveable = true)
         {
             displayName ??= name;
             DisplayName = displayName;
             AutoSync = autoSync;
+            Saveable = saveable;
             this.gamemode = gamemode;
             ServerValue = new ToggleMetadataVariableT<T>("ServerSetting_" + name, gamemode.Metadata);
             Value = value;

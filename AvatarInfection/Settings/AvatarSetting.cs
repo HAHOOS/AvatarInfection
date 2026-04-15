@@ -181,6 +181,9 @@ namespace AvatarInfection.Settings
             if (Value == null)
                 return;
 
+            if (!Saveable)
+                return;
+
             if (string.IsNullOrWhiteSpace(Value.Barcode))
                 return;
 
@@ -207,6 +210,9 @@ namespace AvatarInfection.Settings
 
         public override void Save()
         {
+            if (!Saveable)
+                return;
+
             if (Value.SelectMode != AvatarSelectMode.CONFIG)
             {
                 Entry.Value = new(null, Value.SelectMode);

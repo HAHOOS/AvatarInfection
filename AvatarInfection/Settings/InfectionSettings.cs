@@ -95,8 +95,8 @@ namespace AvatarInfection.Settings
 
             FriendlyFire = CreateServerSetting(nameof(FriendlyFire), Constants.Defaults.FriendlyFire);
 
-            StartUnix = CreateServerSetting<long>(nameof(StartUnix), -1);
-            EndUnix = CreateServerSetting<long>(nameof(EndUnix), -1);
+            StartUnix = CreateServerSetting<long>(nameof(StartUnix), -1, saveable: false);
+            EndUnix = CreateServerSetting<long>(nameof(EndUnix), -1, saveable: false);
 
             DontRepeatInfected = CreateLocalSetting(nameof(DontRepeatInfected), Constants.Defaults.DontRepeatInfected);
             HoldTime = CreateLocalSetting(nameof(HoldTime), Constants.Defaults.HoldTime);

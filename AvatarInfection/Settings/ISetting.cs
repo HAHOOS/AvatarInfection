@@ -6,6 +6,8 @@ namespace AvatarInfection.Settings
     {
         public string Name { get; }
 
+        public bool Saveable { get; }
+
         public event Action OnValueChanged;
 
         public void Save();

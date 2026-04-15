@@ -24,23 +24,27 @@ namespace AvatarInfection.Settings
 
         public string Name { get; }
 
+        public bool Saveable { get; } = true;
+
         public virtual void Load()
             => Value = Entry.Value;
 
         public virtual void Save()
             => Entry.Value = Value;
 
-        public LocalSetting(string name)
+        public LocalSetting(string name, bool saveable = true)
         {
             Value = default;
             Name = name;
+            Saveable = saveable;
             Entry = Core.Category.CreateEntry<T>(name, default);
         }
 
-        public LocalSetting(string name, T value)
+        public LocalSetting(string name, T value, bool saveable = true)
         {
             Value = value;
             Name = name;
+            Saveable = saveable;
             Entry = Core.Category.CreateEntry(name, value);
         }
     }
