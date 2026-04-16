@@ -14,6 +14,10 @@ A Fusion gamemode where a virus is released, but it's rather special... It turns
 - Two types of infection: TOUCH and DEATH
 - **and much, much more**
 
+<h2 align="center">Known Issues</h2>
+
+- Settings save when exiting the game, even tho it's not meant to
+
 <h2 align="center">FAQ</h2>
 
 ### Q: What is Infected Children?
