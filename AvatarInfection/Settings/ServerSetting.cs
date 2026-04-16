@@ -63,7 +63,7 @@ namespace AvatarInfection.Settings
             Value = Entry.Value;
         }
 
-        // TODO: fix this saving all the time for absolutely no reason.
+        // TODO: fix this saving all the time for absolutely no reason. Probably use JSON here later on
         public virtual void Save()
         {
             if (!Saveable)
