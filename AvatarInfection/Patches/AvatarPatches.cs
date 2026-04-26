@@ -45,6 +45,7 @@ namespace AvatarInfection.Patches
                 __instance._strengthUpper = Overrides.StrengthUpper.Value;
                 __instance._strengthGrip = Overrides.StrengthUpper.Value;
                 // Thank you Whaley for the math thingies!
+                // TODO: check if this actually required
                 if (!DontOverrideMass)
                     __instance._strengthLower = (0.6628f * Overrides.StrengthUpper.Value) + 0.4095f;
             }
