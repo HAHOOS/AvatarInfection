@@ -43,7 +43,7 @@ namespace AvatarInfection
             }
             catch (Exception e)
             {
-                LoggerInstance.Error($"Failed to load icon, exception:\n{e}");
+                LoggerInstance.Error("Failed to load icon", e);
             }
 
             try
@@ -53,7 +53,7 @@ namespace AvatarInfection
             }
             catch (Exception e)
             {
-                LoggerInstance.Error($"Failed to patch methods related to grab, exception:\n{e}");
+                LoggerInstance.Error("Failed to patch methods related to grab", e);
                 LoggerInstance.Error("To ensure fair play, the mod will be unloaded. Grab patches failing will cause some of the restrictions to not work properly. If you repeatedly get this issue, please create an issue at https://github.com/HAHOOS/AvatarInfection");
                 Unregister("Exception occurred preventing GrabPatches from working", false);
                 return;

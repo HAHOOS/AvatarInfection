@@ -25,7 +25,6 @@ namespace AvatarInfection.Managers
 
         internal static GroupElementData CreateSettingsGroup()
         {
-            // HACK: for some reason if i wouldn't have done this the settings wouldn't work
             var group = new GroupElementData()
             {
                 Title = Instance.Title,
