@@ -1,7 +1,5 @@
 ﻿using System;
 
-using AvatarInfection.Managers;
-
 using HarmonyLib;
 
 using Il2CppCysharp.Threading.Tasks;
@@ -64,25 +62,6 @@ namespace AvatarInfection.Patches
                 return Instance.Config.SelectedAvatar.Value?.Barcode;
             else
                 return Instance.Config.ChildrenSelectedAvatar.Value?.Barcode;
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPriority(int.MaxValue)]
-        [HarmonyPatch(nameof(RigManager.SwapAvatarCrate))]
-        [HarmonyPatch(nameof(RigManager.SwapAvatar))]
-        [HarmonyPatch(nameof(RigManager.SwitchAvatar))]
-        public static void AvatarChangePostfix(RigManager __instance)
-        {
-            if (!NetworkInfo.HasServer)
-                return;
-
-            if (__instance?.IsLocalPlayer() != true)
-                return;
-
-            if (!Instance.IsStarted)
-                return;
-
-            MetadataManager.SetAvatarModId();
         }
 
         private static bool IsPrimary()

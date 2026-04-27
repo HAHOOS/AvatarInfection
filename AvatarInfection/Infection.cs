@@ -126,9 +126,9 @@ namespace AvatarInfection
             MultiplayerHooking.OnPlayerAction += OnPlayerAction;
             MultiplayerHooking.OnPlayerJoined += OnPlayerJoin;
             MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
-            MultiplayerHooking.OnStartedServer += MetadataManager.SetAllMetadata;
-            MultiplayerHooking.OnJoinedServer += MetadataManager.SetAllMetadata;
-            MultiplayerHooking.OnTargetLevelLoaded += MetadataManager.SetAllMetadata;
+            MultiplayerHooking.OnStartedServer += MetadataManager.IHaveAvatarInfection;
+            MultiplayerHooking.OnJoinedServer += MetadataManager.IHaveAvatarInfection;
+            MultiplayerHooking.OnTargetLevelLoaded += MetadataManager.IHaveAvatarInfection;
             MultiplayerHooking.OnDisconnected += Cleanup;
 
             TimeManager.Repeat(Timer);
@@ -480,10 +480,10 @@ namespace AvatarInfection
 #endif
 
         public override void OnGamemodeReady()
-            => MetadataManager.SetAllMetadata();
+            => MetadataManager.IHaveAvatarInfection();
 
         public override void OnGamemodeSelected()
-            => MetadataManager.SetAllMetadata();
+            => MetadataManager.IHaveAvatarInfection();
 
         public override bool CanAttack(PlayerID player)
         {

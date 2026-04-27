@@ -60,7 +60,7 @@ namespace AvatarInfection
             }
 
             Thunderstore = new Thunderstore($"{Constants.PlainName} / {Constants.Version} A BONELAB Mod");
-            Thunderstore.BL_FetchPackage(Constants.Name.Replace(" ", ""), Constants.Author, Constants.Version, LoggerInstance);
+            Thunderstore.BL_FetchPackage(Constants.PlainName.Replace(" ", ""), Constants.Author, Constants.Version, LoggerInstance);
             Hooking.OnLevelLoaded += OnLevelLoaded;
 
             LoggerInstance.Msg("Registering module");

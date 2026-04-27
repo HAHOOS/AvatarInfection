@@ -39,31 +39,8 @@ namespace AvatarInfection.Managers
             return plrs;
         }
 
-        public static void SetAllMetadata()
-        {
-            IHaveAvatarInfection();
-            SetAvatarModId();
-        }
-
-        public static void SetAvatarModId()
-        {
-            if (AssetWarehouse.Instance?.initialized != true)
-                return;
-
-            if (Player.RigManager == null)
-                return;
-
-            var pallet = Player.RigManager.AvatarCrate.Crate?.Pallet;
-            if (pallet == null)
-                return;
-
-            var modId = CrateFilterer.GetModID(pallet);
-
-            LocalPlayer.Metadata.Metadata.TrySetMetadata(AVATAR_MOD_ID, modId.ToString());
-        }
-
         public static bool IsAvatarDownloadable(this PlayerID player)
-            => player.Metadata.Metadata.TryGetMetadata(AVATAR_MOD_ID, out string val)
-            && !string.IsNullOrWhiteSpace(val) && int.TryParse(val, out int res) && res != -1;
+            => !string.IsNullOrWhiteSpace(player?.Metadata?.AvatarModID?.GetValueOrEmpty())
+            && player.Metadata.AvatarModID.GetValue() != -1;
     }
 }

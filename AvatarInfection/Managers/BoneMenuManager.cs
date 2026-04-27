@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-using AvatarInfection.Patches;
-using AvatarInfection.Utilities;
-
 using BoneLib.BoneMenu;
 
 using LabFusion.Network;
@@ -19,15 +16,13 @@ namespace AvatarInfection.Managers
 {
     internal static class BoneMenuManager
     {
-        public static Page AuthorPage { get; private set; }
         public static Page ModPage { get; private set; }
 
         public static Page DebugPage { get; private set; }
 
         public static void Setup()
         {
-            AuthorPage = Page.Root.CreatePage("HAHOOS", Color.white);
-            ModPage = AuthorPage.CreatePage("AvatarInfection", Color.magenta);
+            ModPage = Page.Root.CreatePage(Constants.Name, Color.white);
             PopulatePage();
 
             MultiplayerHooking.OnDisconnected += PopulatePage;
