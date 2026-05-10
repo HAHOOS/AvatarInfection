@@ -12,8 +12,6 @@ namespace AvatarInfection.Managers
     {
         public const string HAS_AVATAR_INFECTION_KEY = "DoYouHaveAvatarInfection";
 
-        public const string AVATAR_MOD_ID = "AvatarInfection-AvatarModId";
-
         // Could the name be better? Yes
         // Will I improve it? No
         public static void IHaveAvatarInfection()
