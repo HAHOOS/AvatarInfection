@@ -17,7 +17,7 @@ namespace AvatarInfection
 
         public const string Author = "HAHOOS";
 
-        public const string Version = "2.0.0";
+        public const string Version = "2.1.0";
 
         public const string Barcode = $"{Author}.{PlainName}";
 
