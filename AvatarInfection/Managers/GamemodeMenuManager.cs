@@ -253,7 +253,7 @@ namespace AvatarInfection.Managers
             => string.Format(TeamConfigName, team.DisplayName);
 
         // For some reason, visual studio deems the suppression unnecessary, but if I remove it, it gives me a fucking warning, very logical.
-        // Copilot stop trying to suggest me how to write commands. please.
+        // Copilot stop trying to suggest me how to write comments. please.
 #pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable S3011 // Make sure that this accessibility bypass is safe here
 
