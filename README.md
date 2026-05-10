@@ -5,7 +5,7 @@
 
 A LabFusion gamemode where a virus is released, but it's rather special... It turns the infected people into a selected avatar! This gamemode offers a lot of customazibility compared to other gamemodes.
 
-<h2 align="center">Features</h2>
+## Features
 
 - Ability to set any avatar of your choice to be the infected
   - You can also set the avatar to a random one (and also filter the avatars!) or set it to the avatar the first chosen infected player has!
@@ -14,11 +14,11 @@ A LabFusion gamemode where a virus is released, but it's rather special... It tu
 - Two available types of infecting: TOUCH and DEATH
 - **and much, much more**
 
-<h2 align="center">Known Issues</h2>
+## Known Issues
 
 - Settings save when exiting the game, even tho it's not meant to
 
-<h2 align="center">FAQ</h2>
+## FAQ
 
 ### Q: What is Infected Children?
 
@@ -36,7 +36,7 @@ A LabFusion gamemode where a virus is released, but it's rather special... It tu
 
 **A:** Make sure you do not have any code mod installed that blocks the level changing avatar behaviour (PullCordForceChange). The mod relies on it to give a bit of an "effect". This logic might be changed in the future.
 
-<h2 align="center">Credits</h2>
+## Credits
 
 [**Lakatrazz**](https://github.com/Lakatrazz) - This gamemode is a heavily modified version of the included in Fusion gamemode Hide & Seek which was made by Lakatrazz. Also LabFusion, which the gamemode is for, was created by Lakatrazz!
 
