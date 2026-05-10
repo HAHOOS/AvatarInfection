@@ -174,6 +174,7 @@ namespace AvatarInfection.Utilities
             }
         }
 
+        // TODO: play the effect, but do not use PullCordForceChange's avatar change logic
         private static void ForceChange(string barcode)
         {
             var pullCord = new GameObject("AI_PCFC");
