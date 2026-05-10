@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Linq;
 
+using BoneLib.BoneMenu;
+
 using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 using LabFusion.Menu.Gamemodes;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
+
+using UnityEngine;
 
 namespace AvatarInfection.Helper
 {
@@ -114,6 +118,17 @@ namespace AvatarInfection.Helper
             var groupData = new GroupElementData(title);
             group.AddElement(groupData);
             return groupData;
+        }
+
+        public static BoneLib.BoneMenu.FunctionElement CreateBlank(this Page page)
+            => CreateLabel(page, string.Empty, Color.white);
+
+        public static BoneLib.BoneMenu.FunctionElement CreateLabel(this Page page, string text, Color color)
+        {
+            var element = new BoneLib.BoneMenu.FunctionElement(text, color, null);
+            element.SetProperty(ElementProperties.NoBorder);
+            page.Add(element);
+            return element;
         }
 
         public static void ShowNotification

@@ -1,6 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+#if DEBUG || SOLOTESTING
+
+using AvatarInfection.Patches;
+using AvatarInfection.Utilities;
+
+#endif
+
 using BoneLib.BoneMenu;
 
 using LabFusion.Network;
@@ -20,9 +27,18 @@ namespace AvatarInfection.Managers
 
         public static Page DebugPage { get; private set; }
 
+        public static Page FiltersPage { get; private set; }
+
+        public static Page InfectedFiltersPage { get; private set; }
+
+        public static Page InfectedChildrenFiltersPage { get; private set; }
+
         public static void Setup()
         {
             ModPage = Page.Root.CreatePage(Constants.Name, Color.white);
+            FiltersPage = ModPage.CreatePage("Filters", Color.yellow, createLink: false);
+            InfectedFiltersPage = FiltersPage.CreatePage(Infection.Instance.Infected.DisplayName, Infection.Instance.Infected.Color, createLink: false);
+            InfectedChildrenFiltersPage = FiltersPage.CreatePage(Infection.Instance.InfectedChildren.DisplayName, Infection.Instance.InfectedChildren.Color, createLink: false);
             PopulatePage();
 
             MultiplayerHooking.OnDisconnected += PopulatePage;
@@ -62,6 +78,8 @@ namespace AvatarInfection.Managers
             ModPage.CreatePageLink(DebugPage);
             CreateDebugPage();
 #endif
+            ModPage.CreatePageLink(FiltersPage);
+            SetupFilters();
             ModPage.CreateFunction("Refresh", Color.cyan, PopulatePage);
             Core.Thunderstore.BL_CreateMenuLabel(ModPage, false);
             ModPage.CreateFunction("[===============]", Color.magenta, null).SetProperty(ElementProperties.NoBorder);
@@ -120,6 +138,40 @@ namespace AvatarInfection.Managers
 
 #endif
 
+        private static void SetupFilters()
+        {
+            if (FiltersPage == null)
+                return;
+
+            FiltersPage.RemoveAll();
+
+            FiltersPage.CreateEnum("Type", Color.yellow, Infection.Instance.Config.SyncFilters.Value ? SyncType.Global : SyncType.TeamBased, (val) =>
+            {
+                Infection.Instance.Config.SyncFilters.Value = ((SyncType)val == SyncType.Global);
+                SetupFilters();
+            });
+            if (Infection.Instance.Config.SyncFilters.Value)
+                ChangeInfectedPage("Global", Color.red);
+            else
+                ChangeInfectedPage(Infection.Instance.Infected.DisplayName, Infection.Instance.Infected.Color);
+
+            FiltersPage.CreatePageLink(InfectedFiltersPage);
+            if (!Infection.Instance.Config.SyncFilters.Value)
+                FiltersPage.CreatePageLink(InfectedChildrenFiltersPage);
+
+            if (Infection.Instance.InfectedFilters?.IsSetup == true && Infection.Instance.InfectedChildrenFilters?.IsSetup == true)
+            {
+                Infection.Instance.InfectedFilters.SetupPage();
+                Infection.Instance.InfectedChildrenFilters.SetupPage();
+            }
+        }
+
+        private static void ChangeInfectedPage(string name, Color color)
+        {
+            InfectedFiltersPage.Name = name;
+            InfectedFiltersPage.Color = color;
+        }
+
         private static TeamPage CreateTeamPage(Team team)
         {
             if (!Teams.Any(x => x.Value == team))
@@ -134,6 +186,12 @@ namespace AvatarInfection.Managers
         {
             var label = ModPage.CreateFunction(error, Color.white, null);
             label.SetProperty(ElementProperties.NoBorder);
+        }
+
+        public enum SyncType
+        {
+            Global,
+            TeamBased
         }
     }
 

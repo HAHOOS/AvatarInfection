@@ -109,6 +109,8 @@ namespace AvatarInfection
 
             public const bool SyncWithInfected = false;
 
+            public const bool SyncFilters = true;
+
             public const bool ShowCountdownToAll = false;
 
             public const bool FriendlyFire = true;

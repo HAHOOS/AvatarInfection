@@ -112,6 +112,10 @@ namespace AvatarInfection
         private bool KnockoutRevert { get; set; }
         private bool KnockoutFirstCheck { get; set; } = true;
 
+        internal TeamFilters InfectedFilters { get; set; }
+
+        internal TeamFilters InfectedChildrenFilters { get; set; }
+
         public override GroupElementData CreateSettingsGroup()
             => GamemodeMenuManager.CreateSettingsGroup();
 
@@ -152,6 +156,9 @@ namespace AvatarInfection
             // Fired after team is assigned, not before
             TeamManager.OnAssignedToInfectedTeam += OnAssignedToTeam;
 
+            Config.SelectedAvatar.Team = Infected;
+            Config.ChildrenSelectedAvatar.Team = InfectedChildren;
+
             InfectedLooking = new MetadataBool(nameof(InfectedLooking), Metadata);
             CountdownValue = new MetadataInt(nameof(CountdownValue), Metadata);
             Metadata.OnMetadataChanged += OnMetadataChanged;
@@ -167,6 +174,15 @@ namespace AvatarInfection
             EventManager.RegisterNotification(EventType.SurvivorsVictory, "Survivors Won", "There were people not infected in time!");
 
             BoneMenuManager.Setup();
+
+            InfectedFilters = new(Infected, BoneMenuManager.InfectedFiltersPage);
+            InfectedChildrenFilters = new(InfectedChildren, BoneMenuManager.InfectedChildrenFiltersPage);
+
+            InfectedFilters.Setup();
+            InfectedChildrenFilters.Setup();
+
+            InfectedFilters.SetupPage();
+            InfectedChildrenFilters.SetupPage();
         }
 
         private TeamMetadata GetInfectedChildrenMetadata()
@@ -409,6 +425,21 @@ namespace AvatarInfection
             if (NetworkPlayer.Players.Count < 2)
             {
                 Core.Logger.Error("There must be at least 2 players to start");
+                return false;
+            }
+
+            if (InfectedFilters.Enabled.Value &&
+                InfectedFilters.FilterHandlers.TrueForAll(x => x.IsEmpty()))
+            {
+                Core.Logger.Error("The Infected/Global filters cannot have everything blacklisted or nothing whitelisted!");
+                return false;
+            }
+
+            if (!Config.SyncFilters.Value &&
+                InfectedChildrenFilters.Enabled.Value &&
+                InfectedChildrenFilters.FilterHandlers.TrueForAll(x => x.IsEmpty()))
+            {
+                Core.Logger.Error("The Infected Children filters cannot have everything blacklisted or nothing whitelisted!");
                 return false;
             }
 

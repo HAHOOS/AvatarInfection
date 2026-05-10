@@ -41,6 +41,8 @@ namespace AvatarInfection.Settings
 
         #region Local
 
+        internal LocalSetting<bool> SyncFilters { get; set; }
+
         internal LocalSetting<InfectType> InfectType { get; set; }
 
         internal LocalSetting<int> TimeLimit { get; set; }
@@ -98,6 +100,7 @@ namespace AvatarInfection.Settings
             StartUnix = CreateServerSetting<long>(nameof(StartUnix), -1, saveable: false);
             EndUnix = CreateServerSetting<long>(nameof(EndUnix), -1, saveable: false);
 
+            SyncFilters = CreateLocalSetting(nameof(SyncFilters), Constants.Defaults.SyncFilters);
             DontRepeatInfected = CreateLocalSetting(nameof(DontRepeatInfected), Constants.Defaults.DontRepeatInfected);
             HoldTime = CreateLocalSetting(nameof(HoldTime), Constants.Defaults.HoldTime);
             InfectedCount = CreateLocalSetting(nameof(InfectedCount), Constants.Defaults.InfectedCount);

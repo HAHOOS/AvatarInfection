@@ -3,11 +3,13 @@ using System.Linq;
 
 using AvatarInfection.Helper;
 using AvatarInfection.Managers;
+using AvatarInfection.Utilities;
 
 using BoneLib;
 
 using Il2CppSLZ.Marrow.Warehouse;
 
+using LabFusion.Extensions;
 using LabFusion.Menu.Data;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
@@ -23,6 +25,18 @@ namespace AvatarInfection.Settings
         public string GroupName { get; set; }
 
         public bool Optional { get; set; }
+
+        public Team Team { get; set; }
+
+        private TeamFilters Filters
+        {
+            get
+            {
+                if (Team == Instance.Infected) return Instance.InfectedFilters;
+                else if (Team == Instance.InfectedChildren) return Instance.Config.SyncFilters.Value ? Instance.InfectedFilters : Instance.InfectedChildrenFilters;
+                else return null;
+            }
+        }
 
         public AvatarSelectMode[] DisallowedSelectModes { get; set; } = [];
 
@@ -53,7 +67,8 @@ namespace AvatarInfection.Settings
             }
             else if (Value?.SelectMode == AvatarSelectMode.RANDOM)
             {
-                avatarGroup.AddElement($"Chosen from {GetAvatars().Length} Avatars", null);
+                avatarGroup.AddElement($"Chosen from {GetAllowedAvatars()} Avatars", null);
+                avatarGroup.AddElement("Setup filters through BoneMenu", null);
                 if (Instance.IsStarted)
                 {
                     avatarGroup.AddElement("Select New Random Avatar", () =>
@@ -105,13 +120,29 @@ namespace AvatarInfection.Settings
 
         public void SetRandomAvatar()
         {
-            var avatars = GetAvatars();
+            var avatars = GetAllowedAvatars();
+            avatars.Shuffle();
             var avatar = avatars.Random();
             SetAvatar(avatar, PlayerIDManager.LocalID);
         }
 
+        private static AvatarCrate GetCrate(string barcode)
+        {
+            var _ref = new AvatarCrateReference(barcode);
+            if (!_ref.TryGetCrate(out AvatarCrate crate))
+                return null;
+
+            return crate;
+        }
+
         public static string GetRandomAvatar()
             => GetAvatars().Random();
+
+        public int GetAllowedAvatarsCount()
+            => GetAvatars().Count(x => Filters?.IsAvatarAllowed(GetCrate(x)) != false);
+
+        public string[] GetAllowedAvatars()
+            => [.. GetAvatars().Where(x => Filters?.IsAvatarAllowed(GetCrate(x)) != false)];
 
         public static string[] GetAvatars()
         {
