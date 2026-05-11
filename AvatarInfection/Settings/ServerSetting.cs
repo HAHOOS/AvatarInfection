@@ -105,6 +105,8 @@ namespace AvatarInfection.Settings
                 if (_value.Equals(ServerValue.GetValue()))
                 {
                     OnSynced?.Invoke();
+                    if (NetworkInfo.IsHost)
+                        OnValueChanged?.Invoke();
                 }
                 else
                 {
@@ -260,6 +262,8 @@ namespace AvatarInfection.Settings
                 if (_value.Equals(ServerValue.GetValue()))
                 {
                     OnSynced?.Invoke();
+                    if (NetworkInfo.IsHost)
+                        OnValueChanged?.Invoke();
                 }
                 else
                 {
@@ -274,6 +278,8 @@ namespace AvatarInfection.Settings
                 if (Enabled == ServerValue.IsEnabled)
                 {
                     OnSynced?.Invoke();
+                    if (NetworkInfo.IsHost)
+                        OnValueChanged?.Invoke();
                 }
                 else
                 {

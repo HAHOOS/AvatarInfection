@@ -67,7 +67,11 @@ namespace AvatarInfection.Settings
             }
             else if (Value?.SelectMode == AvatarSelectMode.RANDOM)
             {
-                avatarGroup.AddElement($"Chosen from {GetAllowedAvatars()} Avatars", null);
+                var allowed = GetAllowedAvatarsCount();
+                if (allowed.allowed == allowed.total)
+                    avatarGroup.AddElement($"Chosen from {allowed.total} Avatars", null);
+                else
+                    avatarGroup.AddElement($"Chosen from {allowed.allowed}/{allowed.total} Avatars", null);
                 avatarGroup.AddElement("Setup filters through BoneMenu", null);
                 if (Instance.IsStarted)
                 {
@@ -138,8 +142,20 @@ namespace AvatarInfection.Settings
         public static string GetRandomAvatar()
             => GetAvatars().Random();
 
-        public int GetAllowedAvatarsCount()
-            => GetAvatars().Count(x => Filters?.IsAvatarAllowed(GetCrate(x)) != false);
+        public (int allowed, int total) GetAllowedAvatarsCount()
+        {
+            var avatars = GetAvatars();
+            int a = 0;
+            int t = 0;
+            avatars.ForEach(x =>
+            {
+                if (Filters?.IsAvatarAllowed(GetCrate(x)) != false)
+                    a++;
+
+                t++;
+            });
+            return (a, t);
+        }
 
         public string[] GetAllowedAvatars()
             => [.. GetAvatars().Where(x => Filters?.IsAvatarAllowed(GetCrate(x)) != false)];
